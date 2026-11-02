@@ -49,13 +49,21 @@ final class PanelController: NSObject, NSWindowDelegate {
         model.panelVisible = false
     }
 
+    /// Show and Hide in the menus. Opening a menu takes the keyboard from the
+    /// panel, so this goes by visibility only, like the menu item's title.
     func toggle() {
-        if panel.isVisible && panel.isKeyWindow { hide() } else { show() }
+        if panel.isVisible { hide() } else { show() }
     }
 
-    /// The global shortcut: show the panel with a new todo ready for typing.
+    /// The global shortcut: hides the panel when it has the keyboard, otherwise
+    /// shows it with a new todo ready for typing. Hiding drops an empty new row.
     func quickAdd() {
-        if panel.isVisible && panel.isKeyWindow && model.editingID == nil { hide(); return }
+        if panel.isVisible && panel.isKeyWindow { hide(); return }
+        newTodo()
+    }
+
+    /// New Todo in the menu bar menu: always shows the panel and starts a todo.
+    func newTodo() {
         show()
         if model.editingID == nil { model.add() }
     }

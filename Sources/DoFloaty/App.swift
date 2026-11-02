@@ -97,7 +97,7 @@ private struct MenuBarMenu: View {
 
     var body: some View {
         Button(model.panelVisible ? "Hide DoFloaty" : "Show DoFloaty") { PanelController.shared.toggle() }
-        Button("New Todo") { PanelController.shared.quickAdd() }
+        Button("New Todo") { PanelController.shared.newTodo() }
         Divider()
         Button("Settings…") { SettingsWindowController.shared.show() }
         Divider()

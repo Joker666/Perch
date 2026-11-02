@@ -214,7 +214,7 @@ Screens: settings-icon
 Acceptance:
 - [snap] Each row has a radio circle, the icon, its name, and "Current icon" under the active one.
 - [manual] The Dock icon changes at once (NSApp.applicationIconImage) and after a restart.
-Status: doing
+Status: done
 
 ## M5 System
 
@@ -222,7 +222,7 @@ Status: doing
 As the user, I click the checkmark icon in the menu bar to show or hide the panel, open Settings, or quit.
 Acceptance:
 - [manual] The menu has Show DoFloaty / Hide DoFloaty, Settings…, Quit DoFloaty.
-Status: doing
+Status: done
 
 ### S-023 Show and hide with a global shortcut
 As the user, I press Control-Option-Space anywhere to show the panel and focus a new todo, and press it again to hide it.
@@ -230,7 +230,7 @@ Screens: settings-shortcuts
 Acceptance:
 - [manual] Works when another app is frontmost.
 - [snap] Settings > Shortcuts lists the global shortcut and the in-panel keys.
-Status: doing
+Status: done
 
 ### S-024 About tab
 As the user, I open Settings > About and see the icon, name, and version.
@@ -245,7 +245,7 @@ Status: done
 As the user, I right-click a todo and choose Complete, Edit, or Delete.
 Acceptance:
 - [manual] Each item does the same as its key and shows the key in the menu.
-Status: doing
+Status: done
 
 ### S-026 Hover highlight
 As the user, I hover a row and it shows a faint highlight (60% of the selection) that fades in 0.14 s.
