@@ -17,6 +17,6 @@
 | Font Size | The point size of todo text | text size |
 | Radius | The corner radius of the panel, in px | corner, roundness |
 | App Icon | One of 8 icons for the Dock, one per theme | logo |
-| Sound | The short chime when you complete a todo. On unless people turn it off | chime, ding |
+| Sound | The short click when you complete a todo. On unless people turn it off | chime, ding |
 | Global shortcut | The key combination that shows or hides Perch from any app. ⌃⌥Space unless people change it | hotkey, hot key |
 | Show Perch / Hide Perch | Bring the panel up or put it away | open, toggle |

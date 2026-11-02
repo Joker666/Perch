@@ -1,6 +1,6 @@
 import AppKit
 
-/// The short chime when you complete a todo in the panel. It is made in code,
+/// The short click when you complete a todo in the panel. It is made in code,
 /// so Perch ships no audio file.
 @MainActor
 enum CompletionSound {
@@ -22,22 +22,34 @@ enum CompletionSound {
 
     static let sound = NSSound(data: wav())
 
-    /// Two soft rising notes (E6, then B6), each a sine with a quiet octave
-    /// that fades out fast. 16-bit mono WAV.
+    /// A key switch: a firm press, then a lighter release 45 ms later. Each click
+    /// is a high tick, a lower body, and a burst of noise, all fading in a few
+    /// milliseconds. 16-bit mono WAV.
     static func wav() -> Data {
         let rate = 44_100.0
-        let length = Int(rate * 0.32)
-        let notes: [(start: Double, frequency: Double)] = [(0, 1318.5), (0.07, 1975.5)]
+        let length = Int(rate * 0.1)
+        let clicks: [(start: Double, gain: Double, tick: Double, body: Double, decay: Double)] = [
+            (0, 1, 2600, 900, 0.004),
+            (0.045, 0.55, 3400, 1200, 0.003),
+        ]
+        var seed: UInt32 = 0x5045_5243 // a fixed seed, so every launch makes the same click
+        var previousNoise = 0.0
         var samples = [Int16](repeating: 0, count: length)
         for i in 0..<length {
             let time = Double(i) / rate
+            seed = seed &* 1_664_525 &+ 1_013_904_223
+            let noise = Double(seed >> 8) / Double(1 << 24) * 2 - 1
+            let sharpNoise = noise - previousNoise // a rough high-pass
+            previousNoise = noise
             var value = 0.0
-            for note in notes where time >= note.start {
-                let t = time - note.start
-                let envelope = min(t / 0.004, 1) * exp(-t / 0.06)
-                value += envelope * (sin(2 * .pi * note.frequency * t) + 0.12 * sin(4 * .pi * note.frequency * t))
+            for click in clicks where time >= click.start {
+                let t = time - click.start
+                value += click.gain * min(t / 0.0004, 1) * (
+                    0.55 * sin(2 * .pi * click.tick * t) * exp(-t / click.decay)
+                    + 0.35 * sin(2 * .pi * click.body * t) * exp(-t / (click.decay * 2.5))
+                    + 0.25 * sharpNoise * exp(-t / 0.0015))
             }
-            samples[i] = Int16(max(-1, min(1, value * 0.22)) * Double(Int16.max))
+            samples[i] = Int16(max(-1, min(1, value * 0.6)) * Double(Int16.max))
         }
         var data = Data()
         func append<T: FixedWidthInteger>(_ value: T) { withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) } }

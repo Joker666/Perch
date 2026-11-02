@@ -148,7 +148,7 @@ enum SelfTest {
         }
 
         // S-031 the completion sound: the panel asks for it, an agent's complete does not
-        check("The completion sound is a valid sound", (CompletionSound.sound?.duration ?? 0) > 0.2,
+        check("The completion sound is a valid sound", (CompletionSound.sound?.duration ?? 0) > 0.05,
               "\(CompletionSound.sound?.duration ?? 0) s")
         if let quiet = m.add(text: "Sound check") {
             let asked = CompletionSound.requests

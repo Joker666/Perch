@@ -94,7 +94,7 @@ final class Prefs {
     var fontSize: Double { didSet { save(fontSize, "fontSize") } }
     var radius: Double { didSet { save(radius, "radius") } }
     var iconID: String { didSet { save(iconID, "icon"); AppIcons.apply(iconID) } }
-    /// The chime when you complete a todo (`CompletionSound`). On by default.
+    /// The click when you complete a todo (`CompletionSound`). On by default.
     var completionSound: Bool { didSet { save(completionSound, "completionSound") } }
 
     var theme: Theme { Theme.named(themeID) }
