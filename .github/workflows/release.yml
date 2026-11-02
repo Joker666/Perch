@@ -97,8 +97,12 @@ jobs:
             } >> "$GITHUB_ENV"
           fi
 
+      # Hand-written notes in docs/release-notes/v<version>.md replace the commit subjects.
       - name: Build, sign, and notarize
-        run: tools/release.sh
+        run: |
+          notes="docs/release-notes/v$VERSION.md"
+          if [[ -f "$notes" ]]; then export RELEASE_NOTES="$notes"; fi
+          tools/release.sh
 
       # The site job publishes this file. A fresh checkout of main there can miss the commit below.
       - uses: actions/upload-artifact@v4
