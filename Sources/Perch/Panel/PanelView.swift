@@ -107,7 +107,7 @@ private struct TodoList: View {
     private var target: Int? { reorder?.target }
 
     private func offset(at index: Int) -> CGFloat {
-        reorder?.offset(at: index) ?? 0
+        reorder?.offset(at: index) ?? 0 // grid: ok no drag, so no row moves
     }
 
     private func reorderGesture(_ todo: Todo, _ index: Int) -> some Gesture {

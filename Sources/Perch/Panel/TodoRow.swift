@@ -18,9 +18,7 @@ struct TodoRow: View {
 
     var body: some View {
         HStack(spacing: PanelStyle.textInset) {
-            CheckCircle(checked: isChecked, size: metrics.circleSize) {
-                if todo.isCompleted { model.restore([todo.uuid]) } else { model.complete([todo.uuid]) }
-            }
+            CheckCircle(checked: isChecked, size: metrics.circleSize, action: completeOrRestore)
             label
         }
         .padding(.horizontal, PanelStyle.rowInset)
@@ -33,9 +31,11 @@ struct TodoRow: View {
         .accessibilityElement(children: isEditing ? .contain : .combine)
         .accessibilityLabel(todo.text)
         .accessibilityValue(todo.isCompleted ? "Completed" : "")
-        .accessibilityAction(named: todo.isCompleted ? "Restore" : "Complete") {
-            if todo.isCompleted { model.restore([todo.uuid]) } else { model.complete([todo.uuid]) }
-        }
+        .accessibilityAction(named: todo.isCompleted ? "Restore" : "Complete", completeOrRestore)
+    }
+
+    private func completeOrRestore() {
+        if todo.isCompleted { model.restore([todo.uuid]) } else { model.complete([todo.uuid]) }
     }
 
     @ViewBuilder
@@ -137,7 +137,7 @@ struct CheckCircle: View {
             .frame(width: size, height: size)
             .padding(PanelStyle.circleHitPadding)
             .contentShape(Circle())
-            .animation(.spring(duration: 0.3, bounce: 0.4), value: checked)
+            .animation(Motion.check, value: checked)
         }
         .buttonStyle(.plain)
         .focusable(false)

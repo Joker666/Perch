@@ -74,6 +74,8 @@ final class AppModel {
     var settingsTab: SettingsTab = .theme
     /// Mirrors the panel's visibility for the Show and Hide menu items.
     var panelVisible = false
+    /// The Show and Hide menu items' title.
+    var showHideTitle: String { panelVisible ? "Hide Perch" : "Show Perch" }
     /// True while the panel takes the keyboard. The traffic lights show color only then.
     var panelIsKey = false
 

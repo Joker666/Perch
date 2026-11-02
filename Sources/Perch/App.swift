@@ -83,7 +83,7 @@ private struct MenuBarMenu: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        Button(model.panelVisible ? "Hide Perch" : "Show Perch") { PanelController.shared.toggle() }
+        Button(model.showHideTitle) { PanelController.shared.toggle() }
         Button("New Todo") { PanelController.shared.newTodo() }
         Divider()
         Button("Settings…") { SettingsWindowController.shared.show() }

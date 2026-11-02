@@ -147,7 +147,14 @@ enum Motion {
     static let collapse = Animation.smooth(duration: 0.35)
     static let dragReorder = Animation.smooth(duration: 0.16)
     static let hover = Animation.easeOut(duration: 0.14)
+    /// The panel's height change, on the reference app's snappy curve.
     static let resize = 0.22
+    static let resizeCurve = CAMediaTimingFunction(controlPoints: 0.19, 1, 0.22, 1)
+    /// The panel springs back after a drag past its size.
+    static let springBack = 0.35
+    static let springBackCurve = CAMediaTimingFunction(controlPoints: 0.175, 0.885, 0.32, 1.1)
+    /// The check that pops into a completed todo's circle.
+    static let check = Animation.spring(duration: 0.3, bounce: 0.4)
 }
 
 /// Fixed sizes of the panel's parts, from the reference app.

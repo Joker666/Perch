@@ -130,7 +130,7 @@ final class AppMenus: NSObject, NSMenuItemValidation {
         case #selector(clearArchive(_:)):
             return !model.archived.isEmpty
         case #selector(showOrHide(_:)):
-            item.title = model.panelVisible ? "Hide Perch" : "Show Perch"
+            item.title = model.showHideTitle
             return true
         default:
             return true

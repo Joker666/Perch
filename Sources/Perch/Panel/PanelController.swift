@@ -109,22 +109,32 @@ final class PanelController: NSObject, NSWindowDelegate {
     /// Sets the fitted height with the top edge fixed, so rows grow downward.
     func fit(animated: Bool) {
         guard !panel.inLiveResize else { return }
+        let frame = fittedFrame()
+        guard frame != panel.frame else { panel.invalidateShadow(); return }
+        if animated && panel.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+            animate(to: frame, duration: Motion.resize, curve: Motion.resizeCurve)
+        } else {
+            panel.setFrame(frame, display: true)
+            panel.invalidateShadow()
+        }
+    }
+
+    /// The fitted height at the chosen width, with the top edge where it is now.
+    private func fittedFrame() -> NSRect {
         var frame = panel.frame
         let height = fittedHeight()
         frame.origin.y = frame.maxY - height
         frame.size = NSSize(width: width, height: height)
-        guard frame != panel.frame else { panel.invalidateShadow(); return }
-        if animated && panel.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-            NSAnimationContext.runAnimationGroup { context in
-                context.duration = Motion.resize
-                context.timingFunction = CAMediaTimingFunction(controlPoints: 0.19, 1, 0.22, 1)
-                panel.animator().setFrame(frame, display: true)
-            } completionHandler: { [weak self] in
-                MainActor.assumeIsolated { self?.panel.invalidateShadow() }
-            }
-        } else {
-            panel.setFrame(frame, display: true)
-            panel.invalidateShadow()
+        return frame
+    }
+
+    private func animate(to frame: NSRect, duration: Double, curve: CAMediaTimingFunction) {
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = duration
+            context.timingFunction = curve
+            panel.animator().setFrame(frame, display: true)
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated { self?.panel.invalidateShadow() }
         }
     }
 
@@ -145,18 +155,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     func windowDidEndLiveResize(_ notification: Notification) {
         width = PanelMetrics.clampWidth(panel.frame.width)
         save()
-        // A spring back with the snappy curve from the reference app.
-        var frame = panel.frame
-        let height = fittedHeight()
-        frame.origin.y = frame.maxY - height
-        frame.size = NSSize(width: width, height: height)
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.35
-            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.175, 0.885, 0.32, 1.1)
-            panel.animator().setFrame(frame, display: true)
-        } completionHandler: { [weak self] in
-            MainActor.assumeIsolated { self?.panel.invalidateShadow() }
-        }
+        animate(to: fittedFrame(), duration: Motion.springBack, curve: Motion.springBackCurve)
     }
 
     func windowDidMove(_ notification: Notification) {
