@@ -11,7 +11,7 @@ background.
 
 ## Rules
 
-- Always add `--json` and read the JSON. Exit 0 is ok; otherwise read
+- Always add `--json` and read the JSON. Exit 0 is ok. Otherwise read
   `error.code` and `error.message`, and do what the message says.
 - Find ids with `perch todos list --json`, or `--search`. An id is 8 characters.
 - Destructive commands (`todos delete`, `archive clear`) only report what

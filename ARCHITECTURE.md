@@ -1,6 +1,6 @@
 # Architecture
 
-Perch is a Swift package with two targets. There is no Xcode project.
+Perch is a Swift package with an app target, a rules target, and a test target. There is no Xcode project.
 
 ## Targets
 
@@ -55,6 +55,7 @@ types that take plain values.
 | Seam | Production | Test |
 |---|---|---|
 | `APP_STORE` | `~/Library/Application Support/Perch/Perch.store` and `agent.sock` | a store in /tmp and `<store>.sock` |
-| `AgentCommands.all` | the CLI and MCP tools | `check-agent-cli.sh` and the self-test |
+| `AgentCommands.all` | the CLI and MCP tools | `check-agent-cli.sh` (bama agent-cli skill) and the self-test |
 | `Updates` | Sparkle with `TagVersionRules` | off when `APP_STORE` is set or the app is not bundled |
 | `Hotkey` | saves the shortcut in UserDefaults | does not save when `APP_STORE` is set |
+| `Prefs` | saves Settings in UserDefaults | reads them but never writes when `APP_STORE` is set |

@@ -17,12 +17,14 @@ FloatyDo, and the sticky note or piece of paper next to the keyboard.
 - Settings (UserDefaults, not SwiftData): theme, font, font size, corner radius, icon, panel width and position.
 
 ## Shape
-One floating panel (the list) plus a Settings window. A menu bar item. macOS 26 or later. Local data. Works offline. No accounts. (decided by the agent)
+One floating panel (the list) plus a Settings window. A menu bar item. macOS 26 or later. Local data. Works offline. No accounts.
 
 ## System hooks
-- Menu bar item with show/hide and quit.
-- Global shortcut to show or hide the panel.
+- Menu bar item with Show or Hide Perch, New Todo, Settings, and Quit.
+- Global shortcut to show or hide the panel, picked in Settings.
 - Alternate app icons, picked in Settings.
+- Updates with Sparkle, offered only for a newer version tag.
+- The `perch` command and an MCP server, so agents can read and change todos in the running app.
 
 ## Reference
 FloatyDo by Raffi Chilingaryan (floatydo.com). Notes in `docs/research/floatydo-reference.md`. Not installed here, so the reference is the launch videos and the landing page.

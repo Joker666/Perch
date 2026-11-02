@@ -1,6 +1,6 @@
 # Perch stories
 
-Reference frames: `docs/research/floatydo-reference.md`. Snapshot pages: `panel`, `panel-editing`, `panel-selection`, `panel-empty`, `archive`, `settings-theme`, `settings-shortcuts`, `settings-icon`, `settings-about`, each in the default theme (Midnight) and one light theme (Matcha).
+Reference frames: `docs/research/floatydo-reference.md`. Tags: [unit] and [self] are checked in code (`swift test` or `tools/selftest.sh`), [snap] in snapshots, [manual] by hand. Snapshot pages: `panel`, `panel-editing`, `panel-selection`, `archive`, `settings-theme`, `settings-shortcuts`, `settings-icon`, `settings-about`, each in the default theme (Midnight) and one light theme (Matcha).
 
 ## M1 Core loop
 
@@ -99,7 +99,7 @@ As the user, I quit and reopen, and my todos and their order are the same.
 Depends: S-002
 Acceptance:
 - [unit] Todos persist in SwiftData and load sorted by order.
-- [unit] The panel position and width persist.
+- [manual] The panel position and width persist.
 Status: done
 
 ## M2 Keyboard and order
@@ -219,9 +219,9 @@ Status: done
 ## M5 System
 
 ### S-022 Show and hide from the menu bar
-As the user, I click the checkmark icon in the menu bar to show or hide the panel, open Settings, or quit.
+As the user, I click the checkmark icon in the menu bar to show or hide the panel, add a todo, open Settings, or quit.
 Acceptance:
-- [manual] The menu has Show Perch / Hide Perch, Settings…, Quit Perch.
+- [manual] The menu has Show Perch / Hide Perch, New Todo, Settings…, Quit Perch.
 Status: done
 
 ### S-023 Show and hide with a global shortcut
@@ -233,10 +233,10 @@ Acceptance:
 Status: done
 
 ### S-024 About tab
-As the user, I open Settings > About and see the icon, name, and version.
+As the user, I open Settings > About and see the icon, name, and version, and check for updates.
 Screens: settings-about
 Acceptance:
-- [snap] Icon, "Perch", "Version 1.0 (1)", and a one-line credit.
+- [snap] Icon, "Perch", "Version <tag> (<build>)", a one-line credit, and Check for Updates.
 Status: done
 
 ### S-028 Change the global shortcut
@@ -248,13 +248,29 @@ Acceptance:
 - [self] A key with no ⌘, ⌥, or ⌃ is refused, unless it is a function key.
 - [self] A combination that is a Perch menu item, like ⌘N, is refused with the item's name.
 - [manual] A combination another app owns is refused, and the old shortcut stays.
-- [manual] Escape cancels recording. Delete turns the shortcut off.
+- [self] Escape cancels recording. Delete turns the shortcut off.
 UX:
 - Flow: Settings > Shortcuts -> click the shortcut -> "Press a shortcut" -> press keys -> the new shortcut shows, or a reason under it
 - Surface: inline control (changes one value on screen)
 - States: recording "Press a shortcut"; off "Off"; refused, with the reason in the caption; another app owns it
 - Words: "Press a shortcut", "Reset", "Add ⌘, ⌥, or ⌃ to F, so it does not take the key from other apps."
 - Access: VoiceOver "Show or hide Perch shortcut, ⌃⌥Space"
+Status: done
+
+### S-029 Get updates
+As the user, I get a new version of Perch without going to the website.
+Depends: S-024
+Acceptance:
+- [manual] Perch checks the appcast on its own, and Check for Updates in the Perch menu and Settings > About checks now.
+- [manual] An update is offered only for a newer version tag. The update window shows the release notes, not a web page.
+Status: done
+
+### S-030 Let agents work with my todos
+As the user, I ask Claude Code to list, add, or complete my todos, and the panel changes at once.
+Acceptance:
+- [self] Agent commands use the same model methods as the panel, with one undo step each.
+- [manual] `check-agent-cli.sh` passes. One Edit > Undo takes back a delete made with `perch`.
+- Commands: `docs/AGENT-COMMANDS.md`.
 Status: done
 
 ## M6 Polish

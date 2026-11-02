@@ -6,21 +6,23 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 
 ## Layout
 
-- `Sources/Perch/` the app. `App.swift` has the menus, the menu bar item, and the database location.
-  `Models.swift` has `Todo` and `AppModel` (every action, focus, and undo). `Panel/` is the floating panel.
-  `Settings/` is the themed Settings window. `System/Hotkey.swift` is the global shortcut.
-- `Sources/PerchKit/` rules and data logic with no SwiftUI. Tests in `Tests/PerchKitTests/`.
+- `Sources/Perch/` the app. `App.swift` has the scenes, the menu bar item, and the database location.
+  `Models.swift` has `Todo` and `AppModel` (every action and undo). `Panel/` is the floating panel.
+  `Settings/` is the themed Settings window. `System/` has the menus (`AppMenus`), the global shortcut (`Hotkey`), and updates (`Updates`).
+  `Agent/` is the `perch` command and the MCP server. Its commands are in `AgentCommands.swift`.
+- `Sources/PerchKit/` rules and data logic with no SwiftUI, including the keyboard focus rules. Tests in `Tests/PerchKitTests/`.
 - `Package.swift` a Swift package. There is no Xcode project.
 - `build.sh` builds, signs, and installs `~/Applications/Perch.app`.
-- `Icon/AppIcon.icon` the app icon, an Icon Composer file (JSON plus SVG layers). `build.sh` compiles it with `tools/make_icon.sh`; `tools/icon_review.sh` renders every look into one PNG.
+- `Icon/AppIcon.icon` the app icon, an Icon Composer file (JSON plus SVG layers). `build.sh` compiles it with `tools/make_icon.sh`. `tools/icon_review.sh` renders every look into one PNG.
 - `ARCHITECTURE.md` targets, layers, seams, and the rules that keep them working. Read it before a change that crosses layers.
-- `docs/` the brief, the screen index, and the user stories, when they exist. `docs/FIXLOG.md` has hard bugs and their rules.
+- `docs/` the brief, the user stories, the glossary, the agent commands, and reference notes. `docs/FIXLOG.md` has hard bugs and their rules.
 
 ## Build and check
 
-- Build and install: `./build.sh`. Add `--open` to restart the app with the new build. The build shows warnings; fix them.
+- Build and install: `./build.sh`. Add `--open` to restart the app with the new build. The build shows warnings. Fix them.
 - Unit tests: `swift test --scratch-path ~/Library/Developer/Perch/test-build`.
 - Self-test (the app's real functions on a /tmp store): `tools/selftest.sh`. Exit 0 when every check passes. Add a check for every story with logic in `SelfTest.swift`.
+- Agent CLI: `build.sh` links `~/.local/bin/perch`. After a change to `Agent/`, run `check-agent-cli.sh ~/Applications/Perch.app/Contents/MacOS/Perch` from the bama agent-cli skill's `scripts/`, and update `docs/AGENT-COMMANDS.md` and `.claude/skills/perch/SKILL.md`.
 - After every UI change, take snapshots with sample data and look at them: `tools/snap.sh`.
   It writes `/tmp/Perch-shots/<page>-<theme>.png` for every panel state in `Snapshot.pages` and `settings-<tab>-<theme>.png` for every Settings tab, in Midnight and Matcha, then quits. `APP_SNAPSHOT_PAGES=panel,settings` limits the pages. `APP_SNAPSHOT_THEMES=plum,pool` picks the themes.
   The snapshot run cannot take focus from the terminal, so traffic lights and the caret show inactive there.

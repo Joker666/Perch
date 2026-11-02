@@ -4,7 +4,7 @@ What an agent can do in Perch through `perch <noun> <verb>` and `perch mcp`. Eac
 
 | Command | Mark | Undo | Story | What it does |
 | --- | --- | --- | --- | --- |
-| `status` | read | | S-001, S-014 | Running, panel shown, List or Archive, todo counts, theme, global shortcut |
+| `status` | read | | S-001, S-014 | Running, panel shown, List or Archive, todo counts, what Edit > Undo would take back, theme, global shortcut |
 | `todos list` | read | | S-001, S-014 | Open todos in list order, or `--archived` for completed ones. `--search`, `--limit`, `--offset` |
 | `todos show <id>` | read | | S-001 | One todo |
 | `todos add --text` | write | yes | S-002, S-003 | Add a todo at the end, or `--after <id>` |
