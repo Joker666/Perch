@@ -227,3 +227,30 @@ func emptyText(_ input: String) {
     let tall = CGRect(x: 100, y: 0, width: 520, height: 2000)
     #expect(WindowPlacement.keptOnScreen(tall, in: visible).maxY == visible.maxY)
 }
+
+// MARK: Theme choice
+
+@Test func oneThemeIgnoresMacOS() {
+    let choice = ThemeChoice(mode: .one, one: "plum", light: "matcha", dark: "midnight")
+    #expect(choice.themeID(systemIsDark: false) == "plum")
+    #expect(choice.themeID(systemIsDark: true) == "plum")
+}
+
+@Test func matchSystemFollowsMacOS() {
+    let choice = ThemeChoice(mode: .matchSystem, one: "plum", light: "matcha", dark: "midnight")
+    #expect(choice.themeID(systemIsDark: false) == "matcha")
+    #expect(choice.themeID(systemIsDark: true) == "midnight")
+}
+
+@Test func settingAThemeChangesTheRightSlot() {
+    var choice = ThemeChoice(mode: .one, one: "plum", light: "matcha", dark: "midnight")
+    choice.set("pool", for: nil, systemIsDark: true)
+    #expect(choice.one == "pool" && choice.light == "matcha" && choice.dark == "midnight")
+    choice.mode = .matchSystem
+    choice.set("navy", for: nil, systemIsDark: true)
+    #expect(choice.dark == "navy" && choice.one == "pool")
+    choice.set("sand", for: nil, systemIsDark: false)
+    #expect(choice.light == "sand")
+    choice.set("forest", for: .light, systemIsDark: true)
+    #expect(choice.light == "forest" && choice.dark == "navy")
+}

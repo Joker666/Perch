@@ -308,6 +308,23 @@ UX:
 - Access: the sound adds to the check and the sweep, so nothing depends on hearing it
 Status: done
 
+### S-032 Match the macOS appearance
+As the user, I pick one theme for macOS Light and one for macOS Dark, and Perch switches with macOS.
+Screens: settings-theme, settings-theme-system
+Acceptance:
+- [self] With Match System, Perch shows the Light theme when macOS is Light and the Dark theme when it is Dark, and its controls follow the theme.
+- [self] With One Theme, macOS's appearance changes nothing.
+- [unit] `perch theme set --for light|dark` changes that slot. Without `--for` it changes the theme on screen now.
+- [snap] Settings > Theme has Appearance (One Theme, Match System). Match System shows Light and Dark swatch rows. All 8 themes are in each row.
+- [manual] When macOS switches, also with Auto, Perch switches at once.
+UX:
+- Flow: Settings > Theme > Appearance > Match System -> pick a Light theme and a Dark theme
+- Surface: inline control in the Theme tab
+- States: One Theme (the theme as before); Match System (Light and Dark rows, defaults from the one theme)
+- Words: "Appearance", "One Theme", "Match System", "Light", "Dark"; help "Use the Pool theme when macOS is Light"
+- Access: the segmented control and each swatch have labels
+Status: done
+
 ## Dropped
 - iPhone app and iCloud sync: one user, one Mac for now (later: iCloud sync).
 - In-app purchases: vendor only.

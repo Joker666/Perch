@@ -90,7 +90,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     private func trackTheme(_ window: NSWindow) {
         withObservationTracking {
-            _ = Prefs.shared.themeID
+            _ = Prefs.shared.theme
         } onChange: { [weak self, weak window] in
             Task { @MainActor in
                 guard let self, let window else { return }

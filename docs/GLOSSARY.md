@@ -13,6 +13,7 @@
 | Delete | Remove a todo for good (Command-Z can still undo it) | remove, trash |
 | Clear Archive | Delete every completed todo | empty, purge |
 | Theme | One of 8 color sets for the panel and Settings | background, skin, palette |
+| Appearance | One Theme all the time, or Match System: one theme for macOS Light and one for macOS Dark | mode, auto dark mode |
 | Font | The type design for todos: System, Rounded, Serif, Monospaced | typeface |
 | Font Size | The point size of todo text | text size |
 | Radius | The corner radius of the panel, in px | corner, roundness |

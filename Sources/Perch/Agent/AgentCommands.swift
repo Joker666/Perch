@@ -7,11 +7,12 @@ import PerchKit
 /// window, on the main actor. `undoable` changes go to Edit > Undo.
 enum AgentCommands {
     static let all: [AgentCommand] = [
-        AgentCommand(name: "status", summary: "Show whether the panel is shown, List or Archive, todo counts, what Edit > Undo would take back, the theme, and the global shortcut.",
+        AgentCommand(name: "status", summary: "Show whether the panel is shown, List or Archive, todo counts, what Edit > Undo would take back, the themes, and the global shortcut.",
                      example: "perch status --json", readOnly: true) { _, model in
             ["running": true, "panelShown": model.panelVisible, "page": model.mode.rawValue,
              "open": model.todos.count, "completed": model.archived.count,
-             "theme": Prefs.shared.themeID,
+             "theme": Prefs.shared.theme.id, "themeMode": Prefs.shared.themeMode.rawValue,
+             "lightTheme": Prefs.shared.lightThemeID, "darkTheme": Prefs.shared.darkThemeID,
              "undo": model.undoManager.canUndo ? model.undoManager.undoMenuItemTitle : "nothing to undo",
              "shortcut": Hotkey.shared.combo.map { KeyNames.display($0) } ?? "off"]
         },
@@ -112,16 +113,25 @@ enum AgentCommands {
             PanelController.shared.hide()
             return ["panelShown": model.panelVisible]
         },
-        AgentCommand(name: "theme set", summary: "Use one of the 8 themes.",
+        AgentCommand(name: "theme set", summary: "Use one of the 8 themes. Without --for it changes the theme on screen now.",
                      params: [.init(name: "name", required: true, positional: true,
-                                    help: Theme.all.map(\.id).joined(separator: ", "))],
-                     example: "perch theme set matcha") { args, _ in
+                                    help: Theme.all.map(\.id).joined(separator: ", ")),
+                              .init(name: "for", help: "light or dark: the theme for that macOS appearance, used with Match System")],
+                     example: "perch theme set pool --for light") { args, _ in
             let name = try args.required("name").lowercased()
             guard let theme = Theme.all.first(where: { $0.id == name || $0.name.lowercased() == name }) else {
                 throw AgentError.usage("no theme \"\(name)\". Themes: \(Theme.all.map(\.id).joined(separator: ", "))")
             }
-            Prefs.shared.themeID = theme.id
-            return ["theme": theme.id]
+            let appearance = try args.string("for").map { value in
+                guard let appearance = ThemeChoice.Appearance(rawValue: value.lowercased()) else {
+                    throw AgentError.usage("--for must be light or dark")
+                }
+                return appearance
+            }
+            let prefs = Prefs.shared
+            prefs.themeChoice.set(theme.id, for: appearance, systemIsDark: prefs.systemIsDark)
+            return ["theme": prefs.theme.id, "themeMode": prefs.themeMode.rawValue,
+                    "lightTheme": prefs.lightThemeID, "darkTheme": prefs.darkThemeID]
         },
     ]
 

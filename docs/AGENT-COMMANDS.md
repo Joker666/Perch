@@ -4,7 +4,7 @@ What an agent can do in Perch through `perch <noun> <verb>` and `perch mcp`. Eac
 
 | Command | Mark | Undo | Story | What it does |
 | --- | --- | --- | --- | --- |
-| `status` | read | | S-001, S-014 | Running, panel shown, List or Archive, todo counts, what Edit > Undo would take back, theme, global shortcut |
+| `status` | read | | S-001, S-014 | Running, panel shown, List or Archive, todo counts, what Edit > Undo would take back, the themes and the appearance mode, global shortcut |
 | `todos list` | read | | S-001, S-014 | Open todos in list order, or `--archived` for completed ones. `--search`, `--limit`, `--offset` |
 | `todos show <id>` | read | | S-001 | One todo |
 | `todos add --text` | write | yes | S-002, S-003 | Add a todo at the end, or `--after <id>` |
@@ -16,6 +16,6 @@ What an agent can do in Perch through `perch <noun> <verb>` and `perch mcp`. Eac
 | `archive clear` | destructive | yes | S-016 | Delete every completed todo. Only reports until `--yes` |
 | `open <list\|archive>` | write | | S-001, S-014, S-022 | Show the panel with the List or the Archive |
 | `hide` | write | | S-022 | Hide the panel |
-| `theme set <name>` | write | | S-017 | Use one of the 8 themes |
+| `theme set <name> [--for light\|dark]` | write | | S-017, S-032 | Use one of the 8 themes. `--for` sets the theme for that macOS appearance |
 
 Not commands: font, font size, radius, app icon, sound, and the global shortcut stay in Settings. They are personal taste, and agents gain little from them.

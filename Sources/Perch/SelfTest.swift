@@ -267,6 +267,22 @@ enum SelfTest {
         // S-017 themes
         check("There are 8 themes", Theme.all.count == 8)
         check("Theme ids are unique", Set(Theme.all.map(\.id)).count == Theme.all.count)
+
+        // S-032 Match System: one theme for macOS Light, one for macOS Dark
+        let prefs = Prefs.shared
+        let oneTheme = prefs.theme.id
+        prefs.lightThemeID = "matcha"
+        prefs.darkThemeID = "navy"
+        prefs.themeMode = .matchSystem
+        prefs.systemIsDark = false
+        check("Match System shows the Light theme when macOS is Light",
+              prefs.theme.id == "matcha" && NSApp.appearance?.name == .aqua, prefs.theme.id)
+        prefs.systemIsDark = true
+        check("Match System switches to the Dark theme when macOS turns Dark",
+              prefs.theme.id == "navy" && NSApp.appearance?.name == .darkAqua, prefs.theme.id)
+        prefs.themeMode = .one
+        check("One Theme ignores macOS", prefs.theme.id == oneTheme, prefs.theme.id)
+        prefs.systemIsDark = SystemAppearance.isDark
     }
 
     private static func check(_ name: String, _ ok: Bool, _ detail: String = "") {

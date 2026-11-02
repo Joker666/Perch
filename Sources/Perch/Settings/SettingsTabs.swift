@@ -1,18 +1,44 @@
 import SwiftUI
+import PerchKit
 
 /// Label column width for the Theme tab, so every control starts on one edge.
 private let labelWidth: CGFloat = 100
 
-/// Settings > Theme: background, font, font size, radius, and the completion sound.
+/// Settings > Theme: appearance, theme, font, font size, radius, and the completion sound.
 struct ThemeSettings: View {
     @Bindable private var prefs = Prefs.shared
 
     var body: some View {
         Grid(alignment: .leading, horizontalSpacing: Space.lg, verticalSpacing: Space.xl) {
             GridRow {
-                label("Background")
-                Swatches(selection: $prefs.themeID)
-                    .gridCellColumns(3)
+                label("Appearance")
+                Picker("Appearance", selection: $prefs.themeMode) {
+                    Text("One Theme").tag(ThemeChoice.Mode.one)
+                    Text("Match System").tag(ThemeChoice.Mode.matchSystem)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+                .help("Use one theme all the time, or one for macOS Light and one for macOS Dark")
+                .gridCellColumns(3)
+            }
+            if prefs.themeMode == .one {
+                GridRow {
+                    label("Background")
+                    Swatches(selection: $prefs.themeID)
+                        .gridCellColumns(3)
+                }
+            } else {
+                GridRow {
+                    label("Light")
+                    Swatches(selection: $prefs.lightThemeID, when: "when macOS is Light")
+                        .gridCellColumns(3)
+                }
+                GridRow {
+                    label("Dark")
+                    Swatches(selection: $prefs.darkThemeID, when: "when macOS is Dark")
+                        .gridCellColumns(3)
+                }
             }
             GridRow {
                 label("Font")
@@ -71,6 +97,8 @@ struct ThemeSettings: View {
 /// The eight theme colors in a capsule. The chosen one has a dot.
 private struct Swatches: View {
     @Binding var selection: String
+    /// Ends the help text, like "when macOS is Light".
+    var when: String?
 
     var body: some View {
         HStack(spacing: Space.sm) {
@@ -92,7 +120,7 @@ private struct Swatches: View {
                 }
                 .buttonStyle(.plain)
                 .focusable(false)
-                .help("Use the \(theme.name) theme")
+                .help(["Use the \(theme.name) theme", when].compactMap { $0 }.joined(separator: " "))
                 .accessibilityLabel(theme.name)
                 .accessibilityAddTraits(selection == theme.id ? .isSelected : [])
             }

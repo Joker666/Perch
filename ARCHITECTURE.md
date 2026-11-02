@@ -6,7 +6,7 @@ Perch is a Swift package with an app target, a rules target, and a test target. 
 
 | Target | What it holds | Depends on |
 |---|---|---|
-| `PerchKit` | Rules and data logic with no SwiftUI or AppKit: todo text, order values, list selection, keyboard focus rules, drag reorder, panel sizes, window placement, key combos and shortcut matching. | Foundation only |
+| `PerchKit` | Rules and data logic with no SwiftUI or AppKit: todo text, order values, list selection, keyboard focus rules, drag reorder, panel sizes, window placement, theme choice, key combos and shortcut matching. | Foundation only |
 | `Perch` | The app: SwiftData store, model, panel, Settings, menus, global shortcut, updates, agent CLI. Code runs on the main actor unless it says otherwise. | `PerchKit`, Sparkle |
 | `PerchKitTests` | Unit tests for `PerchKit` (`swift test`). | `PerchKit` |
 

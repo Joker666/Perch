@@ -69,6 +69,16 @@ enum Snapshot {
                         try? await Task.sleep(for: .seconds(0.8))
                         capture(to: "\(dir)/settings-\(tab.rawValue)-\(theme).png", window: SettingsWindowController.shared.window)
                     }
+                    // Match System, with macOS in the appearance of this run's theme.
+                    let prefs = Prefs.shared
+                    prefs.lightThemeID = "matcha"
+                    prefs.darkThemeID = "midnight"
+                    prefs.systemIsDark = Theme.named(theme).isDark
+                    prefs.themeMode = .matchSystem
+                    model.settingsTab = .theme
+                    try? await Task.sleep(for: .seconds(0.8))
+                    capture(to: "\(dir)/settings-theme-system-\(theme).png", window: SettingsWindowController.shared.window)
+                    prefs.themeMode = .one
                 }
             }
             print("SNAPSHOT done \(dir)")
