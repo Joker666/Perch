@@ -332,27 +332,25 @@ enum SelfTest {
         check("One Theme ignores macOS", prefs.theme.id == oneTheme, prefs.theme.id)
         prefs.systemIsDark = SystemAppearance.isDark
 
-        // S-035 a Settings tab change fits the window to the new tab, with the top edge fixed
+        // Settings fits each tab, with the top edge fixed
         let settings = SettingsWindowController.shared
         m.settingsTab = .theme
         settings.show()
         try? await Task.sleep(for: .seconds(0.5))
-        if let window = settings.window, let visible = window.screen?.visibleFrame {
-            let fits = { abs(window.contentLayoutRect.height - settings.contentHeight) < 1 }
-            // A saved frame 1 pt wide once hid the window. Fitting puts the width back.
-            window.setFrame(NSRect(x: visible.minX + 40, y: visible.maxY - 440, width: 1, height: 400), display: false)
-            settings.fit(contentHeight: settings.contentHeight)
+        if let window = settings.window, let view = window.contentViewController?.view,
+           let visible = window.screen?.visibleFrame {
+            window.setFrameTopLeftPoint(NSPoint(x: visible.minX + 40, y: visible.maxY - 40))
             let before = window.frame
-            check("The Settings window fits the Theme tab", fits() && window.frame.width == SettingsView.width,
-                  "\(window.frame) for \(settings.contentHeight)")
+            check("The Settings window is full width", before.width == 520, "\(before)")
             m.settingsTab = .shortcuts
-            try? await Task.sleep(for: .seconds(0.6))
+            try? await Task.sleep(for: .seconds(0.5))
             let after = window.frame
             check("A taller tab grows the Settings window to fit it, top edge fixed",
-                  after.height > before.height && abs(after.maxY - before.maxY) < 1 && fits(),
-                  "\(before) to \(after), content \(settings.contentHeight)")
+                  after.height > before.height && abs(after.maxY - before.maxY) < 1
+                      && abs(window.contentRect(forFrameRect: after).height - view.fittingSize.height) < 1,
+                  "\(before) to \(after), fits \(view.fittingSize.height)")
             m.settingsTab = .theme
-            try? await Task.sleep(for: .seconds(0.6))
+            try? await Task.sleep(for: .seconds(0.5))
             check("A shorter tab shrinks it back", window.frame == before, "\(window.frame)")
             window.close()
         } else {

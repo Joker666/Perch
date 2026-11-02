@@ -216,11 +216,6 @@ enum Motion {
     static let hideScale = 0.98
     /// Ease-in: slow at first, then gone. Takes and gives progress from 0 to 1.
     static func hideCurve(_ t: Double) -> Double { t * t }
-    /// A Settings tab change: the window height and the cross-fade share this
-    /// slow-fast-slow curve, measured from the reference app.
-    static let tabChange = 0.18
-    static let tabChangeCurve = CAMediaTimingFunction(controlPoints: 0.8, 0, 0.2, 1)
-    static let tabFade = Animation.timingCurve(0.8, 0, 0.2, 1, duration: tabChange)
 }
 
 /// Fixed sizes of the panel's parts, from the reference app.

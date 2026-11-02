@@ -23,8 +23,7 @@ types that take plain values.
 - **Windows** (`Panel/`, `Settings/`). AppKit windows with SwiftUI content.
   The panel height comes from `PanelMetrics`. The panel springs in (`Spring`
   in PerchKit) and shrinks and fades out by setting its frame on each
-  display frame, and `fit` moves the full-size frame while either runs. The Settings window sets its
-  own height from the tab's measured height, so it can animate.
+  display frame, and `fit` moves the full-size frame while either runs.
 - **System** (`System/`). Menus (`AppMenus`), the global shortcut
   (`Hotkey`), and Sparkle updates (`Updates`).
 - **Agent** (`Agent/`). The app binary is also the `perch` command. The

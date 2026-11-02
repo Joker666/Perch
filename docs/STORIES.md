@@ -343,14 +343,6 @@ Acceptance:
 - [manual] With Reduce Motion on, the panel shows and hides at once.
 Status: done
 
-### S-035 See Settings move between tabs
-As the user, I change a Settings tab and the window grows or shrinks to fit it while the tabs cross-fade.
-Acceptance:
-- [self] A taller tab grows the window to fit it with the top edge fixed. A shorter tab shrinks it back.
-- [manual] The old tab fades out while the new one fades in, on the same 0.18 s curve as the height.
-- [manual] With Reduce Motion on, the tab and height change at once.
-Status: done
-
 ## Dropped
 - iPhone app and iCloud sync: one user, one Mac for now (later: iCloud sync).
 - In-app purchases: vendor only.
