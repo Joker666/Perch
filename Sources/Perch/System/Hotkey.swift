@@ -18,7 +18,7 @@ enum Hotkey {
             Task { @MainActor in Hotkey.action?() }
             return noErr
         }, 1, &spec, nil, nil)
-        let id = EventHotKeyID(signature: OSType(0x4446_4C59), id: 1) // 'DFLY'
+        let id = EventHotKeyID(signature: OSType(0x5052_4348), id: 1) // 'PRCH'
         status = RegisterEventHotKey(UInt32(kVK_Space), UInt32(controlKey | optionKey), id,
                                      GetApplicationEventTarget(), 0, &ref)
     }

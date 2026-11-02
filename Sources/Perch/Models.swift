@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 import SwiftData
-import DoFloatyKit
+import PerchKit
 
 @Model
 final class Todo {

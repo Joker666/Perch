@@ -1,10 +1,10 @@
 import AppKit
 import SwiftData
-import DoFloatyKit
+import PerchKit
 
 /// Self-test for agents: runs the app's real functions on a test store,
 /// prints PASS or FAIL per check, and quits with exit code 0 or 1.
-///   APP_STORE=/tmp/DoFloaty-self.store ~/Applications/DoFloaty.app/Contents/MacOS/DoFloaty --selftest
+///   APP_STORE=/tmp/Perch-self.store ~/Applications/Perch.app/Contents/MacOS/Perch --selftest
 /// (tools/selftest.sh does this.) Add a check for every story with logic.
 @MainActor
 enum SelfTest {

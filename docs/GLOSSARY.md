@@ -17,4 +17,4 @@
 | Font Size | The point size of todo text | text size |
 | Radius | The corner radius of the panel, in px | corner, roundness |
 | App Icon | One of 8 icons for the Dock, one per theme | logo |
-| Show DoFloaty / Hide DoFloaty | Bring the panel up or put it away | open, toggle |
+| Show Perch / Hide Perch | Bring the panel up or put it away | open, toggle |

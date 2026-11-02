@@ -121,14 +121,14 @@ struct ShortcutsSettings: View {
         VStack(alignment: .leading, spacing: Space.lg) {
             VStack(alignment: .leading, spacing: Space.xs) {
                 HStack {
-                    Text("Show or hide DoFloaty")
+                    Text("Show or hide Perch")
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
                     Keycap(Hotkey.display)
                 }
                 Text(Hotkey.status == noErr
                      ? "Works from any app. Opens a new todo, ready to type."
-                     : "Another app uses \(Hotkey.display). Quit that app, then restart DoFloaty.")
+                     : "Another app uses \(Hotkey.display). Quit that app, then restart Perch.")
                     .font(.system(size: 11))
                     .foregroundStyle(Palette.secondaryText)
             }
@@ -225,7 +225,7 @@ struct AboutSettings: View {
     var body: some View {
         VStack(spacing: Space.sm) {
             AppIconView(theme: Theme.named(Prefs.shared.iconID), size: 96)
-            Text("DoFloaty")
+            Text("Perch")
                 .font(.system(size: 20, weight: .semibold))
             Text(version)
                 .font(.system(size: 12))

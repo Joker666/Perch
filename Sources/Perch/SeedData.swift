@@ -1,6 +1,6 @@
 import Foundation
 import SwiftData
-import DoFloatyKit
+import PerchKit
 
 /// Sample data for snapshots: APP_SEED=1 with APP_STORE in /tmp fills an empty
 /// store with open and completed todos, short and long. Todos have only

@@ -1,11 +1,11 @@
-# DoFloaty stories
+# Perch stories
 
 Reference frames: `docs/research/floatydo-reference.md`. Snapshot pages: `panel`, `panel-editing`, `panel-selection`, `panel-empty`, `archive`, `settings-theme`, `settings-shortcuts`, `settings-icon`, `settings-about`, each in the default theme (Midnight) and one light theme (Matcha).
 
 ## M1 Core loop
 
 ### S-001 See my todos in a floating panel
-As the user, I open DoFloaty and see a small rounded panel with my todos that stays above other windows.
+As the user, I open Perch and see a small rounded panel with my todos that stays above other windows.
 Screens: panel
 Acceptance:
 - [snap] A borderless panel, 400 pt wide, corner radius 16, traffic lights top left, List, Archive, and Settings buttons top right, no title text.
@@ -13,7 +13,7 @@ Acceptance:
 - [snap] Three filler rows show below the last todo, with circles that fade out.
 - [manual] The panel floats above other apps and shows on every Space.
 UX:
-- Flow: launch, menu bar Show DoFloaty, or the global shortcut -> panel shows at its saved place -> List view
+- Flow: launch, menu bar Show Perch, or the global shortcut -> panel shows at its saved place -> List view
 - Surface: panel (a tool kept open beside the work)
 - States: empty shows only the 3 filler rows (the first one says nothing; clicking it adds a todo); too much: long text truncates with the full text in a tooltip
 - Words: tooltips "Show your todos (⌘1)", "Show completed todos (⌘2)", "Change the theme, font, and icon (⌘,)"
@@ -221,7 +221,7 @@ Status: done
 ### S-022 Show and hide from the menu bar
 As the user, I click the checkmark icon in the menu bar to show or hide the panel, open Settings, or quit.
 Acceptance:
-- [manual] The menu has Show DoFloaty / Hide DoFloaty, Settings…, Quit DoFloaty.
+- [manual] The menu has Show Perch / Hide Perch, Settings…, Quit Perch.
 Status: done
 
 ### S-023 Show and hide with a global shortcut
@@ -236,7 +236,7 @@ Status: done
 As the user, I open Settings > About and see the icon, name, and version.
 Screens: settings-about
 Acceptance:
-- [snap] Icon, "DoFloaty", "Version 1.0 (1)", and a one-line credit.
+- [snap] Icon, "Perch", "Version 1.0 (1)", and a one-line credit.
 Status: done
 
 ## M6 Polish

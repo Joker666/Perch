@@ -1,8 +1,8 @@
-# DoFloaty
+# Perch
 
 A tiny floating todo list for the Mac, for people who still write their daily todos on paper. A one-to-one rebuild of FloatyDo.
 
-Bundle id: `com.rafi.dofloaty`
+Bundle id: `com.rafi.perch`
 
 ## Replaces
 FloatyDo, and the sticky note or piece of paper next to the keyboard.

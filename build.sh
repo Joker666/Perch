@@ -1,6 +1,6 @@
 #!/bin/zsh
-# Builds DoFloaty and installs it to ~/Applications/DoFloaty.app.
-# Build products live in ~/Library/Developer/DoFloaty, outside the repo
+# Builds Perch and installs it to ~/Applications/Perch.app.
+# Build products live in ~/Library/Developer/Perch, outside the repo
 # (and outside Dropbox or iCloud, which would try to sync them).
 #
 # Usage: ./build.sh            release build, install
@@ -8,7 +8,7 @@
 #        ./build.sh --open     install, then quit the running copy and open the new one
 set -euo pipefail
 here=${0:A:h}
-name="DoFloaty"
+name="Perch"
 scratch="$HOME/Library/Developer/$name/build"
 config=release
 [[ " $* " == *" --debug "* ]] && config=debug

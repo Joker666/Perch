@@ -2,14 +2,14 @@ import AppKit
 import SwiftData
 import SwiftUI
 
-// DoFloaty
-//   DoFloaty                      the app
-//   APP_STORE=<file> DoFloaty     use another database (tests, experiments)
-//   APP_SNAPSHOT=<dir> DoFloaty   save a PNG of every panel state and Settings tab in two themes, then quit
-//   APP_SEED=1 DoFloaty           fill an empty /tmp store with sample todos (tools/snap.sh)
-//   DoFloaty --selftest           run the self-test on a /tmp store and quit with 0 or 1 (tools/selftest.sh)
-//   APP_THEME=<id> DoFloaty       run with another theme from Theme.all (UI/Theme.swift)
-//   APP_GRID=1 DoFloaty           draw grid lines every 8 pt and the layout probes over the window
+// Perch
+//   Perch                      the app
+//   APP_STORE=<file> Perch     use another database (tests, experiments)
+//   APP_SNAPSHOT=<dir> Perch   save a PNG of every panel state and Settings tab in two themes, then quit
+//   APP_SEED=1 Perch           fill an empty /tmp store with sample todos (tools/snap.sh)
+//   Perch --selftest           run the self-test on a /tmp store and quit with 0 or 1 (tools/selftest.sh)
+//   APP_THEME=<id> Perch       run with another theme from Theme.all (UI/Theme.swift)
+//   APP_GRID=1 Perch           draw grid lines every 8 pt and the layout probes over the window
 
 /// The one model the panel, menus, and Settings share.
 @MainActor
@@ -18,12 +18,12 @@ enum Shared {
 }
 
 @main
-struct DoFloatyApp: App {
+struct PerchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     private var model: AppModel { Shared.model }
 
     var body: some Scene {
-        MenuBarExtra("DoFloaty", systemImage: "checkmark.square.fill") {
+        MenuBarExtra("Perch", systemImage: "checkmark.square.fill") {
             MenuBarMenu()
                 .environment(model)
         }
@@ -47,7 +47,7 @@ struct DoFloatyApp: App {
                 Divider()
             }
             CommandGroup(before: .windowList) {
-                Button(model.panelVisible ? "Hide DoFloaty" : "Show DoFloaty") { PanelController.shared.toggle() }
+                Button(model.panelVisible ? "Hide Perch" : "Show Perch") { PanelController.shared.toggle() }
                     .keyboardShortcut("0")
                 Divider()
             }
@@ -96,12 +96,12 @@ private struct MenuBarMenu: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        Button(model.panelVisible ? "Hide DoFloaty" : "Show DoFloaty") { PanelController.shared.toggle() }
+        Button(model.panelVisible ? "Hide Perch" : "Show Perch") { PanelController.shared.toggle() }
         Button("New Todo") { PanelController.shared.newTodo() }
         Divider()
         Button("Settings…") { SettingsWindowController.shared.show() }
         Divider()
-        Button("Quit DoFloaty") { NSApp.terminate(nil) }
+        Button("Quit Perch") { NSApp.terminate(nil) }
     }
 }
 
@@ -144,7 +144,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Where the data lives: ~/Library/Application Support/DoFloaty/DoFloaty.store
+/// Where the data lives: ~/Library/Application Support/Perch/Perch.store
 enum Store {
     /// True when APP_STORE points somewhere else (tests, snapshots, seed data).
     static var isOverridden: Bool {
@@ -155,9 +155,9 @@ enum Store {
         if let path = ProcessInfo.processInfo.environment["APP_STORE"], !path.isEmpty {
             return URL(fileURLWithPath: path)
         }
-        let dir = URL.applicationSupportDirectory.appending(path: "DoFloaty", directoryHint: .isDirectory)
+        let dir = URL.applicationSupportDirectory.appending(path: "Perch", directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appending(path: "DoFloaty.store")
+        return dir.appending(path: "Perch.store")
     }
 
     static func makeContainer() -> ModelContainer {

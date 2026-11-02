@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Runs the in-app self-test against a fresh store in /tmp. Exit code 0 when every check passed.
 set -u
-rm -rf ~/Library/Saved\ Application\ State/com.rafi.dofloaty.savedState
-store=/tmp/DoFloaty-self.store
+rm -rf ~/Library/Saved\ Application\ State/com.rafi.perch.savedState
+store=/tmp/Perch-self.store
 rm -f $store $store-shm $store-wal
-APP_STORE=$store ~/Applications/DoFloaty.app/Contents/MacOS/DoFloaty --selftest
+APP_STORE=$store ~/Applications/Perch.app/Contents/MacOS/Perch --selftest

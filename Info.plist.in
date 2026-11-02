@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleIdentifier</key><string>com.rafi.dofloaty</string>
-<key>CFBundleName</key><string>DoFloaty</string>
-<key>CFBundleDisplayName</key><string>DoFloaty</string>
-<key>CFBundleExecutable</key><string>DoFloaty</string>
+<key>CFBundleIdentifier</key><string>com.rafi.perch</string>
+<key>CFBundleName</key><string>Perch</string>
+<key>CFBundleDisplayName</key><string>Perch</string>
+<key>CFBundleExecutable</key><string>Perch</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundleIconName</key><string>AppIcon</string>
 <key>CFBundlePackageType</key><string>APPL</string>

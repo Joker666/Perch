@@ -1,10 +1,10 @@
 import AppKit
 import IOKit.pwr_mgt
 import SwiftUI
-import DoFloatyKit
+import PerchKit
 
 /// Screenshot mode for agents.
-///   APP_STORE=/tmp/test.store APP_SNAPSHOT=/tmp/shots ~/Applications/DoFloaty.app/Contents/MacOS/DoFloaty
+///   APP_STORE=/tmp/test.store APP_SNAPSHOT=/tmp/shots ~/Applications/Perch.app/Contents/MacOS/Perch
 /// writes <page>-<theme>.png for every panel state and settings-<tab>-<theme>.png
 /// for every Settings tab, in a dark theme and a light theme, then quits.
 /// Each PNG gets a <page>-<theme>-layout.json with the grid probes (tools/check-layout.swift).
@@ -28,7 +28,7 @@ enum Snapshot {
 
     static func run(model: AppModel) {
         let env = ProcessInfo.processInfo.environment
-        let dir = env["APP_SNAPSHOT"] ?? "/tmp/DoFloaty-shots"
+        let dir = env["APP_SNAPSHOT"] ?? "/tmp/Perch-shots"
         // Snapshots never run against the real database.
         guard Store.isOverridden else {
             print("SNAPSHOT refused: set APP_STORE to a file in /tmp")

@@ -1,6 +1,6 @@
 import AppKit
 import SwiftUI
-import DoFloatyKit
+import PerchKit
 
 /// Owns the floating panel: shows and hides it, keeps its height fitted to
 /// the rows, springs back after a resize, and routes keys when no row is
@@ -250,7 +250,7 @@ final class FloatingPanel: NSPanel {
         isReleasedWhenClosed = false
         minSize = NSSize(width: 200, height: 80)
         animationBehavior = .utilityWindow
-        setAccessibilityTitle("DoFloaty")
+        setAccessibilityTitle("Perch")
     }
 
     override var canBecomeKey: Bool { true }

@@ -4,11 +4,11 @@
 #        APP_SNAPSHOT_PAGES=starred,settings tools/snap.sh   only those pages
 #        tools/snap.sh -AppleShowScrollBars Always          extra arguments go to the app
 set -u
-app=~/Applications/DoFloaty.app/Contents/MacOS/DoFloaty
-store=/tmp/DoFloaty-test.store
-shots=/tmp/DoFloaty-shots
+app=~/Applications/Perch.app/Contents/MacOS/Perch
+store=/tmp/Perch-test.store
+shots=/tmp/Perch-shots
 # A crashed run leaves saved window state, and the next launch would wait on a "reopen windows?" alert.
-rm -rf ~/Library/Saved\ Application\ State/com.rafi.dofloaty.savedState
+rm -rf ~/Library/Saved\ Application\ State/com.rafi.perch.savedState
 # Seed data only fills an empty store, so start from nothing.
 rm -f $store $store-shm $store-wal
 rm -rf $shots

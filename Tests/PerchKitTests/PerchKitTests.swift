@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DoFloatyKit
+@testable import PerchKit
 
 @Test("Clean todo text", arguments: [
     ("Buy milk", "Buy milk"),

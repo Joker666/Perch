@@ -46,7 +46,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         let window = NSWindow(contentViewController: host)
         window.styleMask = [.titled, .closable, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
-        window.title = "DoFloaty"
+        window.title = "Perch"
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.delegate = self

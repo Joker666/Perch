@@ -1,5 +1,5 @@
 import SwiftUI
-import DoFloatyKit
+import PerchKit
 
 /// Everything inside the floating panel: the title bar and the List or Archive.
 struct PanelView: View {

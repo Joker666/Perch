@@ -2,17 +2,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "DoFloaty",
+    name: "Perch",
     platforms: [.macOS(.v26)],
     targets: [
         // Rules and data logic with no SwiftUI, so tests run without the app.
-        .target(name: "DoFloatyKit"),
+        .target(name: "PerchKit"),
         .executableTarget(
-            name: "DoFloaty",
-            dependencies: ["DoFloatyKit"],
+            name: "Perch",
+            dependencies: ["PerchKit"],
             // App code runs on the main thread unless you say otherwise.
             swiftSettings: [.defaultIsolation(MainActor.self)]
         ),
-        .testTarget(name: "DoFloatyKitTests", dependencies: ["DoFloatyKit"]),
+        .testTarget(name: "PerchKitTests", dependencies: ["PerchKit"]),
     ]
 )

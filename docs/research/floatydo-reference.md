@@ -1,6 +1,6 @@
 # FloatyDo reference notes
 
-Sources: floatydo.com (HTML and CSS), the launch thread by @raffichill (6 demo videos, Apr 9 2026), and the Mac App Store listing (v1.4.0). FloatyDo is not installed on this Mac, so these notes come from video frames and the landing page CSS. We use our own name (DoFloaty), our own icons, and SF Symbols. We do not copy FloatyDo assets.
+Sources: floatydo.com (HTML and CSS), the launch thread by @raffichill (6 demo videos, Apr 9 2026), and the Mac App Store listing (v1.4.0). FloatyDo is not installed on this Mac, so these notes come from video frames and the landing page CSS. We use our own name (Perch), our own icons, and SF Symbols. We do not copy FloatyDo assets.
 
 ## Pitch
 

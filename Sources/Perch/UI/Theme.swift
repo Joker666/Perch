@@ -4,7 +4,7 @@ import SwiftUI
 
 /// One color theme for the panel and the Settings window. Every other color
 /// comes from `text` at a set opacity, so a theme is three colors.
-///   APP_THEME=matcha DoFloaty     run with another theme
+///   APP_THEME=matcha Perch     run with another theme
 struct Theme: Identifiable, Hashable {
     let id: String
     let name: String
