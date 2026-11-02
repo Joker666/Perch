@@ -3,8 +3,7 @@ import SwiftData
 import PerchKit
 
 /// Sample data for snapshots: APP_SEED=1 with APP_STORE in /tmp fills an empty
-/// store with open and completed todos, short and long. Todos have only
-/// text, so the seed sets nothing a person cannot type.
+/// store with open and completed todos, short and long.
 @MainActor
 enum SeedData {
     static func insertIfRequested(into model: AppModel) {

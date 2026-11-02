@@ -1,8 +1,8 @@
 import AppKit
 import Foundation
 
-/// A Unix domain socket that only this Mac user can open. The app listens;
-/// the CLI connects, sends one JSON line, and reads one JSON line back.
+/// A Unix domain socket that only this Mac user can open. The app listens.
+/// The CLI connects, sends one JSON line, and reads one JSON line back.
 ///   ~/Library/Application Support/Perch/agent.sock     the real app
 ///   <APP_STORE>.sock                                         a test run
 ///   APP_AGENT_SOCKET=<path>                                  any other place

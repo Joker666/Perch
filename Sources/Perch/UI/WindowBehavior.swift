@@ -2,10 +2,8 @@ import AppKit
 import SwiftUI
 
 extension View {
-    /// Opens the window with nothing focused: no focus ring and no text
-    /// cursor until the person clicks or presses Tab. Use it on every window
-    /// and sheet, except one whose only job is typing (a search or quick-add
-    /// panel focuses its field on purpose).
+    /// Opens the window with nothing focused, so no focus ring or caret shows until
+    /// a click or Tab. Use it on every window except one made for typing.
     func noInitialFocus() -> some View {
         background(WindowHook())
     }

@@ -1,11 +1,11 @@
 import Foundation
 
-/// The app binary is also its CLI. With a command after it, it runs that
-/// command against the running app and exits; without one, it opens the app.
-///   perch help                         every command, with examples
-///   perch items add --title "Milk"     run one command
-///   perch items list --json            one JSON object on stdout
-///   perch mcp                          an MCP server on stdin and stdout
+/// The app binary is also its CLI. With a command, it runs it against the
+/// running app and exits. Without one, it opens the app.
+///   perch help                            every command, with examples
+///   perch todos add --text "Buy milk"     run one command
+///   perch todos list --json               one JSON object on stdout
+///   perch mcp                             an MCP server on stdin and stdout
 /// Exit codes: 0 ok, 1 error, 2 usage, 3 not found, 4 app not running.
 enum AgentCLI {
     /// nil when the app should open normally.
@@ -42,7 +42,7 @@ enum AgentCLI {
     }
 
     private static func run(_ words: [String], json: Bool) throws -> Int32 {
-        // The longest command name that matches the first words: "items add".
+        // The longest command name that matches the first words: "todos add".
         guard let command = AgentCommands.all
             .filter({ words.starts(with: $0.name.split(separator: " ").map(String.init)) })
             .max(by: { $0.name.count < $1.name.count }) else {
@@ -175,7 +175,7 @@ enum AgentCLI {
         }
         .map { key in
             let value = object[key]
-            // JSON booleans arrive as NSNumber; show them as yes and no.
+            // JSON booleans arrive as NSNumber. Show them as yes and no.
             if let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() {
                 return "\(key): \(number.boolValue ? "yes" : "no")"
             }

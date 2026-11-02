@@ -21,8 +21,8 @@ struct PerchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     private var model: AppModel { Shared.model }
 
-    /// The menu bar icon. `systemImage:` draws the square glyph at about 11 pt, smaller than
-    /// the other menu bar icons, so draw it at 16 pt. A template image follows the menu bar's color.
+    /// The menu bar icon at 16 pt, the size of other menu bar icons (`systemImage:` draws
+    /// about 11 pt). A template image follows the menu bar's color.
     private static let menuBarIcon: NSImage = {
         let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         let image = NSImage(systemSymbolName: "checkmark.square.fill", accessibilityDescription: "Perch")?
@@ -52,8 +52,7 @@ struct PerchApp: App {
                 Button("New Todo") { PanelController.shared.show(); model.add() }
                     .keyboardShortcut("n")
             }
-            // Undo, Redo, the todo commands, and Show or Hide Perch are AppKit items
-            // (System/AppMenus.swift): SwiftUI never redraws this menu after launch.
+            // Undo, Redo, the todo commands, and Show or Hide Perch are in System/AppMenus.swift.
             CommandGroup(replacing: .undoRedo) {}
             CommandGroup(before: .toolbar) {
                 Button("List") { model.mode = .list }

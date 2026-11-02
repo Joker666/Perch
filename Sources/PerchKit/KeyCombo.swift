@@ -44,10 +44,9 @@ public struct KeyCombo: Equatable, Codable, Sendable {
         return specialNames[keyCode]
     }
 
-    /// True when a menu item's shortcut is these keys. `keyEquivalent` and
-    /// `modifiers` are the item's (Carbon flags). An uppercase letter as the key
-    /// equivalent means Shift. `layoutCharacter` is what this key types on the
-    /// current keyboard layout, read only for keys that type a character.
+    /// True when a menu item with this key equivalent and these Carbon modifiers is
+    /// the same keys. An uppercase key equivalent means Shift. `layoutCharacter` is
+    /// what this key types on the current keyboard layout.
     public func matches(keyEquivalent: String, modifiers: UInt32, layoutCharacter: @autoclosure () -> String?) -> Bool {
         var equivalent = keyEquivalent
         var itemModifiers = modifiers

@@ -6,14 +6,14 @@ import Foundation
 
 typealias JSONObject = [String: Any]
 
-/// One thing an agent can do. Keep names as "<noun> <verb>": "items add".
+/// One thing an agent can do. Keep names as "<noun> <verb>": "todos add".
 struct AgentCommand {
     struct Param {
         enum Kind: String { case string, integer, boolean }
         var name: String
         var kind: Kind = .string
         var required = false
-        /// Given without its --name, right after the command: `items show 3f2a`.
+        /// Given without its --name, right after the command: `todos show 3f2a`.
         var positional = false
         var help: String
     }
@@ -80,7 +80,7 @@ nonisolated struct AgentError: Error {
 enum AgentRouter {
     static var model: AppModel?
 
-    /// A request is {"command": "items add", "args": {"title": "Milk"}}.
+    /// A request is {"command": "todos add", "args": {"text": "Buy milk"}}.
     static func handle(_ request: Data) -> Data {
         let reply: JSONObject
         do {

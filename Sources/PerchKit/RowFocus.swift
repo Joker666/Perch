@@ -44,9 +44,8 @@ public enum FocusRules {
         return isList ? .editing(target) : .selection(ListSelection(target))
     }
 
-    /// Shift-Up and Shift-Down. A typed row becomes the anchor. `focus` is the
-    /// focus before the edit ended, and `ids` the rows after it ended, without
-    /// a new row that was left empty. nil when there is nothing to select.
+    /// Shift-Up and Shift-Down. A typed row becomes the anchor. `focus` is from
+    /// before the edit ended, `ids` from after. nil when there is nothing to select.
     public static func extending<ID: Hashable>(_ focus: RowFocus<ID>, step: Int, in ids: [ID]) -> RowFocus<ID>? {
         switch focus {
         case .none:

@@ -23,7 +23,7 @@ struct Theme: Identifiable, Hashable {
     var textColor: Color { Color(hex: text) }
     var deepColor: Color { Color(hex: deep) }
 
-    /// The swatch in Settings: dark themes show their surface, light themes their surface too.
+    /// The swatch in Settings.
     var swatch: Color { surfaceColor }
     var appearance: NSAppearance? { NSAppearance(named: isDark ? .darkAqua : .aqua) }
 

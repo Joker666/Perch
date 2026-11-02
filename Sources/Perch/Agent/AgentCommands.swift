@@ -2,10 +2,9 @@ import AppKit
 import Foundation
 import PerchKit
 
-/// Everything an agent can do in Perch (docs/AGENT-COMMANDS.md). Add a command
-/// here and the CLI, `help`, and the MCP tools all get it. Each `run` is on the
-/// main actor with the app's model, like a button in the window, and calls the
-/// same model method. Data changes are `undoable`: Edit > Undo takes them back.
+/// Everything an agent can do (docs/AGENT-COMMANDS.md). The CLI, `help`, and the
+/// MCP tools all read this list. Each `run` calls the same model method as the
+/// window, on the main actor. `undoable` changes go to Edit > Undo.
 enum AgentCommands {
     static let all: [AgentCommand] = [
         AgentCommand(name: "status", summary: "Show whether the panel is shown, List or Archive, todo counts, what Edit > Undo would take back, the theme, and the global shortcut.",

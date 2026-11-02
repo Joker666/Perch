@@ -21,7 +21,7 @@ NSColor(white: 0.55, alpha: 1).setFill()
 NSRect(x: 0, y: 0, width: width, height: height).fill()
 var x = gap
 for (rep, image) in images {
-    // ictool writes 16-bit PNGs; drawing the NSImage keeps their transparent corners.
+    // ictool writes 16-bit PNGs. Drawing the NSImage keeps their transparent corners.
     let y = (height - rep.pixelsHigh) / 2
     image.draw(in: NSRect(x: x, y: y, width: rep.pixelsWide, height: rep.pixelsHigh),
                from: .zero, operation: .sourceOver, fraction: 1)

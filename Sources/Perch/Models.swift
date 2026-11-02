@@ -79,7 +79,7 @@ final class AppModel {
     /// True while the panel takes the keyboard. The traffic lights show color only then.
     var panelIsKey = false
 
-    /// The list before the row now being edited changed, for one undo step.
+    /// The list before the current edit began, for that edit's undo step.
     private var editStart: [TodoRecord]?
     private var editIsNew = false
 
@@ -224,8 +224,7 @@ final class AppModel {
     // MARK: Changing todos
 
     /// Marks todos done. The rows play the check and sweep, then leave the list.
-    /// `animated: false` (the agent CLI) completes at once, so its Undo step is
-    /// registered inside the command and Edit > Undo works on the first click.
+    /// `animated: false` (the agent CLI) completes at once, inside the command's undo group.
     func complete(_ ids: [UUID], animated: Bool = true) {
         let ids = ids.filter { todo($0)?.isCompleted == false && !completing.contains($0) }
         guard !ids.isEmpty else { return }
@@ -332,11 +331,9 @@ final class AppModel {
 
     // MARK: Saving and undo
 
-    /// One change to the todos, with its steps in the order that keeps the List right:
-    /// run `body`, save (which renumbers a crowded List), add an undo step named
-    /// `undoName` that puts back `start`, and reload. A change that left the todos
-    /// as they were adds no undo step. With `undoName` nil it adds none either,
-    /// because the change belongs to an edit that is still open.
+    /// Every todo change: runs `body`, saves (renumbering a crowded List), adds an
+    /// undo step back to `start`, and reloads. No undo step when nothing changed,
+    /// or when `undoName` is nil because the change joins an open edit.
     private func change(_ undoName: String?, from start: [TodoRecord]? = nil, _ body: () -> Void) {
         let start = undoName == nil ? nil : start ?? records()
         body()

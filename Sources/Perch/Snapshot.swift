@@ -39,7 +39,7 @@ enum Snapshot {
         let themes = (env["APP_SNAPSHOT_THEMES"] ?? "midnight,matcha").split(separator: ",").map(String.init)
         Task {
             // A sleeping display gives screencapture nothing. Declaring user
-            // activity wakes it; the assertion keeps it on until the run quits.
+            // activity wakes it, and the assertion keeps it on until the run quits.
             var activity: IOPMAssertionID = 0
             IOPMAssertionDeclareUserActivity("Snapshots" as CFString, kIOPMUserActiveLocal, &activity)
             var awake: IOPMAssertionID = 0
@@ -76,10 +76,8 @@ enum Snapshot {
         }
     }
 
-    /// Captures the real window with screencapture, so it looks exactly as on
-    /// screen. That needs Screen Recording permission for the app that started
-    /// this one (your terminal, or Claude). Without it, falls back to drawing
-    /// the view hierarchy.
+    /// Captures the real window with screencapture, which needs Screen Recording
+    /// permission for the app that started this one. Without it, draws the view hierarchy.
     private static func capture(to path: String, window: NSWindow?) {
         // Another app can hide this one while snapshots run. Hidden windows cannot be captured.
         if NSApp.isHidden { NSApp.unhideWithoutActivation() }

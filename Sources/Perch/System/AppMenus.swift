@@ -1,12 +1,8 @@
 import AppKit
 
-/// The main menu items whose title or state follows the model: Undo, Redo,
-/// the todo commands in Edit, and Show or Hide Perch in Window.
-///
-/// They are AppKit items, not SwiftUI commands. Perch has no SwiftUI window
-/// (the panel and Settings are AppKit), and SwiftUI never redraws the main
-/// menu after launch then: items stayed off, and Undo missed an agent's change.
-/// AppKit validates each item when its menu opens and when its shortcut is pressed.
+/// Main menu items whose title or state follows the model: Undo, Redo, the todo
+/// commands in Edit, and Show or Hide Perch in Window. They are AppKit items,
+/// because SwiftUI never redraws the main menu of an app with no SwiftUI window.
 @MainActor
 final class AppMenus: NSObject, NSMenuItemValidation {
     static let shared = AppMenus()
@@ -16,12 +12,9 @@ final class AppMenus: NSObject, NSMenuItemValidation {
 
     private var model: AppModel { Shared.model }
 
-    /// Adds the items, and adds them again if SwiftUI rebuilt the main menu.
-    ///
-    /// After the app becomes active, SwiftUI rebuilds the Edit menu the next time
-    /// it is needed, and the rebuild drops these items. A menu change adds them back
-    /// on the next turn of the run loop, which is soon enough for a menu that opens.
-    /// It is too late for a shortcut, so the windows call `performKeyEquivalent` first.
+    /// Adds the items, and adds them back one run loop turn after SwiftUI rebuilds a
+    /// menu. That is too late for the shortcut that caused the rebuild, so the
+    /// windows call `performKeyEquivalent` first.
     func install() {
         ensure()
         let center = NotificationCenter.default
