@@ -147,6 +147,17 @@ enum SelfTest {
             m.delete([added.uuid])
         }
 
+        // Many adds at one spot crowd the order values. Renumbering keeps the List in order.
+        if let first = m.add(text: "Order A") {
+            m.add(text: "Order B")
+            var previous = first.uuid
+            for i in 1...40 { previous = m.add(text: "Order \(i)", after: previous)?.uuid ?? previous }
+            let expected = ["Order A"] + (1...40).map { "Order \($0)" } + ["Order B"]
+            let got = m.todos.map(\.text).filter { $0.hasPrefix("Order ") }
+            check("40 adds at one spot keep their order", got == expected, got.joined(separator: ", "))
+            m.delete(m.todos.filter { $0.text.hasPrefix("Order ") }.map(\.uuid))
+        }
+
         // Edit and Window menu items follow the model (AppKit validation, System/AppMenus.swift)
         AppMenus.shared.ensure()
         func menuItem(_ menu: String, _ action: Selector) -> NSMenuItem? {

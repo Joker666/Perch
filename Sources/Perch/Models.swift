@@ -433,11 +433,14 @@ final class AppModel {
         reload()
     }
 
+    /// Saves, and renumbers the List when two order values get too close.
     private func save() {
         try? context.save()
-        if TodoOrder.isCrowded(todos.map(\.order)) {
-            for (index, order) in TodoOrder.renumbered(count: todos.count).enumerated() { todos[index].order = order }
-            try? context.save()
-        }
+        // Read the open todos from the store, not `todos`, which misses a todo added in this change.
+        let all = (try? context.fetch(FetchDescriptor<Todo>())) ?? []
+        let open = all.filter { !$0.isCompleted }.sorted { $0.order < $1.order }
+        guard TodoOrder.isCrowded(open.map(\.order)) else { return }
+        for (todo, order) in zip(open, TodoOrder.renumbered(count: open.count)) { todo.order = order }
+        try? context.save()
     }
 }
