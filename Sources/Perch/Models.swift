@@ -131,9 +131,7 @@ final class AppModel {
         commitEditing()
         let start = records()
         let todo = Todo(text: "", order: insertionOrder(after: id))
-        context.insert(todo)
-        save()
-        reload()
+        change(nil) { context.insert(todo) }
         editStart = start
         editIsNew = true
         focus = .editing(todo.uuid)
@@ -191,20 +189,12 @@ final class AppModel {
         let start = editStart
         editStart = nil
         if let text = TodoText.clean(todo.text) {
-            todo.text = text
-            save()
-            if let start, start != records() {
-                registerUndo(start, name: editIsNew ? "Add Todo" : "Edit Todo")
-            }
-            focus = next ?? .none
+            change(start == nil ? nil : editIsNew ? "Add Todo" : "Edit Todo", from: start) { todo.text = text }
         } else {
-            context.delete(todo)
-            save()
             // An emptied row that existed before is a delete. A new empty row was never a todo.
-            if let start, !editIsNew { registerUndo(start, name: "Delete Todo") }
-            focus = next ?? .none
+            change(start == nil || editIsNew ? nil : "Delete Todo", from: start) { context.delete(todo) }
         }
-        reload()
+        focus = next ?? .none
     }
 
     // MARK: Moving the keyboard
@@ -291,16 +281,15 @@ final class AppModel {
     }
 
     private func finishCompleting(_ ids: [UUID], start: [TodoRecord], next: UUID?) {
-        for id in ids {
-            guard let todo = todo(id) else { continue }
-            todo.isCompleted = true
-            todo.completedAt = .now
-        }
         completing.subtract(ids)
-        save()
-        registerUndo(start, name: ids.count == 1 ? "Complete Todo" : "Complete Todos")
+        change(ids.count == 1 ? "Complete Todo" : "Complete Todos", from: start) {
+            for id in ids {
+                guard let todo = todo(id) else { continue }
+                todo.isCompleted = true
+                todo.completedAt = .now
+            }
+        }
         if case .selection = focus { focus = next.map { .selection(ListSelection($0)) } ?? .none }
-        reload()
     }
 
     /// Completes the selected rows, or the row being typed in.
@@ -328,11 +317,10 @@ final class AppModel {
         let start = editStart ?? records()
         editStart = nil
         let next = visible.map(\.uuid).neighbor(afterRemoving: Set(ids))
-        for id in ids { if let todo = todo(id) { context.delete(todo) } }
-        save()
-        registerUndo(start, name: ids.count == 1 ? "Delete Todo" : "Delete Todos")
+        change(ids.count == 1 ? "Delete Todo" : "Delete Todos", from: start) {
+            for id in ids { if let todo = todo(id) { context.delete(todo) } }
+        }
         focus = next.map { .selection(ListSelection($0)) } ?? .none
-        reload()
     }
 
     func deleteSelected() {
@@ -353,13 +341,12 @@ final class AppModel {
         let current = todos.map(\.uuid)
         let indices = IndexSet(ids.compactMap { current.firstIndex(of: $0) })
         guard !indices.isEmpty else { return }
-        let start = editStart ?? records()
         let reordered = TodoOrder.moving(todos, indices: indices, to: destination)
         guard reordered.map(\.uuid) != current else { return }
-        for (todo, order) in zip(reordered, TodoOrder.renumbered(count: reordered.count)) { todo.order = order }
-        save()
-        if editStart == nil { registerUndo(start, name: ids.count == 1 ? "Move Todo" : "Move Todos") }
-        reload()
+        // While a row is typed in, the move joins that edit's undo step.
+        change(editStart == nil ? (ids.count == 1 ? "Move Todo" : "Move Todos") : nil) {
+            for (todo, order) in zip(reordered, TodoOrder.renumbered(count: reordered.count)) { todo.order = order }
+        }
     }
 
     /// Command-Option-Up and -Down: moves the selected rows one place.
