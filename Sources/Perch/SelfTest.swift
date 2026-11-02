@@ -37,7 +37,26 @@ enum SelfTest {
         // The whole test runs in one run loop pass, so each step groups its own undo.
         undo.groupsByEvent = false
         let panel = PanelController.shared!
+        panel.hide()
         panel.show()
+        // S-034 the panel springs in from 98% of its size, about its center, and hides at once
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+            check("Reduce Motion shows the panel without the spring", !panel.isAppearing)
+        } else {
+            let fitted = panel.fittedFrame()
+            let start = panel.panel.frame
+            check("Show starts the panel at 98% of its size, about its center",
+                  panel.isAppearing && abs(start.width - fitted.width * Motion.appearScale) < 1
+                      && abs(start.midX - fitted.midX) < 1 && abs(start.midY - fitted.midY) < 1,
+                  "\(start) to \(fitted)")
+            panel.finishAppear()
+            check("The spring ends at the fitted frame", !panel.isAppearing && panel.panel.frame == fitted,
+                  "\(panel.panel.frame)")
+        }
+        panel.hide()
+        check("Hide is instant", !panel.panel.isVisible && panel.panel.animationBehavior == .none)
+        panel.show()
+        panel.finishAppear()
 
         // S-002 add from a filler row, S-007 saved
         m.add()
@@ -216,6 +235,7 @@ enum SelfTest {
             _ = AppMenus.shared.validateMenuItem(toggle)
             let hiddenTitle = toggle.title
             panel.show()
+            panel.finishAppear()
             _ = AppMenus.shared.validateMenuItem(toggle)
             check("Window menu says Show Perch, then Hide Perch", hiddenTitle == "Show Perch" && toggle.title == "Hide Perch",
                   "\(hiddenTitle), \(toggle.title)")
@@ -296,6 +316,30 @@ enum SelfTest {
         prefs.themeMode = .one
         check("One Theme ignores macOS", prefs.theme.id == oneTheme, prefs.theme.id)
         prefs.systemIsDark = SystemAppearance.isDark
+
+        // S-035 a Settings tab change fits the window to the new tab, with the top edge fixed
+        let settings = SettingsWindowController.shared
+        m.settingsTab = .theme
+        settings.show()
+        try? await Task.sleep(for: .seconds(0.5))
+        if let window = settings.window, let visible = window.screen?.visibleFrame {
+            let fits = { abs(window.contentLayoutRect.height - settings.contentHeight) < 1 }
+            window.setFrameTopLeftPoint(NSPoint(x: visible.minX + 40, y: visible.maxY - 40))
+            let before = window.frame
+            check("The Settings window fits the Theme tab", fits(), "\(window.contentLayoutRect.height) for \(settings.contentHeight)")
+            m.settingsTab = .shortcuts
+            try? await Task.sleep(for: .seconds(0.6))
+            let after = window.frame
+            check("A taller tab grows the Settings window to fit it, top edge fixed",
+                  after.height > before.height && abs(after.maxY - before.maxY) < 1 && fits(),
+                  "\(before) to \(after), content \(settings.contentHeight)")
+            m.settingsTab = .theme
+            try? await Task.sleep(for: .seconds(0.6))
+            check("A shorter tab shrinks it back", window.frame == before, "\(window.frame)")
+            window.close()
+        } else {
+            check("Settings opens", false)
+        }
     }
 
     private static func check(_ name: String, _ ok: Bool, _ detail: String = "") {

@@ -334,6 +334,23 @@ UX:
 - Access: the segmented control and each swatch have labels
 Status: done
 
+### S-034 See the panel spring in
+As the user, I show the panel and it springs out from its center, firm and quick, like FloatyDo.
+Acceptance:
+- [self] Show starts the panel at 98% of its fitted size, about its center, and the spring ends at the fitted frame.
+- [self] Hide is instant, with no fade.
+- [unit] The spring (response 0.23 s, damping 0.6) overshoots once by under 15% and settles within about 0.25 s.
+- [manual] With Reduce Motion on, the panel shows at full size at once.
+Status: done
+
+### S-035 See Settings move between tabs
+As the user, I change a Settings tab and the window grows or shrinks to fit it while the tabs cross-fade.
+Acceptance:
+- [self] A taller tab grows the window to fit it with the top edge fixed. A shorter tab shrinks it back.
+- [manual] The old tab fades out while the new one fades in, on the same 0.18 s curve as the height.
+- [manual] With Reduce Motion on, the tab and height change at once.
+Status: done
+
 ## Dropped
 - iPhone app and iCloud sync: one user, one Mac for now (later: iCloud sync).
 - In-app purchases: vendor only.

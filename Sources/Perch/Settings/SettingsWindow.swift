@@ -49,10 +49,32 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         keepOnScreen(window)
     }
 
-    /// A taller tab grows the window down from its top edge. Near the bottom of
-    /// the screen that put rows under the Dock, so the window moves up instead.
-    func windowDidResize(_ notification: Notification) {
-        if let window = notification.object as? NSWindow { keepOnScreen(window) }
+    /// The height of the tab bar and the tab, under the title bar. The self-test reads it.
+    private(set) var contentHeight: CGFloat = 0
+
+    /// Fits the window to the height of the tab's content, with the top edge
+    /// fixed. A tab change animates on the same curve as the cross-fade.
+    /// Near the bottom of the screen the window moves up instead of under the Dock.
+    func fit(contentHeight: CGFloat) {
+        self.contentHeight = contentHeight
+        guard let window, contentHeight > 0 else { return }
+        let titlebar = window.frame.height - window.contentLayoutRect.height
+        var frame = window.frame
+        frame.origin.y = frame.maxY - contentHeight - titlebar
+        frame.size.height = contentHeight + titlebar
+        if let visible = (window.screen ?? NSScreen.main)?.visibleFrame {
+            frame = WindowPlacement.keptOnScreen(frame, in: visible)
+        }
+        guard frame != window.frame else { return }
+        guard window.isVisible, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+            window.setFrame(frame, display: true)
+            return
+        }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Motion.tabChange
+            context.timingFunction = Motion.tabChangeCurve
+            window.animator().setFrame(frame, display: true)
+        }
     }
 
     private func keepOnScreen(_ window: NSWindow) {
@@ -63,7 +85,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     private func makeWindow() -> NSWindow {
         let host = NSHostingController(rootView: SettingsView().environment(model))
-        host.sizingOptions = [.preferredContentSize]
+        host.sizingOptions = [] // fit(contentHeight:) sizes the window, so it can animate
         let window = SettingsWindow(contentViewController: host)
         window.styleMask = [.titled, .closable, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
@@ -75,6 +97,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         if !window.setFrameUsingName("Settings") { window.center() }
         recolor(window)
         trackTheme(window)
+        self.window = window
+        fit(contentHeight: contentHeight)
         return window
     }
 
@@ -103,6 +127,10 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
+    /// The tab fading out after a tab change. It sits on top without taking
+    /// space, so the window fits the new tab while the two cross-fade.
+    @State private var leaving: SettingsTab?
+    @State private var fadeIn = 1.0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -111,23 +139,53 @@ struct SettingsView: View {
             Rectangle()
                 .fill(Palette.divider)
                 .frame(height: 1)
-            Group {
-                switch model.settingsTab {
-                case .theme: ThemeSettings()
-                case .shortcuts: ShortcutsSettings()
-                case .icon: IconSettings()
-                case .about: AboutSettings()
+            content(model.settingsTab)
+                .gridArea("settings-\(model.settingsTab.rawValue)")
+                .opacity(fadeIn)
+                .overlay(alignment: .top) {
+                    if let leaving {
+                        content(leaving)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .opacity(1 - fadeIn)
+                            .allowsHitTesting(false)
+                    }
                 }
-            }
-            .padding(Space.xxl)
-            .gridArea("settings-\(model.settingsTab.rawValue)")
         }
         .frame(width: 520)
         .fixedSize(horizontal: false, vertical: true)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+            SettingsWindowController.shared.fit(contentHeight: height)
+        }
+        // The window animates its height, so the content stays at the top and clips.
+        .frame(maxHeight: .infinity, alignment: .top)
+        .clipped()
         .foregroundStyle(Palette.text)
         .tint(Palette.text)
         .background(Palette.surface)
         .noInitialFocus()
+        .onChange(of: model.settingsTab) { old, _ in
+            guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+            leaving = old
+            fadeIn = 0
+            withAnimation(Motion.tabFade) {
+                fadeIn = 1
+            } completion: {
+                leaving = nil
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func content(_ tab: SettingsTab) -> some View {
+        Group {
+            switch tab {
+            case .theme: ThemeSettings()
+            case .shortcuts: ShortcutsSettings()
+            case .icon: IconSettings()
+            case .about: AboutSettings()
+            }
+        }
+        .padding(Space.xxl)
     }
 }
 

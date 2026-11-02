@@ -14,6 +14,12 @@ final class PanelController: NSObject, NSWindowDelegate {
     private var keyMonitor: Any?
     /// The width people chose by dragging. The height always follows the rows.
     private var width: CGFloat
+    /// The frame the panel springs toward while it appears. Nil at rest.
+    private var restingFrame: NSRect?
+    private var appearStart: CFTimeInterval = 0
+    private var appearLink: CADisplayLink?
+    /// 2% of the spring's travel is under a pixel, since the panel only grows by 2%.
+    private static let appearDuration = Motion.appear.settleTime(tolerance: 0.02)
 
     init(model: AppModel) {
         self.model = model
@@ -40,18 +46,21 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     func show() {
         NSApp.activate()
+        if !panel.isVisible { beginAppear() }
         panel.makeKeyAndOrderFront(nil)
         model.panelVisible = true
     }
 
     /// Shows the panel without taking the keyboard from the front app (the agent CLI's `open`).
     func reveal() {
+        if !panel.isVisible { beginAppear() }
         panel.orderFrontRegardless()
         model.panelVisible = true
     }
 
     func hide() {
         model.commitEditing()
+        finishAppear()
         panel.orderOut(nil)
         model.panelVisible = false
     }
@@ -73,6 +82,44 @@ final class PanelController: NSObject, NSWindowDelegate {
     func newTodo() {
         show()
         if model.editingID == nil { model.add() }
+    }
+
+    // MARK: Appearing
+
+    var isAppearing: Bool { restingFrame != nil }
+
+    /// Puts the panel at `Motion.appearScale` of its fitted frame. Each display
+    /// frame then moves it along `Motion.appear` to the full size.
+    private func beginAppear() {
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+        let frame = fittedFrame()
+        restingFrame = frame
+        panel.setFrame(Spring.scaled(frame, from: Motion.appearScale, progress: 0), display: false)
+        appearStart = CACurrentMediaTime()
+        appearLink?.invalidate()
+        let link = panel.displayLink(target: self, selector: #selector(stepAppear))
+        link.add(to: .main, forMode: .common)
+        appearLink = link
+    }
+
+    @objc private func stepAppear(_ link: CADisplayLink) {
+        guard let frame = restingFrame else { return }
+        let elapsed = link.targetTimestamp - appearStart
+        guard elapsed < Self.appearDuration else { finishAppear(); return }
+        let progress = Motion.appear.value(at: elapsed)
+        panel.setFrame(Spring.scaled(frame, from: Motion.appearScale, progress: progress), display: true)
+        panel.invalidateShadow()
+    }
+
+    /// Ends the spring at the resting frame. The self-test calls it to skip ahead.
+    func finishAppear() {
+        appearLink?.invalidate()
+        appearLink = nil
+        guard let frame = restingFrame else { return }
+        restingFrame = nil
+        panel.setFrame(frame, display: true)
+        panel.invalidateShadow()
+        save()
     }
 
     // MARK: Height
@@ -108,10 +155,12 @@ final class PanelController: NSObject, NSWindowDelegate {
     }
 
     /// Sets the fitted height with the top edge fixed, so rows grow downward,
-    /// until the panel reaches the Dock. Then the panel moves up.
+    /// until the panel reaches the Dock. Then the panel moves up. While the
+    /// panel appears, the spring takes the new frame as its end.
     func fit(animated: Bool) {
         guard !panel.inLiveResize else { return }
         let frame = fittedFrame()
+        if restingFrame != nil { restingFrame = frame; return }
         guard frame != panel.frame else { panel.invalidateShadow(); return }
         if animated && panel.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             animate(to: frame, duration: Motion.resize, curve: Motion.resizeCurve)
@@ -124,7 +173,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     /// The fitted height at the chosen width, with the top edge where it is now,
     /// moved up when that would put rows under the Dock or off the screen.
     func fittedFrame() -> NSRect {
-        var frame = panel.frame
+        var frame = restingFrame ?? panel.frame
         let height = fittedHeight()
         frame.origin.y = frame.maxY - height
         frame.size = NSSize(width: width, height: height)
@@ -199,7 +248,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     }
 
     private func save() {
-        guard !Store.isOverridden else { return }
+        guard !Store.isOverridden, restingFrame == nil else { return }
         let defaults = UserDefaults.standard
         defaults.set(Double(width), forKey: "panel.width")
         defaults.set(Double(panel.frame.minX), forKey: "panel.x")
@@ -258,7 +307,7 @@ final class FloatingPanel: NSPanel {
         isMovableByWindowBackground = false
         isReleasedWhenClosed = false
         minSize = NSSize(width: 200, height: 80)
-        animationBehavior = .utilityWindow
+        animationBehavior = .none // PanelController springs it in. Hiding is instant.
         setAccessibilityTitle("Perch")
     }
 

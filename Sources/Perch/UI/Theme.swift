@@ -206,6 +206,15 @@ enum Motion {
     static let springBackCurve = CAMediaTimingFunction(controlPoints: 0.175, 0.885, 0.32, 1.1)
     /// The check that pops into a completed todo's circle.
     static let check = Animation.spring(duration: 0.3, bounce: 0.4)
+    /// The panel appears at 98% of its size and springs out from its center,
+    /// with one small overshoot. Measured from the reference app. Hiding is instant.
+    static let appearScale = 0.98
+    static let appear = Spring(response: 0.23, dampingFraction: 0.6)
+    /// A Settings tab change: the window height and the cross-fade share this
+    /// slow-fast-slow curve, measured from the reference app.
+    static let tabChange = 0.18
+    static let tabChangeCurve = CAMediaTimingFunction(controlPoints: 0.8, 0, 0.2, 1)
+    static let tabFade = Animation.timingCurve(0.8, 0, 0.2, 1, duration: tabChange)
 }
 
 /// Fixed sizes of the panel's parts, from the reference app.

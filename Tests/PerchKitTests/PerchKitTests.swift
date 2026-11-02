@@ -254,3 +254,24 @@ func emptyText(_ input: String) {
     choice.set("forest", for: .light, systemIsDark: true)
     #expect(choice.light == "forest" && choice.dark == "navy")
 }
+
+@Test func springStartsAtRestOvershootsOnceAndSettles() {
+    let spring = Spring(response: 0.23, dampingFraction: 0.6)
+    #expect(spring.value(at: 0) == 0)
+    #expect(spring.value(at: 0.01) < 0.1)
+    let peak = stride(from: 0.0, to: 0.4, by: 0.001).map(spring.value).max()!
+    #expect(peak > 1.05 && peak < 1.15)
+    let settle = spring.settleTime(tolerance: 0.02)
+    #expect(settle > 0.15 && settle < 0.35)
+    #expect(abs(spring.value(at: settle) - 1) <= 0.02)
+    #expect(spring.settleTime() > settle)
+    #expect(Spring(response: 0.3, dampingFraction: 1).value(at: 1) <= 1)
+}
+
+@Test func springScalesAboutTheCenter() {
+    let frame = CGRect(x: 100, y: 200, width: 400, height: 200)
+    let start = Spring.scaled(frame, from: 0.98, progress: 0)
+    #expect(start.width == 392 && start.height == 196)
+    #expect(start.midX == frame.midX && start.midY == frame.midY)
+    #expect(Spring.scaled(frame, from: 0.98, progress: 1) == frame)
+}
