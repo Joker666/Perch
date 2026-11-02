@@ -8,3 +8,6 @@ xcuserdata/
 /Resources/
 dist/
 .claude/
+sparkle-key.txt
+*.p12
+*.p8
