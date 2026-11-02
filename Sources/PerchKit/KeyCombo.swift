@@ -44,6 +44,22 @@ public struct KeyCombo: Equatable, Codable, Sendable {
         return specialNames[keyCode]
     }
 
+    /// True when a menu item's shortcut is these keys. `keyEquivalent` and
+    /// `modifiers` are the item's (Carbon flags). An uppercase letter as the key
+    /// equivalent means Shift. `layoutCharacter` is what this key types on the
+    /// current keyboard layout, read only for keys that type a character.
+    public func matches(keyEquivalent: String, modifiers: UInt32, layoutCharacter: @autoclosure () -> String?) -> Bool {
+        var equivalent = keyEquivalent
+        var itemModifiers = modifiers
+        if equivalent.count == 1, equivalent != equivalent.lowercased() {
+            itemModifiers |= Self.shift
+            equivalent = equivalent.lowercased()
+        }
+        guard itemModifiers == self.modifiers else { return false }
+        if let special = Self.keyEquivalents[keyCode] { return equivalent == special }
+        return layoutCharacter()?.lowercased() == equivalent
+    }
+
     public static func isFunctionKey(_ keyCode: UInt32) -> Bool {
         functionKeys.contains(keyCode)
     }
@@ -51,6 +67,13 @@ public struct KeyCombo: Equatable, Codable, Sendable {
     /// F1 to F20, in order.
     private static let functionKeys: [UInt32] = [122, 120, 99, 118, 96, 97, 98, 100, 101, 109,
                                                  103, 111, 105, 107, 113, 106, 64, 79, 80, 90]
+
+    /// How a menu item writes keys that type no letter: Return, Tab, Space,
+    /// Delete, Escape, Forward Delete, and the arrows (AppKit's function key characters).
+    private static let keyEquivalents: [UInt32: String] = [
+        36: "\r", 48: "\t", 49: " ", 51: "\u{8}", 53: "\u{1b}", 117: "\u{7f}",
+        123: "\u{F702}", 124: "\u{F703}", 125: "\u{F701}", 126: "\u{F700}",
+    ]
 
     private static let specialNames: [UInt32: String] = [
         36: "↩", 48: "⇥", 49: "Space", 51: "⌫", 53: "⎋", 76: "⌤", 117: "⌦",

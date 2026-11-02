@@ -124,37 +124,22 @@ enum KeyNames {
 
     /// A combination from a key press.
     static func combo(from event: NSEvent) -> KeyCombo {
-        let flags = event.modifierFlags
+        KeyCombo(keyCode: UInt32(event.keyCode), modifiers: carbonModifiers(event.modifierFlags))
+    }
+
+    /// True when a menu item's key equivalent is the same keys as `combo` (rule in PerchKit).
+    static func matches(_ combo: KeyCombo, item: NSMenuItem) -> Bool {
+        combo.matches(keyEquivalent: item.keyEquivalent, modifiers: carbonModifiers(item.keyEquivalentModifierMask),
+                      layoutCharacter: layoutCharacter(UInt16(combo.keyCode)))
+    }
+
+    private static func carbonModifiers(_ flags: NSEvent.ModifierFlags) -> UInt32 {
         var modifiers: UInt32 = 0
         if flags.contains(.command) { modifiers |= KeyCombo.command }
         if flags.contains(.shift) { modifiers |= KeyCombo.shift }
         if flags.contains(.option) { modifiers |= KeyCombo.option }
         if flags.contains(.control) { modifiers |= KeyCombo.control }
-        return KeyCombo(keyCode: UInt32(event.keyCode), modifiers: modifiers)
-    }
-
-    /// True when a menu item's key equivalent is the same keys as `combo`.
-    static func matches(_ combo: KeyCombo, item: NSMenuItem) -> Bool {
-        var equivalent = item.keyEquivalent
-        var mask = item.keyEquivalentModifierMask
-        // An uppercase letter as the key equivalent means Shift.
-        if equivalent.count == 1, equivalent != equivalent.lowercased() {
-            mask.insert(.shift)
-            equivalent = equivalent.lowercased()
-        }
-        var modifiers: UInt32 = 0
-        if mask.contains(.command) { modifiers |= KeyCombo.command }
-        if mask.contains(.shift) { modifiers |= KeyCombo.shift }
-        if mask.contains(.option) { modifiers |= KeyCombo.option }
-        if mask.contains(.control) { modifiers |= KeyCombo.control }
-        guard modifiers == combo.modifiers else { return false }
-        let special: [UInt32: String] = [
-            36: "\r", 48: "\t", 49: " ", 51: "\u{8}", 53: "\u{1b}", 117: "\u{7f}",
-            123: String(UnicodeScalar(NSLeftArrowFunctionKey)!), 124: String(UnicodeScalar(NSRightArrowFunctionKey)!),
-            125: String(UnicodeScalar(NSDownArrowFunctionKey)!), 126: String(UnicodeScalar(NSUpArrowFunctionKey)!),
-        ]
-        if let name = special[combo.keyCode] { return equivalent == name }
-        return layoutCharacter(UInt16(combo.keyCode))?.lowercased() == equivalent
+        return modifiers
     }
 
     /// The character a key types with no modifiers on the current layout.

@@ -187,3 +187,26 @@ func emptyText(_ input: String) {
     #expect(up.offset(at: 2) == 36)
     #expect(up.offset(at: 4) == 0)
 }
+
+// MARK: Shortcuts in the menus
+
+@Test func shortcutMatchesMenuItems() {
+    let commandN = KeyCombo(keyCode: 45, modifiers: KeyCombo.command)
+    #expect(commandN.matches(keyEquivalent: "n", modifiers: KeyCombo.command, layoutCharacter: "n"))
+    #expect(!commandN.matches(keyEquivalent: "n", modifiers: KeyCombo.command | KeyCombo.option, layoutCharacter: "n"))
+    #expect(!commandN.matches(keyEquivalent: "m", modifiers: KeyCombo.command, layoutCharacter: "n"))
+    // An uppercase key equivalent means Shift, as AppKit draws ⇧⌘Z for "Z".
+    let redo = KeyCombo(keyCode: 6, modifiers: KeyCombo.command | KeyCombo.shift)
+    #expect(redo.matches(keyEquivalent: "Z", modifiers: KeyCombo.command, layoutCharacter: "z"))
+    #expect(redo.matches(keyEquivalent: "z", modifiers: KeyCombo.command | KeyCombo.shift, layoutCharacter: "z"))
+}
+
+@Test func shortcutMatchesKeysWithoutLetters() {
+    let up = KeyCombo(keyCode: 126, modifiers: KeyCombo.command | KeyCombo.option)
+    #expect(up.matches(keyEquivalent: "\u{F700}", modifiers: KeyCombo.command | KeyCombo.option, layoutCharacter: nil))
+    let complete = KeyCombo(keyCode: 36, modifiers: KeyCombo.command)
+    #expect(complete.matches(keyEquivalent: "\r", modifiers: KeyCombo.command, layoutCharacter: nil))
+    let delete = KeyCombo(keyCode: 51, modifiers: KeyCombo.command)
+    #expect(delete.matches(keyEquivalent: "\u{8}", modifiers: KeyCombo.command, layoutCharacter: nil))
+    #expect(!delete.matches(keyEquivalent: "\r", modifiers: KeyCombo.command, layoutCharacter: nil))
+}
