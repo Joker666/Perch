@@ -21,9 +21,9 @@ types that take plain values.
   and every action. The panel, the menus, Settings, and the agent CLI all
   call the same `AppModel` methods.
 - **Windows** (`Panel/`, `Settings/`). AppKit windows with SwiftUI content.
-  The panel height comes from `PanelMetrics`. The panel springs in by
-  setting its frame on each display frame (`Spring` in PerchKit), and
-  `fit` moves the spring's end while it runs. The Settings window sets its
+  The panel height comes from `PanelMetrics`. The panel springs in (`Spring`
+  in PerchKit) and shrinks and fades out by setting its frame on each
+  display frame, and `fit` moves the full-size frame while either runs. The Settings window sets its
   own height from the tab's measured height, so it can animate.
 - **System** (`System/`). Menus (`AppMenus`), the global shortcut
   (`Hotkey`), and Sparkle updates (`Updates`).

@@ -14,10 +14,12 @@ final class PanelController: NSObject, NSWindowDelegate {
     private var keyMonitor: Any?
     /// The width people chose by dragging. The height always follows the rows.
     private var width: CGFloat
-    /// The frame the panel springs toward while it appears. Nil at rest.
+    /// The panel's full-size frame while it appears or hides. Nil at rest.
     private var restingFrame: NSRect?
-    private var appearStart: CFTimeInterval = 0
-    private var appearLink: CADisplayLink?
+    private enum Transition { case appearing, hiding }
+    private var transition: Transition?
+    private var transitionStart: CFTimeInterval = 0
+    private var transitionLink: CADisplayLink?
     /// 2% of the spring's travel is under a pixel, since the panel only grows by 2%.
     private static let appearDuration = Motion.appear.settleTime(tolerance: 0.02)
 
@@ -42,10 +44,12 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     // MARK: Showing
 
-    var isVisible: Bool { panel.isVisible }
+    /// A panel that is fading out counts as hidden.
+    var isVisible: Bool { panel.isVisible && transition != .hiding }
 
     func show() {
         NSApp.activate()
+        finishHide()
         if !panel.isVisible { beginAppear() }
         panel.makeKeyAndOrderFront(nil)
         model.panelVisible = true
@@ -53,6 +57,7 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     /// Shows the panel without taking the keyboard from the front app (the agent CLI's `open`).
     func reveal() {
+        finishHide()
         if !panel.isVisible { beginAppear() }
         panel.orderFrontRegardless()
         model.panelVisible = true
@@ -61,20 +66,21 @@ final class PanelController: NSObject, NSWindowDelegate {
     func hide() {
         model.commitEditing()
         finishAppear()
-        panel.orderOut(nil)
         model.panelVisible = false
+        guard isVisible else { return }
+        beginHide()
     }
 
     /// Show and Hide in the menus. Opening a menu takes the keyboard from the
     /// panel, so this goes by visibility only, like the menu item's title.
     func toggle() {
-        if panel.isVisible { hide() } else { show() }
+        if isVisible { hide() } else { show() }
     }
 
     /// The global shortcut: hides the panel when it has the keyboard, otherwise
     /// shows it with a new todo ready for typing. Hiding drops an empty new row.
     func quickAdd() {
-        if panel.isVisible && panel.isKeyWindow { hide(); return }
+        if isVisible && panel.isKeyWindow { hide(); return }
         newTodo()
     }
 
@@ -84,9 +90,10 @@ final class PanelController: NSObject, NSWindowDelegate {
         if model.editingID == nil { model.add() }
     }
 
-    // MARK: Appearing
+    // MARK: Appearing and hiding
 
-    var isAppearing: Bool { restingFrame != nil }
+    var isAppearing: Bool { transition == .appearing }
+    var isHiding: Bool { transition == .hiding }
 
     /// Puts the panel at `Motion.appearScale` of its fitted frame. Each display
     /// frame then moves it along `Motion.appear` to the full size.
@@ -95,30 +102,68 @@ final class PanelController: NSObject, NSWindowDelegate {
         let frame = fittedFrame()
         restingFrame = frame
         panel.setFrame(Spring.scaled(frame, from: Motion.appearScale, progress: 0), display: false)
-        appearStart = CACurrentMediaTime()
-        appearLink?.invalidate()
-        let link = panel.displayLink(target: self, selector: #selector(stepAppear))
-        link.add(to: .main, forMode: .common)
-        appearLink = link
+        start(.appearing)
     }
 
-    @objc private func stepAppear(_ link: CADisplayLink) {
-        guard let frame = restingFrame else { return }
-        let elapsed = link.targetTimestamp - appearStart
-        guard elapsed < Self.appearDuration else { finishAppear(); return }
-        let progress = Motion.appear.value(at: elapsed)
-        panel.setFrame(Spring.scaled(frame, from: Motion.appearScale, progress: progress), display: true)
+    /// Shrinks the panel to `Motion.hideScale` and fades it out, then orders it out.
+    private func beginHide() {
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+            panel.orderOut(nil)
+            return
+        }
+        restingFrame = panel.frame
+        start(.hiding)
+    }
+
+    private func start(_ kind: Transition) {
+        transition = kind
+        transitionStart = CACurrentMediaTime()
+        transitionLink?.invalidate()
+        let link = panel.displayLink(target: self, selector: #selector(step))
+        link.add(to: .main, forMode: .common)
+        transitionLink = link
+    }
+
+    @objc private func step(_ link: CADisplayLink) {
+        guard let frame = restingFrame, let transition else { return }
+        let elapsed = link.targetTimestamp - transitionStart
+        switch transition {
+        case .appearing:
+            guard elapsed < Self.appearDuration else { finishAppear(); return }
+            let progress = Motion.appear.value(at: elapsed)
+            panel.setFrame(Spring.scaled(frame, from: Motion.appearScale, progress: progress), display: true)
+        case .hiding:
+            guard elapsed < Motion.hide else { finishHide(); return }
+            let gone = Motion.hideCurve(elapsed / Motion.hide)
+            panel.setFrame(Spring.scaled(frame, from: Motion.hideScale, progress: 1 - gone), display: true)
+            panel.alphaValue = 1 - gone
+        }
         panel.invalidateShadow()
+    }
+
+    private func stop() -> NSRect? {
+        transitionLink?.invalidate()
+        transitionLink = nil
+        transition = nil
+        defer { restingFrame = nil }
+        return restingFrame
     }
 
     /// Ends the spring at the resting frame. The self-test calls it to skip ahead.
     func finishAppear() {
-        appearLink?.invalidate()
-        appearLink = nil
-        guard let frame = restingFrame else { return }
-        restingFrame = nil
+        guard isAppearing, let frame = stop() else { return }
         panel.setFrame(frame, display: true)
         panel.invalidateShadow()
+        save()
+    }
+
+    /// Orders the panel out and puts it back at full size and opacity for the
+    /// next show. The self-test calls it to skip ahead.
+    func finishHide() {
+        guard isHiding, let frame = stop() else { return }
+        panel.orderOut(nil)
+        panel.alphaValue = 1
+        panel.setFrame(frame, display: false)
         save()
     }
 
@@ -156,7 +201,7 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     /// Sets the fitted height with the top edge fixed, so rows grow downward,
     /// until the panel reaches the Dock. Then the panel moves up. While the
-    /// panel appears, the spring takes the new frame as its end.
+    /// panel appears or hides, the new frame becomes its full-size frame.
     func fit(animated: Bool) {
         guard !panel.inLiveResize else { return }
         let frame = fittedFrame()
@@ -307,7 +352,7 @@ final class FloatingPanel: NSPanel {
         isMovableByWindowBackground = false
         isReleasedWhenClosed = false
         minSize = NSSize(width: 200, height: 80)
-        animationBehavior = .none // PanelController springs it in. Hiding is instant.
+        animationBehavior = .none // PanelController animates the show and the hide
         setAccessibilityTitle("Perch")
     }
 

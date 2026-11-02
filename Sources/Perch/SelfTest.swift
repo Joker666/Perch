@@ -53,8 +53,23 @@ enum SelfTest {
             check("The spring ends at the fitted frame", !panel.isAppearing && panel.panel.frame == fitted,
                   "\(panel.panel.frame)")
         }
+        let shown = panel.panel.frame
         panel.hide()
-        check("Hide is instant", !panel.panel.isVisible && panel.panel.animationBehavior == .none)
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+            check("Reduce Motion hides the panel at once", !panel.panel.isVisible)
+        } else {
+            check("Hide starts a fade, and the panel counts as hidden at once",
+                  panel.isHiding && !panel.isVisible && panel.panel.isVisible && !m.panelVisible)
+            panel.show()
+            check("Show during the fade brings the panel back with the spring",
+                  !panel.isHiding && panel.isAppearing && panel.panel.alphaValue == 1)
+            panel.finishAppear()
+            panel.hide()
+            panel.finishHide()
+            check("The fade ends hidden, at full size and opacity for the next show",
+                  !panel.panel.isVisible && panel.panel.alphaValue == 1 && panel.panel.frame == shown,
+                  "\(panel.panel.frame)")
+        }
         panel.show()
         panel.finishAppear()
 

@@ -335,12 +335,12 @@ UX:
 Status: done
 
 ### S-034 See the panel spring in
-As the user, I show the panel and it springs out from its center, firm and quick, like FloatyDo.
+As the user, I show the panel and it springs out from its center, firm and quick, like FloatyDo. Hiding is a short shrink and fade.
 Acceptance:
 - [self] Show starts the panel at 98% of its fitted size, about its center, and the spring ends at the fitted frame.
-- [self] Hide is instant, with no fade.
+- [self] Hide shrinks the panel back to 98% and fades it out in 0.12 s. The panel counts as hidden at once, and Show during the fade brings it back with the spring.
 - [unit] The spring (response 0.23 s, damping 0.6) overshoots once by under 15% and settles within about 0.25 s.
-- [manual] With Reduce Motion on, the panel shows at full size at once.
+- [manual] With Reduce Motion on, the panel shows and hides at once.
 Status: done
 
 ### S-035 See Settings move between tabs

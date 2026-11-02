@@ -207,9 +207,15 @@ enum Motion {
     /// The check that pops into a completed todo's circle.
     static let check = Animation.spring(duration: 0.3, bounce: 0.4)
     /// The panel appears at 98% of its size and springs out from its center,
-    /// with one small overshoot. Measured from the reference app. Hiding is instant.
+    /// with one small overshoot. Measured from the reference app.
     static let appearScale = 0.98
     static let appear = Spring(response: 0.23, dampingFraction: 0.6)
+    /// The panel hides by shrinking back to 98% and fading out, faster than it
+    /// appears. The reference app hides at once. This keeps that quickness.
+    static let hide = 0.12
+    static let hideScale = 0.98
+    /// Ease-in: slow at first, then gone. Takes and gives progress from 0 to 1.
+    static func hideCurve(_ t: Double) -> Double { t * t }
     /// A Settings tab change: the window height and the cross-fade share this
     /// slow-fast-slow curve, measured from the reference app.
     static let tabChange = 0.18
