@@ -70,11 +70,11 @@ struct ThemeSettings: View {
             GridRow {
                 label("Sound")
                 // A switch, not a checkbox: a SwiftUI checkbox in this self-sizing window loops on layout and crashes.
-                Toggle("Play a sound when you complete a todo", isOn: $prefs.completionSound)
+                Toggle("Play a sound when you add or complete a todo", isOn: $prefs.playSounds)
                     .toggleStyle(.switch)
                     .controlSize(.small)
                     .labelsHidden()
-                    .help("Play a sound when you complete a todo")
+                    .help("Play a sound when you add or complete a todo")
                     .gridCellColumns(3)
             }
         }

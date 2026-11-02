@@ -179,6 +179,7 @@ final class AppModel {
         editStart = nil
         if let text = TodoText.clean(todo.text) {
             change(start == nil ? nil : editIsNew ? "Add Todo" : "Edit Todo", from: start) { todo.text = text }
+            if editIsNew { FeedbackSound.play(.add) }
         } else {
             // An emptied row that existed before is a delete. A new empty row was never a todo.
             change(start == nil || editIsNew ? nil : "Delete Todo", from: start) { context.delete(todo) }
@@ -237,7 +238,7 @@ final class AppModel {
             finishCompleting(live, start: start, next: next)
             return
         }
-        CompletionSound.play()
+        FeedbackSound.play(.complete)
         completing.formUnion(live)
         Task {
             try? await Task.sleep(for: .seconds(Motion.completionSettle))

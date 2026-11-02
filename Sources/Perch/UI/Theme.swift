@@ -103,8 +103,9 @@ final class Prefs {
     var fontSize: Double { didSet { save(fontSize, "fontSize") } }
     var radius: Double { didSet { save(radius, "radius") } }
     var iconID: String { didSet { save(iconID, "icon"); AppIcons.apply(iconID) } }
-    /// The click when you complete a todo (`CompletionSound`). On by default.
-    var completionSound: Bool { didSet { save(completionSound, "completionSound") } }
+    /// The clicks when you add or complete a todo (`FeedbackSound`). On by default.
+    /// Saved as "completionSound", its name when it covered only completing.
+    var playSounds: Bool { didSet { save(playSounds, "completionSound") } }
 
     var themeChoice: ThemeChoice {
         get { ThemeChoice(mode: themeMode, one: themeID, light: lightThemeID, dark: darkThemeID) }
@@ -135,7 +136,7 @@ final class Prefs {
         fontSize = defaults.object(forKey: "fontSize") as? Double ?? Self.defaultFontSize
         radius = defaults.object(forKey: "radius") as? Double ?? Self.defaultRadius
         iconID = defaults.string(forKey: "icon") ?? Theme.all[0].id
-        completionSound = defaults.object(forKey: "completionSound") as? Bool ?? true
+        playSounds = defaults.object(forKey: "completionSound") as? Bool ?? true
         SystemAppearance.observe { Prefs.shared.systemIsDark = $0 }
     }
 

@@ -299,13 +299,22 @@ As the user, I complete a todo and hear a short click, like a key switch.
 Screens: settings-theme
 Acceptance:
 - [self] Completing in the panel (circle, ⌘↩, or the context menu) plays the sound. An agent's `perch todos complete` plays none.
-- [snap] Settings > Theme has a Sound switch, on by default. Its help says "Play a sound when you complete a todo".
+- [snap] Settings > Theme has a Sound switch, on by default. Its help says "Play a sound when you add or complete a todo".
 - [manual] No sound when macOS has "Play user interface sound effects" off.
 UX:
 - Flow: click the circle -> check, click, and sweep together
 - Surface: feedback only, no window
-- Words: Settings label "Sound", and the switch's help "Play a sound when you complete a todo"
+- Words: Settings label "Sound", and the switch's help "Play a sound when you add or complete a todo"
 - Access: the sound adds to the check and the sweep, so nothing depends on hearing it
+Status: done
+
+### S-033 Hear a todo get added
+As the user, I save a new todo and hear one quiet tick, different from the completion click.
+Depends: S-031
+Acceptance:
+- [self] Saving a new todo with text in the panel (Return, Escape, or a click away) plays the add sound.
+- [self] A new row left empty plays no sound. An agent's `perch todos add` plays none.
+- [manual] The Sound switch in Settings > Theme turns off this sound and the completion sound.
 Status: done
 
 ### S-032 Match the macOS appearance

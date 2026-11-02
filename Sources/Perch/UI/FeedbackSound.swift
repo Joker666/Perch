@@ -1,16 +1,24 @@
 import AppKit
 
-/// The short click when you complete a todo in the panel. It is made in code,
-/// so Perch ships no audio file.
+/// The short clicks when you add or complete a todo in the panel. They are made
+/// in code, so Perch ships no audio file.
 @MainActor
-enum CompletionSound {
-    /// How many times the panel asked for the sound, played or not. The self-test reads it.
-    private(set) static var requests = 0
+enum FeedbackSound {
+    enum Kind {
+        /// One quiet tick when a new todo is saved.
+        case add
+        /// A key switch: a firm press, then a lighter release.
+        case complete
+    }
 
-    /// Plays unless Settings or macOS turned the sound off. Test runs stay silent.
-    static func play() {
-        requests += 1
-        guard Prefs.shared.completionSound, systemAllowsInterfaceSounds, !Store.isOverridden else { return }
+    /// How many times the panel asked for each sound, played or not. The self-test reads it.
+    private(set) static var requests: [Kind: Int] = [:]
+
+    /// Plays unless Settings or macOS turned sounds off. Test runs stay silent.
+    static func play(_ kind: Kind) {
+        requests[kind, default: 0] += 1
+        guard Prefs.shared.playSounds, systemAllowsInterfaceSounds, !Store.isOverridden else { return }
+        let sound = sound(kind)
         sound?.stop()
         sound?.play()
     }
@@ -20,18 +28,23 @@ enum CompletionSound {
         UserDefaults.standard.object(forKey: "com.apple.sound.uiaudio.enabled") as? Int != 0
     }
 
-    static let sound = NSSound(data: wav())
+    static func sound(_ kind: Kind) -> NSSound? {
+        switch kind {
+        case .add: add
+        case .complete: complete
+        }
+    }
 
-    /// A key switch: a firm press, then a lighter release 45 ms later. Each click
-    /// is a high tick, a lower body, and a burst of noise, all fading in a few
-    /// milliseconds. 16-bit mono WAV.
-    static func wav() -> Data {
+    private static let add = NSSound(data: wav([(0, 0.7, 3200, 1100, 0.004)], seconds: 0.06))
+    private static let complete = NSSound(data: wav([(0, 1, 2600, 900, 0.004), (0.045, 0.55, 3400, 1200, 0.003)], seconds: 0.1))
+
+    typealias Click = (start: Double, gain: Double, tick: Double, body: Double, decay: Double)
+
+    /// Clicks made of a high tick, a lower body, and a burst of noise, all fading
+    /// in a few milliseconds. 16-bit mono WAV.
+    static func wav(_ clicks: [Click], seconds: Double) -> Data {
         let rate = 44_100.0
-        let length = Int(rate * 0.1)
-        let clicks: [(start: Double, gain: Double, tick: Double, body: Double, decay: Double)] = [
-            (0, 1, 2600, 900, 0.004),
-            (0.045, 0.55, 3400, 1200, 0.003),
-        ]
+        let length = Int(rate * seconds)
         var seed: UInt32 = 0x5045_5243 // a fixed seed, so every launch makes the same click
         var previousNoise = 0.0
         var samples = [Int16](repeating: 0, count: length)

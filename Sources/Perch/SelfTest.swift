@@ -160,19 +160,32 @@ enum SelfTest {
             m.delete([added.uuid])
         }
 
-        // S-031 the completion sound: the panel asks for it, an agent's complete does not
-        check("The completion sound is a valid sound", (CompletionSound.sound?.duration ?? 0) > 0.05,
-              "\(CompletionSound.sound?.duration ?? 0) s")
+        // S-031, S-033 the sounds: the panel asks for them, an agent does not
+        check("The add and complete sounds are valid sounds",
+              (FeedbackSound.sound(.add)?.duration ?? 0) > 0.03 && (FeedbackSound.sound(.complete)?.duration ?? 0) > 0.05)
+        let adds = { FeedbackSound.requests[.add, default: 0] }
+        let completes = { FeedbackSound.requests[.complete, default: 0] }
+        let addsBefore = adds()
         if let quiet = m.add(text: "Sound check") {
-            let asked = CompletionSound.requests
+            check("An agent's add plays no sound", adds() == addsBefore)
+            let asked = completes()
             m.complete([quiet.uuid], animated: false)
-            check("An agent's complete plays no sound", CompletionSound.requests == asked)
+            check("An agent's complete plays no sound", completes() == asked)
             m.restore([quiet.uuid])
             m.complete([quiet.uuid])
-            check("Completing in the panel plays the sound", CompletionSound.requests == asked + 1)
+            check("Completing in the panel plays the sound", completes() == asked + 1)
             try? await Task.sleep(for: .seconds(Motion.completionSettle + 0.2))
             m.delete([quiet.uuid])
         }
+        let addsAtStart = adds()
+        m.add()
+        m.commitEditing()
+        check("An empty new row plays no sound", adds() == addsAtStart)
+        m.add()
+        if let id = m.editingID { m.updateText(id, "Typed in the panel") }
+        m.commitEditing()
+        check("Saving a new todo in the panel plays the add sound", adds() == addsAtStart + 1)
+        if let typed = m.todos.first(where: { $0.text == "Typed in the panel" }) { m.delete([typed.uuid]) }
 
         // Many adds at one spot crowd the order values. Renumbering keeps the List in order.
         if let first = m.add(text: "Order A") {
