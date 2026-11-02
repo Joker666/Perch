@@ -171,6 +171,17 @@ enum SelfTest {
         } else {
             check("Show or Hide Perch is in the Window menu", false)
         }
+        // The first shortcut after the app becomes active meets an Edit menu that SwiftUI is rebuilding
+        if let edit = NSApp.mainMenu?.items.first(where: { $0.submenu?.title == "Edit" })?.submenu,
+           let commandZ = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command, timestamp: 0,
+                                           windowNumber: 0, context: nil, characters: "z",
+                                           charactersIgnoringModifiers: "z", isARepeat: false, keyCode: 6) {
+            let temp = m.add(text: "Shortcut check")
+            for item in edit.items where item.target === AppMenus.shared { edit.removeItem(item) }
+            let handled = AppMenus.shared.performKeyEquivalent(commandZ)
+            check("⌘Z undoes while the Edit menu has no Undo item", handled && !m.todos.contains { $0.uuid == temp?.uuid })
+            AppMenus.shared.ensure()
+        }
 
         // S-028 change the global shortcut
         let hotkey = Hotkey.shared

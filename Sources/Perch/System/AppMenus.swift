@@ -17,39 +17,88 @@ final class AppMenus: NSObject, NSMenuItemValidation {
     private var model: AppModel { Shared.model }
 
     /// Adds the items, and adds them again if SwiftUI rebuilt the main menu.
+    ///
+    /// After the app becomes active, SwiftUI rebuilds the Edit menu the next time
+    /// it is needed, and the rebuild drops these items. A menu change adds them back
+    /// on the next turn of the run loop, which is soon enough for a menu that opens.
+    /// It is too late for a shortcut, so the windows call `performKeyEquivalent` first.
     func install() {
         ensure()
         let center = NotificationCenter.default
-        for name in [NSMenu.didBeginTrackingNotification, NSApplication.didBecomeActiveNotification,
-                     NSWindow.didBecomeKeyNotification] {
+        for name in [NSMenu.didAddItemNotification, NSMenu.didRemoveItemNotification,
+                     NSMenu.didChangeItemNotification, NSApplication.didBecomeActiveNotification] {
             center.addObserver(forName: name, object: nil, queue: .main) { _ in
-                MainActor.assumeIsolated { AppMenus.shared.ensure() }
+                MainActor.assumeIsolated { AppMenus.shared.ensureSoon() }
             }
+        }
+        center.addObserver(forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { AppMenus.shared.ensure() }
+        }
+    }
+
+    private var ensureQueued = false
+
+    /// One `ensure` for a burst of menu changes.
+    private func ensureSoon() {
+        guard !ensureQueued else { return }
+        ensureQueued = true
+        DispatchQueue.main.async {
+            self.ensureQueued = false
+            self.ensure()
         }
     }
 
     func ensure() {
         guard let menu = NSApp.mainMenu else { return }
         if let edit = submenu("Edit", in: menu), edit.item(withTag: Self.tag) == nil {
-            edit.insertItem(item("Undo", #selector(undo(_:)), "z"), at: 0)
-            edit.insertItem(item("Redo", #selector(redo(_:)), "z", [.command, .shift]), at: 1)
-            edit.insertItem(.separator(), at: 2)
-            var index = (edit.items.firstIndex { $0.action == #selector(NSResponder.selectAll(_:)) } ?? edit.items.count - 1) + 1
-            for new in [NSMenuItem.separator(),
-                        item("Complete Todo", #selector(complete(_:)), "\r"),
-                        item("Delete Todo", #selector(deleteTodo(_:)), "\u{8}"),
-                        item("Move Todo Up", #selector(moveUp(_:)), key(NSUpArrowFunctionKey), [.command, .option]),
-                        item("Move Todo Down", #selector(moveDown(_:)), key(NSDownArrowFunctionKey), [.command, .option]),
-                        NSMenuItem.separator(),
-                        item("Clear Archive…", #selector(clearArchive(_:)), "")] {
-                edit.insertItem(new, at: index)
-                index += 1
-            }
+            insert(editTop, into: edit, at: 0)
+            let selectAll = edit.items.firstIndex { $0.action == #selector(NSResponder.selectAll(_:)) }
+            insert(editTodo, into: edit, at: (selectAll ?? edit.items.count - 1) + 1)
         }
         if let window = submenu("Window", in: menu), window.item(withTag: Self.tag) == nil {
             let index = window.items.firstIndex { $0.action == #selector(NSApplication.arrangeInFront(_:)) } ?? window.items.count
-            window.insertItem(item("Hide Perch", #selector(showOrHide(_:)), "0"), at: index)
-            window.insertItem(.separator(), at: index + 1)
+            insert(windowItems, into: window, at: index)
+        }
+    }
+
+    /// Runs the item whose shortcut `event` is, as the menu would. False when no
+    /// item has that shortcut, or when the item is off.
+    func performKeyEquivalent(_ event: NSEvent) -> Bool {
+        let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
+        guard flags.contains(.command), var key = event.charactersIgnoringModifiers?.lowercased() else { return false }
+        if key == "\u{7F}" { key = "\u{8}" }  // the Delete key, which menus write as backspace
+        guard let item = (editTop + editTodo + windowItems).first(where: {
+            $0.action != nil && $0.keyEquivalent == key && $0.keyEquivalentModifierMask == flags
+        }), validateMenuItem(item), let action = item.action else { return false }
+        return NSApp.sendAction(action, to: self, from: item)
+    }
+
+    // MARK: Items
+
+    // Made once and put back after each rebuild, so `performKeyEquivalent` can find them.
+    private lazy var editTop: [NSMenuItem] = [
+        item("Undo", #selector(undo(_:)), "z"),
+        item("Redo", #selector(redo(_:)), "z", [.command, .shift]),
+        .separator(),
+    ]
+    private lazy var editTodo: [NSMenuItem] = [
+        .separator(),
+        item("Complete Todo", #selector(complete(_:)), "\r"),
+        item("Delete Todo", #selector(deleteTodo(_:)), "\u{8}"),
+        item("Move Todo Up", #selector(moveUp(_:)), key(NSUpArrowFunctionKey), [.command, .option]),
+        item("Move Todo Down", #selector(moveDown(_:)), key(NSDownArrowFunctionKey), [.command, .option]),
+        .separator(),
+        item("Clear Archive…", #selector(clearArchive(_:)), ""),
+    ]
+    private lazy var windowItems: [NSMenuItem] = [
+        item("Hide Perch", #selector(showOrHide(_:)), "0"),
+        .separator(),
+    ]
+
+    private func insert(_ items: [NSMenuItem], into menu: NSMenu, at index: Int) {
+        for (offset, item) in items.enumerated() {
+            item.menu?.removeItem(item)  // still in a menu SwiftUI replaced
+            menu.insertItem(item, at: index + offset)
         }
     }
 

@@ -26,6 +26,13 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     }
 }
 
+/// Perch's menu shortcuts work even while SwiftUI rebuilds the Edit menu (System/AppMenus.swift).
+final class SettingsWindow: NSWindow {
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        super.performKeyEquivalent(with: event) || AppMenus.shared.performKeyEquivalent(event)
+    }
+}
+
 /// The Settings window (Command-Comma). It takes the theme's colors, like the panel.
 @MainActor
 final class SettingsWindowController: NSObject, NSWindowDelegate {
@@ -43,7 +50,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private func makeWindow() -> NSWindow {
         let host = NSHostingController(rootView: SettingsView().environment(model))
         host.sizingOptions = [.preferredContentSize]
-        let window = NSWindow(contentViewController: host)
+        let window = SettingsWindow(contentViewController: host)
         window.styleMask = [.titled, .closable, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
         window.title = "Perch"

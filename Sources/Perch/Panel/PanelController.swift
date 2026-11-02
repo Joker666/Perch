@@ -263,6 +263,11 @@ final class FloatingPanel: NSPanel {
     override var canBecomeMain: Bool { true }
     override var undoManager: UndoManager? { undo }
 
+    /// Perch's menu shortcuts work even while SwiftUI rebuilds the Edit menu (System/AppMenus.swift).
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        super.performKeyEquivalent(with: event) || AppMenus.shared.performKeyEquivalent(event)
+    }
+
     override func performClose(_ sender: Any?) {
         PanelController.shared.hide()
     }
