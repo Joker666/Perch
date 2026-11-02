@@ -6,15 +6,15 @@
     <description>Updates for Perch, a tiny floating todo list for the Mac.</description>
     <language>en</language>
     <item>
-      <title>Version 0.1.4</title>
-      <pubDate>Mon, 02 Nov 2026 15:05:16 +0000</pubDate>
-      <sparkle:version>202611021503</sparkle:version>
-      <sparkle:shortVersionString>0.1.4</sparkle:shortVersionString>
+      <title>Version 0.1.5</title>
+      <pubDate>Mon, 02 Nov 2026 20:50:54 +0000</pubDate>
+      <sparkle:version>202611022048</sparkle:version>
+      <sparkle:shortVersionString>0.1.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>New: Match System. In Settings &gt; Theme &gt; Appearance, pick one theme for macOS Light and one for macOS Dark. Perch switches when macOS does.</li><li>New: a quiet tick when you save a new todo. The Sound switch turns it off with the completion click.</li><li>The panel now moves up when new todos would push it under the Dock.</li><li>The Settings window now stays on screen when a taller tab opens.</li></ul>]]></description>
-      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.4</sparkle:fullReleaseNotesLink>
-      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.4/Perch.dmg"
-                 type="application/octet-stream" sparkle:edSignature="9KKgLYaSRO5lUGlVNI+/LbEKkm6aEc+lj0wVm5ZGG0iBof9iwwOg4a6rATcXE+YFEWasi8BzpOtPK9DPXl8VAA==" length="3554052" />
+      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>New: the panel springs in when you show it, and shrinks and fades out when you hide it. With Reduce Motion on, it shows and hides at once.</li><li>Agents that add todos through `perch` or MCP are now asked to write short todos that start with a verb.</li></ul>]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.5</sparkle:fullReleaseNotesLink>
+      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.5/Perch.dmg"
+                 type="application/octet-stream" sparkle:edSignature="q+Xpo4La/BSc8cgDnNmjZ0KUwKJ33bWoBpIjnQ0AXz1eL0Z7QXXYhlD7oDQ4mv5Kq0LNO/89pgP3QTLulcifBQ==" length="3557252" />
     </item>
   </channel>
 </rss>
