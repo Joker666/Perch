@@ -1,0 +1,76 @@
+import Foundation
+import Testing
+@testable import DoFloatyKit
+
+@Test("Clean todo text", arguments: [
+    ("Buy milk", "Buy milk"),
+    ("  Buy   milk \n", "Buy milk"),
+    ("Line\nbreak", "Line break"),
+])
+func cleans(_ input: String, expected: String) {
+    #expect(TodoText.clean(input) == expected)
+}
+
+@Test("Empty text is no todo", arguments: ["", "   ", "\n\t"])
+func emptyText(_ input: String) {
+    #expect(TodoText.clean(input) == nil)
+}
+
+@Test func orderBetweenNeighbors() {
+    #expect(TodoOrder.between(0, 1024) == 512)
+    #expect(TodoOrder.between(2048, nil) == 2048 + TodoOrder.step)
+    #expect(TodoOrder.between(nil, 0) == -TodoOrder.step)
+    #expect(TodoOrder.between(nil, nil) == 0)
+}
+
+@Test func crowdedOrders() {
+    #expect(TodoOrder.isCrowded([0, 1e-9]))
+    #expect(!TodoOrder.isCrowded([0, 1, 2]))
+    #expect(TodoOrder.renumbered(count: 3) == [0, 1024, 2048])
+}
+
+@Test func movingKeepsRelativeOrder() {
+    let list = ["a", "b", "c", "d", "e"]
+    #expect(TodoOrder.moving(list, indices: [1], to: 4) == ["a", "c", "d", "b", "e"])
+    #expect(TodoOrder.moving(list, indices: [3], to: 0) == ["d", "a", "b", "c", "e"])
+    #expect(TodoOrder.moving(list, indices: [1, 2], to: 5) == ["a", "d", "e", "b", "c"])
+    #expect(TodoOrder.moving(list, indices: [4], to: 5) == list)
+}
+
+@Test func selectionMovesAndExtends() {
+    let list = [1, 2, 3, 4]
+    var s = ListSelection(2)
+    s = s.moved(by: 1, extend: true, in: list)
+    #expect(s.ids(in: list) == [2, 3])
+    s = s.moved(by: -2, extend: true, in: list)
+    #expect(s.ids(in: list) == [1, 2])
+    s = s.moved(by: 1, extend: false, in: list)
+    #expect(s.ids(in: list) == [2])
+    #expect(ListSelection(4).moved(by: 1, extend: false, in: list).cursor == 4)
+    #expect(ListSelection(1).extended(to: 3).ids(in: list) == [1, 2, 3])
+    #expect(ListSelection(9).ids(in: list).isEmpty)
+}
+
+@Test func neighborAfterRemoving() {
+    let list = [1, 2, 3, 4]
+    #expect(list.neighbor(afterRemoving: [2, 3]) == 4)
+    #expect(list.neighbor(afterRemoving: [4]) == 3)
+    #expect(list.neighbor(afterRemoving: [1, 2, 3, 4]) == nil)
+}
+
+@Test func panelHeightFitsRows() {
+    let m = PanelMetrics(fontSize: 14)
+    #expect(m.rowHeight == 36)
+    #expect(m.circleSize == 18)
+    #expect(m.height(rows: 3) == 4 + 36 + 4 + 3 * 36 + 16)
+    #expect(m.height(rows: 100, maxHeight: 500) == 500)
+    #expect(PanelMetrics.clampWidth(100) == PanelMetrics.minWidth)
+    #expect(PanelMetrics.clampWidth(900) == PanelMetrics.maxWidth)
+}
+
+@Test func rubberBandResists() {
+    #expect(PanelMetrics.rubberBand(0) == 0)
+    #expect(PanelMetrics.rubberBand(20) < 20)
+    #expect(PanelMetrics.rubberBand(10_000) < 60)
+    #expect(PanelMetrics.rubberBand(-20) == -PanelMetrics.rubberBand(20))
+}

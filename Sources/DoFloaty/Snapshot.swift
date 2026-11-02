@@ -1,18 +1,34 @@
 import AppKit
 import IOKit.pwr_mgt
 import SwiftUI
+import DoFloatyKit
 
 /// Screenshot mode for agents.
 ///   APP_STORE=/tmp/test.store APP_SNAPSHOT=/tmp/shots ~/Applications/DoFloaty.app/Contents/MacOS/DoFloaty
-/// writes <page>-light.png and <page>-dark.png for every sidebar page, and
-/// settings-<tab>-light.png and settings-<tab>-dark.png for every Settings tab, then quits.
-/// Each PNG gets a <page>-<mode>-layout.json with the grid probes (tools/check-layout.swift).
-/// APP_SNAPSHOT_PAGES=all,starred limits the pages. Add "settings" to include Settings.
-/// Add APP_ACCENT=<id> to see the pages in another accent.
+/// writes <page>-<theme>.png for every panel state and settings-<tab>-<theme>.png
+/// for every Settings tab, in a dark theme and a light theme, then quits.
+/// Each PNG gets a <page>-<theme>-layout.json with the grid probes (tools/check-layout.swift).
+/// APP_SNAPSHOT_PAGES=panel,archive limits the pages. Add "settings" to include Settings.
+/// APP_SNAPSHOT_THEMES=midnight,pool picks the themes.
+@MainActor
 enum Snapshot {
-    static func runIfRequested(model: AppModel, openSettings: OpenSettingsAction) {
+    static var requested: Bool { !(ProcessInfo.processInfo.environment["APP_SNAPSHOT"] ?? "").isEmpty }
+
+    /// The panel states. Each sets up the model, then the panel is captured.
+    static let pages: [(name: String, setUp: (AppModel) -> Void)] = [
+        ("panel", { m in m.mode = .list; m.focus = .none }),
+        ("panel-editing", { m in m.mode = .list; m.focus = .none; m.beginEditing(m.todos[1].uuid) }),
+        ("panel-selection", { m in
+            m.mode = .list
+            m.commitEditing()
+            m.focus = .selection(ListSelection(anchor: m.todos[1].uuid, cursor: m.todos[2].uuid))
+        }),
+        ("archive", { m in m.commitEditing(); m.mode = .archive }),
+    ]
+
+    static func run(model: AppModel) {
         let env = ProcessInfo.processInfo.environment
-        guard let dir = env["APP_SNAPSHOT"], !dir.isEmpty else { return }
+        let dir = env["APP_SNAPSHOT"] ?? "/tmp/DoFloaty-shots"
         // Snapshots never run against the real database.
         guard Store.isOverridden else {
             print("SNAPSHOT refused: set APP_STORE to a file in /tmp")
@@ -20,6 +36,7 @@ enum Snapshot {
             return
         }
         let only = env["APP_SNAPSHOT_PAGES"].map { Set($0.split(separator: ",").map(String.init)) }
+        let themes = (env["APP_SNAPSHOT_THEMES"] ?? "midnight,matcha").split(separator: ",").map(String.init)
         Task {
             // A sleeping display gives screencapture nothing. Declaring user
             // activity wakes it; the assertion keeps it on until the run quits.
@@ -29,50 +46,47 @@ enum Snapshot {
             IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
                                         IOPMAssertionLevel(kIOPMAssertionLevelOn), "Snapshots" as CFString, &awake)
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-            try? await Task.sleep(for: .seconds(1.5))
-            for mode in ["light", "dark"] {
-                NSApp.appearance = NSAppearance(named: mode == "light" ? .aqua : .darkAqua)
-                for page in SidebarItem.allCases where only?.contains(page.rawValue) ?? true {
-                    model.sidebar = page
-                    try? await Task.sleep(for: .seconds(0.8))
-                    capture(to: "\(dir)/\(page.rawValue)-\(mode).png")
+            let panel = PanelController.shared!
+            panel.show()
+            try? await Task.sleep(for: .seconds(1.2))
+            for theme in themes {
+                Prefs.shared.themeID = theme
+                for page in pages where only?.contains(page.name) ?? true {
+                    page.setUp(model)
+                    try? await Task.sleep(for: .seconds(0.9))
+                    capture(to: "\(dir)/\(page.name)-\(theme).png", window: panel.panel)
                 }
             }
             if only == nil || only?.contains("settings") == true {
-                let main = NSApp.windows.first { $0.canBecomeMain && !$0.isSheet }
-                openSettings()
+                model.commitEditing()
+                model.mode = .list
+                SettingsWindowController.shared.show()
                 try? await Task.sleep(for: .seconds(1))
-                for mode in ["light", "dark"] {
-                    NSApp.appearance = NSAppearance(named: mode == "light" ? .aqua : .darkAqua)
+                for theme in themes {
+                    Prefs.shared.themeID = theme
                     for tab in SettingsTab.allCases {
                         model.settingsTab = tab
                         try? await Task.sleep(for: .seconds(0.8))
-                        let settings = NSApp.windows.first { $0.isVisible && $0 !== main && !$0.isSheet }
-                        capture(to: "\(dir)/settings-\(tab.rawValue)-\(mode).png", window: settings)
+                        capture(to: "\(dir)/settings-\(tab.rawValue)-\(theme).png", window: SettingsWindowController.shared.window)
                     }
                 }
             }
             print("SNAPSHOT done \(dir)")
-            // An open sheet refuses terminate, and the run would wait forever.
-            for window in NSApp.windows { if let sheet = window.attachedSheet { window.endSheet(sheet) } }
             NSApp.terminate(nil)
         }
     }
 
-    /// Captures the real window with screencapture, so glass, sidebars, and
-    /// materials look exactly as on screen. That needs Screen Recording
-    /// permission for the app that started this one (your terminal, or Claude).
-    /// Without it, falls back to drawing the view hierarchy, which leaves
-    /// sidebars and glass blank.
-    private static func capture(to path: String, window: NSWindow? = nil) {
-        // Another app can hide this one while snapshots run (computer use hides
-        // apps it does not control). Hidden windows cannot be captured.
+    /// Captures the real window with screencapture, so it looks exactly as on
+    /// screen. That needs Screen Recording permission for the app that started
+    /// this one (your terminal, or Claude). Without it, falls back to drawing
+    /// the view hierarchy.
+    private static func capture(to path: String, window: NSWindow?) {
+        // Another app can hide this one while snapshots run. Hidden windows cannot be captured.
         if NSApp.isHidden { NSApp.unhideWithoutActivation() }
-        guard let window = window ?? NSApp.windows.first(where: { $0.canBecomeMain && !$0.isSheet }) else {
+        guard let window else {
             print("SNAPSHOT no window")
             return
         }
-        // Active, like a window someone is using: real accent colors and focus rings.
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
         let size = window.contentView?.bounds.size ?? .zero
@@ -96,7 +110,7 @@ enum Snapshot {
         view.cacheDisplay(in: view.bounds, to: rep)
         if let data = rep.representation(using: .png, properties: [:]) {
             try? data.write(to: URL(fileURLWithPath: path))
-            print("SNAPSHOT \(path) (fallback: no Screen Recording permission, sidebars and glass are blank)")
+            print("SNAPSHOT \(path) (fallback: no Screen Recording permission)")
         }
     }
 }

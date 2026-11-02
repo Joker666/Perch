@@ -25,28 +25,116 @@ enum SelfTest {
         }
         Task {
             try? await Task.sleep(for: .seconds(0.5))
-            let context = model.container.mainContext
-            func items() -> [Item] { (try? context.fetch(FetchDescriptor<Item>())) ?? [] }
-
-            let before = items().count
-            model.addItem()
-            check("New Item adds one item", items().count == before + 1)
-            check("the new item is selected", model.selection != nil)
-            try? context.save()
-            check("selection survives a save", items().contains { $0.id == model.selection })
-
-            if let item = items().first(where: { $0.id == model.selection }) {
-                item.isStarred.toggle()
-                check("starring an item marks it starred", item.isStarred)
-                context.delete(item)
-                try? context.save()
-                check("deleting the item removes it", items().count == before)
-            }
-            check("titles are cleaned", ItemTitle.clean("  Buy   milk ") == "Buy milk")
-
+            await run(model)
             print(failures == 0 ? "SELFTEST PASS \(count) checks" : "SELFTEST FAIL \(failures) of \(count) checks")
             finish(code: failures == 0 ? 0 : 1)
         }
+    }
+
+    private static func run(_ m: AppModel) async {
+        let texts = { m.todos.map(\.text) }
+        let undo = m.undoManager
+        // The whole test runs in one run loop pass, so each step groups its own undo.
+        undo.groupsByEvent = false
+        let panel = PanelController.shared!
+        panel.show()
+
+        // S-002 add from a filler row, S-007 saved
+        m.add()
+        check("Add starts typing in a new row", m.editingID != nil && m.todos.count == 1)
+        m.commitEditing()
+        check("An empty new row is not saved", m.todos.isEmpty)
+        check("An empty new row leaves no undo step", !undo.canUndo)
+
+        m.add()
+        m.updateText(m.editingID!, "  Buy   milk ")
+        m.commitEditing()
+        check("A typed row is saved with clean text", texts() == ["Buy milk"])
+        check("Undo names the add", undo.undoActionName == "Add Todo")
+
+        // S-003 Return inserts below
+        m.add()
+        m.updateText(m.editingID!, "Call Anna")
+        m.commitEditing()
+        let first = m.todos[0].uuid
+        m.add(after: first)
+        m.updateText(m.editingID!, "Between")
+        m.commitEditing()
+        check("Return inserts the new row right below", texts() == ["Buy milk", "Between", "Call Anna"])
+
+        // S-004 edit, empty means delete
+        m.beginEditing(m.todos[1].uuid)
+        m.updateText(m.todos[1].uuid, "")
+        m.commitEditing()
+        check("Clearing a row's text deletes it", texts() == ["Buy milk", "Call Anna"])
+        undo.undo()
+        check("Undo brings the cleared row back", texts() == ["Buy milk", "Between", "Call Anna"])
+
+        // S-006 the panel height fits the rows
+        let metrics = PanelMetrics(fontSize: Prefs.shared.fontSize)
+        try? await Task.sleep(for: .seconds(0.5))
+        check("Panel height fits todos plus fillers",
+              abs(panel.panel.frame.height - metrics.height(rows: m.todos.count + PanelMetrics.fillerCount)) < 1,
+              "height \(panel.panel.frame.height)")
+
+        // S-008, S-009 selection
+        m.focus = .none
+        m.moveCursor(step: 1)
+        check("Down with nothing selected types in the first row", m.editingID == m.todos[0].uuid)
+        m.extendSelection(step: 1)
+        check("Shift-Down selects two rows", m.selectedIDs.count == 2)
+        m.extendSelection(step: 1)
+        check("Shift-Down again selects three rows", m.selectedIDs.count == 3)
+        m.moveCursor(step: -1)
+        check("Up collapses the selection to one typing row", m.editingID == m.todos[1].uuid)
+
+        // S-010 delete and undo
+        m.focus = .selection(ListSelection(anchor: m.todos[0].uuid, cursor: m.todos[1].uuid))
+        m.deleteSelected()
+        check("Delete removes the selected rows", texts() == ["Call Anna"])
+        undo.undo()
+        check("Undo puts deleted rows back in place", texts() == ["Buy milk", "Between", "Call Anna"])
+
+        // S-013 move with the keyboard, S-012 move by drag
+        m.focus = .selection(ListSelection(m.todos[0].uuid))
+        m.moveSelected(by: 1)
+        check("Move Down moves the row one place", texts() == ["Between", "Buy milk", "Call Anna"])
+        m.move([m.todos[2].uuid], to: 0)
+        check("A drop moves the row to the top", texts() == ["Call Anna", "Between", "Buy milk"])
+
+        // S-005 complete, S-014 archive
+        let done = m.todos[1].uuid
+        m.complete([done])
+        check("A completing row stays until its animation ends", m.todos.contains { $0.uuid == done })
+        try? await Task.sleep(for: .seconds(Motion.completionSettle + 0.3))
+        check("A completed todo leaves the list", texts() == ["Call Anna", "Buy milk"])
+        check("A completed todo is in the Archive", m.archived.first?.uuid == done)
+        undo.undo()
+        check("Undo un-completes it", texts() == ["Call Anna", "Between", "Buy milk"])
+        undo.redo()
+        check("Redo completes it again", m.archived.count == 1)
+
+        // S-015 restore
+        m.restore([done])
+        check("Restore moves the todo to the end of the list", texts().last == "Between" && m.archived.isEmpty)
+
+        // S-016 clear the Archive
+        m.complete(m.todos.map(\.uuid))
+        try? await Task.sleep(for: .seconds(Motion.completionSettle + 0.3))
+        check("Completing every todo empties the list", m.todos.isEmpty && m.archived.count == 3)
+        m.clearArchive()
+        check("Clear Archive deletes every completed todo", m.archived.isEmpty)
+        undo.undo()
+        check("Undo brings the Archive back", m.archived.count == 3)
+
+        // S-007 todos survive a new context, as after a restart
+        let fresh = ModelContext(m.container)
+        let saved = (try? fresh.fetchCount(FetchDescriptor<Todo>())) ?? 0
+        check("Todos are saved to the store", saved == 3)
+
+        // S-017 themes
+        check("There are 8 themes", Theme.all.count == 8)
+        check("Theme ids are unique", Set(Theme.all.map(\.id)).count == Theme.all.count)
     }
 
     private static func check(_ name: String, _ ok: Bool, _ detail: String = "") {

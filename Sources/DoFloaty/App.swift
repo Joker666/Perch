@@ -5,57 +5,141 @@ import SwiftUI
 // DoFloaty
 //   DoFloaty                      the app
 //   APP_STORE=<file> DoFloaty     use another database (tests, experiments)
-//   APP_SNAPSHOT=<dir> DoFloaty   save a PNG of every sidebar page and Settings tab in light and dark mode, then quit
-//   APP_SEED=1 DoFloaty           fill an empty /tmp store with sample items (tools/snap.sh)
+//   APP_SNAPSHOT=<dir> DoFloaty   save a PNG of every panel state and Settings tab in two themes, then quit
+//   APP_SEED=1 DoFloaty           fill an empty /tmp store with sample todos (tools/snap.sh)
 //   DoFloaty --selftest           run the self-test on a /tmp store and quit with 0 or 1 (tools/selftest.sh)
-//   APP_ACCENT=<id> DoFloaty      run with another accent from Theme.all (UI/Theme.swift)
+//   APP_THEME=<id> DoFloaty       run with another theme from Theme.all (UI/Theme.swift)
 //   APP_GRID=1 DoFloaty           draw grid lines every 8 pt and the layout probes over the window
+
+/// The one model the panel, menus, and Settings share.
+@MainActor
+enum Shared {
+    static let model = AppModel(container: Store.makeContainer())
+}
 
 @main
 struct DoFloatyApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    @State private var model = AppModel(container: Store.makeContainer())
+    private var model: AppModel { Shared.model }
 
     var body: some Scene {
-        Window("DoFloaty", id: "main") {
-            ContentView()
+        MenuBarExtra("DoFloaty", systemImage: "checkmark.square.fill") {
+            MenuBarMenu()
                 .environment(model)
-                .themed()
-                .overlay { if GridOverlay.enabled { GridOverlay() } }
-                .frame(minWidth: 760, minHeight: 480)
         }
-        .modelContainer(model.container)
-        .defaultSize(width: 1100, height: 720)
-        .windowToolbarStyle(.unified)
         .commands {
-            SidebarCommands()
-            ToolbarCommands()
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings…") { SettingsWindowController.shared.show() }
+                    .keyboardShortcut(",")
+            }
             CommandGroup(replacing: .newItem) {
-                Button("New Item") { model.addItem() }
+                Button("New Todo") { PanelController.shared.show(); model.add() }
                     .keyboardShortcut("n")
             }
+            CommandGroup(after: .pasteboard) {
+                TodoCommands().environment(model)
+            }
+            CommandGroup(before: .toolbar) {
+                Button("List") { model.mode = .list }
+                    .keyboardShortcut("1")
+                Button("Archive") { model.mode = .archive }
+                    .keyboardShortcut("2")
+                Divider()
+            }
+            CommandGroup(before: .windowList) {
+                Button(model.panelVisible ? "Hide DoFloaty" : "Show DoFloaty") { PanelController.shared.toggle() }
+                    .keyboardShortcut("0")
+                Divider()
+            }
         }
+    }
+}
 
-        Settings {
-            SettingsView()
-                .environment(model)
-                .themed()
-        }
-        .windowResizability(.contentSize)
+/// Edit menu items that act on the selected todos.
+private struct TodoCommands: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        Divider()
+        Button("Complete") { model.completeSelected() }
+            .keyboardShortcut(.return, modifiers: .command)
+            .disabled(model.mode != .list || model.selectedIDs.isEmpty)
+        Button("Delete") { model.deleteSelected() }
+            .keyboardShortcut(.delete, modifiers: .command)
+            .disabled(model.selectedIDs.isEmpty)
+        Button("Move Up") { model.moveSelected(by: -1) }
+            .keyboardShortcut(.upArrow, modifiers: [.command, .option])
+            .disabled(model.mode != .list || model.selectedIDs.isEmpty)
+        Button("Move Down") { model.moveSelected(by: 1) }
+            .keyboardShortcut(.downArrow, modifiers: [.command, .option])
+            .disabled(model.mode != .list || model.selectedIDs.isEmpty)
+        Divider()
+        Button("Clear Archive…") { confirmClearArchive(model) }
+            .disabled(model.archived.isEmpty)
+    }
+}
+
+/// Clearing deletes every completed todo, so it asks first. Undo still works.
+@MainActor
+func confirmClearArchive(_ model: AppModel) {
+    let count = model.archived.count
+    let alert = NSAlert()
+    alert.messageText = count == 1 ? "Delete 1 Completed Todo?" : "Delete \(count) Completed Todos?"
+    alert.informativeText = "You can undo this with Command-Z."
+    alert.addButton(withTitle: "Delete").hasDestructiveAction = true
+    alert.addButton(withTitle: "Cancel")
+    if alert.runModal() == .alertFirstButtonReturn { model.clearArchive() }
+}
+
+/// The menu under the checkmark in the menu bar.
+private struct MenuBarMenu: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        Button(model.panelVisible ? "Hide DoFloaty" : "Show DoFloaty") { PanelController.shared.toggle() }
+        Button("New Todo") { PanelController.shared.quickAdd() }
+        Divider()
+        Button("Settings…") { SettingsWindowController.shared.show() }
+        Divider()
+        Button("Quit DoFloaty") { NSApp.terminate(nil) }
     }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var panel: PanelController?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Started from a terminal, the process is not a foreground app yet.
         NSApp.setActivationPolicy(.regular)
-        NSApp.activate()
+        let model = Shared.model
+        Prefs.shared.applyAppearance()
+        AppIcons.apply(Prefs.shared.iconID)
+        SeedData.insertIfRequested(into: model)
+        SettingsWindowController.shared.model = model
+        let panel = PanelController(model: model)
+        self.panel = panel
+        Hotkey.register { PanelController.shared.quickAdd() }
+
+        if SelfTest.requested {
+            SelfTest.runIfRequested(model: model)
+        } else if Snapshot.requested {
+            Snapshot.run(model: model)
+        } else {
+            panel.show()
+        }
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
-    /// The self-test's result becomes the exit code, after a normal quit.
+    /// Clicking the Dock icon brings the panel back.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        panel?.show()
+        return false
+    }
+
+    /// Saves a row that is still being typed in. The self-test's result becomes the exit code.
     func applicationWillTerminate(_ notification: Notification) {
+        Shared.model.commitEditing()
         if SelfTest.requested { exit(SelfTest.exitCode) }
     }
 }
@@ -78,7 +162,7 @@ enum Store {
 
     static func makeContainer() -> ModelContainer {
         do {
-            return try ModelContainer(for: Item.self, configurations: ModelConfiguration(url: url))
+            return try ModelContainer(for: Todo.self, configurations: ModelConfiguration(url: url))
         } catch {
             fatalError("Could not open the database at \(url.path): \(error)")
         }

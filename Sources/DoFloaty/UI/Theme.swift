@@ -2,135 +2,171 @@ import AppKit
 import Observation
 import SwiftUI
 
-/// One accent color in three shades. Everything else is Apple's look.
-/// People pick the accent in Settings > Appearance (AppearanceSettings.swift).
-/// Light and dark mode follow the Mac: there is no app-specific mode setting.
-///   APP_ACCENT=mint DoFloaty     run with another accent, to compare
+/// One color theme for the panel and the Settings window. Every other color
+/// comes from `text` at a set opacity, so a theme is three colors.
+///   APP_THEME=matcha DoFloaty     run with another theme
 struct Theme: Identifiable, Hashable {
-    struct Shades: Hashable {
-        let light: UInt32
-        let base: UInt32
-        let deep: UInt32
-    }
-
     let id: String
     let name: String
-    /// nil follows the accent color in System Settings.
-    let shades: Shades?
-    /// Text on the accent: white, or dark ink for bright accents like yellow.
-    var darkText = false
+    /// The panel background.
+    let surface: UInt32
+    /// The selected row.
+    let highlight: UInt32
+    /// Text, circles, and icons.
+    let text: UInt32
+    /// The darker, more saturated color behind the panel on the swatch and the app icon.
+    let deep: UInt32
+    let isDark: Bool
 
-    /// For `.tint`. nil keeps the system accent.
-    var tint: Color? { shades.map { Color(hex: $0.base) } }
-    /// The flat accent color.
-    var accent: Color { tint ?? .accentColor }
-    /// Accent-colored text and symbols on a plain or tinted background: the
-    /// deep shade in light mode, the light shade in dark mode, so both read.
-    var accentText: Color { shades.map { Color(light: $0.deep, dark: $0.light) } ?? .accentColor }
-    /// Text and symbols on an accent fill.
-    var onAccent: Color { darkText ? Color(hex: 0x16161C) : .white }
+    var surfaceColor: Color { Color(hex: surface) }
+    var highlightColor: Color { Color(hex: highlight) }
+    var textColor: Color { Color(hex: text) }
+    var deepColor: Color { Color(hex: deep) }
+
+    /// The swatch in Settings: dark themes show their surface, light themes their surface too.
+    var swatch: Color { surfaceColor }
+    var appearance: NSAppearance? { NSAppearance(named: isDark ? .darkAqua : .aqua) }
 
     static let all: [Theme] = [
-        Theme(id: "system", name: "System", shades: nil),
-        Theme(id: "blue", name: "Blue", shades: .init(light: 0x7CC0FF, base: 0x0A84FF, deep: 0x0064D2)),
-        Theme(id: "indigo", name: "Indigo", shades: .init(light: 0xA5ADFF, base: 0x5E6AD2, deep: 0x4650B8)),
-        Theme(id: "violet", name: "Violet", shades: .init(light: 0xB9A6FF, base: 0x7B5CFF, deep: 0x6342E6)),
-        Theme(id: "pink", name: "Pink", shades: .init(light: 0xFF9CCB, base: 0xE84A93, deep: 0xC0306F)),
-        Theme(id: "red", name: "Red", shades: .init(light: 0xFF8A9A, base: 0xE11D48, deep: 0xBE123C)),
-        Theme(id: "orange", name: "Orange", shades: .init(light: 0xFFB87A, base: 0xF97316, deep: 0xC2410C)),
-        Theme(id: "yellow", name: "Yellow", shades: .init(light: 0xFFE17A, base: 0xF5B800, deep: 0x946800), darkText: true),
-        Theme(id: "mint", name: "Mint", shades: .init(light: 0x8EEBC4, base: 0x2BC48A, deep: 0x0F7A55), darkText: true),
-        Theme(id: "teal", name: "Teal", shades: .init(light: 0x8BE9F5, base: 0x06B6D4, deep: 0x0E7490), darkText: true),
-        Theme(id: "graphite", name: "Graphite", shades: .init(light: 0xC7C7CC, base: 0x7C7C84, deep: 0x55555C)),
+        Theme(id: "midnight", name: "Midnight", surface: 0x14141F, highlight: 0x454554, text: 0xFFFFFF, deep: 0x262636, isDark: true),
+        Theme(id: "navy", name: "Navy", surface: 0x1B2130, highlight: 0x3E475C, text: 0xFFFFFF, deep: 0x2A354E, isDark: true),
+        Theme(id: "forest", name: "Forest", surface: 0x1F2724, highlight: 0x3A4943, text: 0xFFFFFF, deep: 0x2A4F41, isDark: true),
+        Theme(id: "plum", name: "Plum", surface: 0x2A1E28, highlight: 0x523E47, text: 0xFFFFFF, deep: 0x492844, isDark: true),
+        Theme(id: "pool", name: "Pool", surface: 0xDCEFFC, highlight: 0xB6D9F0, text: 0x092539, deep: 0x8DACC2, isDark: false),
+        Theme(id: "blossom", name: "Blossom", surface: 0xF2D1E1, highlight: 0xE9B7CF, text: 0x240313, deep: 0xCFA6BA, isDark: false),
+        Theme(id: "matcha", name: "Matcha", surface: 0xCFDDB5, highlight: 0xBAC99F, text: 0x1E2E00, deep: 0x809952, isDark: false),
+        Theme(id: "sand", name: "Sand", surface: 0xE6E0D6, highlight: 0xD3CBBE, text: 0x41392B, deep: 0xC8C0B2, isDark: false),
     ]
+
+    static func named(_ id: String) -> Theme { all.first { $0.id == id } ?? all[0] }
 }
 
-/// The chosen accent, saved in UserDefaults. Views that read `theme` redraw
-/// when it changes.
-@Observable
-final class ThemeStore {
-    static let shared = ThemeStore()
+/// The font designs people pick in Settings > Theme.
+enum TodoFont: String, CaseIterable, Identifiable {
+    case system, rounded, serif, monospaced
 
-    /// The accent the app ships with. Keep "system", so the app follows the
-    /// accent people chose for their Mac.
-    static let defaultID = "system"
+    var id: String { rawValue }
 
-    /// The app's brand color, or nil. Like Apple's own apps, the brand shows
-    /// only while the Mac's accent is Multicolor (System Settings >
-    /// Appearance). Any other Mac accent wins. Example:
-    /// Theme(id: "brand", name: "Brand", shades: .init(light: 0x8EEBC4, base: 0x2BC48A, deep: 0x0F7A55), darkText: true)
-    static let brand: Theme? = nil
-
-    var themeID: String {
-        didSet { UserDefaults.standard.set(themeID, forKey: "appearance.accent") }
-    }
-
-    /// True while the Mac's accent is Multicolor.
-    private(set) var macIsMulticolor = ThemeStore.readMulticolor()
-
-    var theme: Theme {
-        let chosen = Theme.all.first { $0.id == themeID } ?? Theme.all[0]
-        if chosen.id == "system", macIsMulticolor, let brand = Self.brand {
-            return Theme(id: "system", name: "System", shades: brand.shades, darkText: brand.darkText)
+    var title: String {
+        switch self {
+        case .system: "System"
+        case .rounded: "Rounded"
+        case .serif: "Serif"
+        case .monospaced: "Monospaced"
         }
-        return chosen
     }
+
+    var design: Font.Design {
+        switch self {
+        case .system: .default
+        case .rounded: .rounded
+        case .serif: .serif
+        case .monospaced: .monospaced
+        }
+    }
+
+    func nsFont(size: CGFloat) -> NSFont {
+        let base = NSFont.systemFont(ofSize: size)
+        let design: NSFontDescriptor.SystemDesign? = switch self {
+        case .system: nil
+        case .rounded: .rounded
+        case .serif: .serif
+        case .monospaced: .monospaced
+        }
+        guard let design, let descriptor = base.fontDescriptor.withDesign(design) else { return base }
+        return NSFont(descriptor: descriptor, size: size) ?? base
+    }
+}
+
+/// Everything people change in Settings, saved in UserDefaults. Test and
+/// snapshot runs (APP_STORE set) read the defaults but never write them.
+@Observable
+final class Prefs {
+    static let shared = Prefs()
+
+    static let defaultFontSize = 14.0
+    static let fontSizeRange = 11.0...18.0
+    static let defaultRadius = 16.0
+    static let radiusRange = 0.0...24.0
+
+    var themeID: String { didSet { save(themeID, "theme"); applyAppearance() } }
+    var font: TodoFont { didSet { save(font.rawValue, "font") } }
+    var fontSize: Double { didSet { save(fontSize, "fontSize") } }
+    var radius: Double { didSet { save(radius, "radius") } }
+    var iconID: String { didSet { save(iconID, "icon"); AppIcons.apply(iconID) } }
+
+    var theme: Theme { Theme.named(themeID) }
 
     private init() {
-        themeID = ProcessInfo.processInfo.environment["APP_ACCENT"]
-            ?? UserDefaults.standard.string(forKey: "appearance.accent") ?? Self.defaultID
-        NotificationCenter.default.addObserver(forName: NSColor.systemColorsDidChangeNotification,
-                                               object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.macIsMulticolor = ThemeStore.readMulticolor() }
-        }
+        let env = ProcessInfo.processInfo.environment
+        let defaults = UserDefaults.standard
+        themeID = env["APP_THEME"] ?? defaults.string(forKey: "theme") ?? Theme.all[0].id
+        font = TodoFont(rawValue: defaults.string(forKey: "font") ?? "") ?? .system
+        fontSize = defaults.object(forKey: "fontSize") as? Double ?? Self.defaultFontSize
+        radius = defaults.object(forKey: "radius") as? Double ?? Self.defaultRadius
+        iconID = defaults.string(forKey: "icon") ?? Theme.all[0].id
     }
 
-    /// The Mac stores no accent number while the accent is Multicolor.
-    private static func readMulticolor() -> Bool {
-        UserDefaults.standard.object(forKey: "AppleAccentColor") == nil
+    /// Dark themes give the app dark controls, light themes light ones.
+    func applyAppearance() {
+        NSApp.appearance = theme.appearance
+    }
+
+    private func save(_ value: Any, _ key: String) {
+        guard !Store.isOverridden else { return }
+        UserDefaults.standard.set(value, forKey: key)
     }
 }
 
-/// Accent tokens for views. Never hard-code an accent hex in a view.
+/// Color tokens for views. Never hard-code a color or opacity in a view.
 enum Palette {
-    static var accent: Color { ThemeStore.shared.theme.accent }
-    static var accentText: Color { ThemeStore.shared.theme.accentText }
-    static var onAccent: Color { ThemeStore.shared.theme.onAccent }
-}
+    private static var theme: Theme { Prefs.shared.theme }
 
-extension View {
-    /// Applies the chosen accent to everything below. Put it on every scene's root.
-    func themed() -> some View {
-        modifier(Themed())
+    static var surface: Color { theme.surfaceColor }
+    static var highlight: Color { theme.highlightColor }
+    static var text: Color { theme.textColor }
+    static var secondaryText: Color { theme.textColor.opacity(0.72) }
+    static var tertiaryText: Color { theme.textColor.opacity(0.45) }
+    static var strikethrough: Color { theme.textColor.opacity(0.6) }
+    static var circle: Color { theme.textColor.opacity(0.5) }
+    static var toolbarIcon: Color { theme.textColor.opacity(0.6) }
+    static var divider: Color { theme.textColor.opacity(0.12) }
+    static var control: Color { theme.textColor.opacity(0.1) }
+    static var inactiveLight: Color { theme.textColor.opacity(0.18) }
+
+    /// Filler circles fade out row by row.
+    static func filler(_ index: Int) -> Color {
+        theme.textColor.opacity([0.22, 0.14, 0.07][min(index, 2)])
     }
 }
 
-private struct Themed: ViewModifier {
-    private var store = ThemeStore.shared
+/// Timing from the reference app. Views use these, never literal durations.
+enum Motion {
+    static let completionSweep = 0.25
+    static let completionSettle = 0.6
+    static let collapse = Animation.smooth(duration: 0.35)
+    static let reflow = Animation.smooth(duration: 0.22)
+    static let dragReorder = Animation.smooth(duration: 0.16)
+    static let hover = Animation.easeOut(duration: 0.14)
+    static let resize = 0.22
+}
 
-    func body(content: Content) -> some View {
-        content.tint(store.theme.tint)
-    }
+/// Fixed sizes of the panel's parts, from the reference app.
+enum PanelStyle {
+    static let rowInset: CGFloat = 12
+    static let highlightInset: CGFloat = 8
+    static let rowCornerRadius: CGFloat = 10
+    static let textInset: CGFloat = 8
+    static let toolbarButton: CGFloat = 28
+    static let toolbarIcon: CGFloat = 14
+    static let trafficLightLeading: CGFloat = 16
+    static let trafficLightSpacing: CGFloat = 8
+    static let titlebarTrailing: CGFloat = 10
 }
 
 extension Color {
     init(hex: UInt32) {
         self.init(nsColor: NSColor(hex: hex))
-    }
-
-    /// A color with a light and a dark value: Color(light: 0x0064D2, dark: 0x7CC0FF).
-    /// Add the two high-contrast values for Increase Contrast; they default
-    /// to the normal ones.
-    init(light: UInt32, dark: UInt32, highContrastLight: UInt32? = nil, highContrastDark: UInt32? = nil) {
-        self.init(nsColor: NSColor(name: nil) { appearance in
-            switch appearance.bestMatch(from: [.aqua, .darkAqua, .accessibilityHighContrastAqua,
-                                               .accessibilityHighContrastDarkAqua]) {
-            case .darkAqua: NSColor(hex: dark)
-            case .accessibilityHighContrastAqua: NSColor(hex: highContrastLight ?? light)
-            case .accessibilityHighContrastDarkAqua: NSColor(hex: highContrastDark ?? dark)
-            default: NSColor(hex: light)
-            }
-        })
     }
 }
 

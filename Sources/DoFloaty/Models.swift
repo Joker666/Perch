@@ -1,63 +1,404 @@
+import AppKit
 import Foundation
 import SwiftData
 import DoFloatyKit
 
 @Model
-final class Item {
-    var title: String
-    var notes: String = ""
-    var isStarred: Bool = false
-    var createdAt: Date = Date.now
-    /// A stable id for links, sync, and the agent CLI.
+final class Todo {
+    /// A stable id for selection, undo, and the agent CLI.
     var uuid: UUID = UUID()
+    var text: String = ""
+    var isCompleted: Bool = false
+    var order: Double = 0
+    var createdAt: Date = Date.now
+    var completedAt: Date?
 
-    init(title: String) {
-        self.title = title
+    init(text: String, order: Double) {
+        self.text = text
+        self.order = order
     }
 }
 
-/// The sidebar pages. Snapshot mode walks through every case.
-enum SidebarItem: String, CaseIterable, Identifiable {
-    case all, starred
+/// A plain copy of a todo. Undo restores the whole list from these, so a
+/// deleted todo comes back with the same id.
+struct TodoRecord: Equatable {
+    var uuid: UUID
+    var text: String
+    var isCompleted: Bool
+    var order: Double
+    var createdAt: Date
+    var completedAt: Date?
 
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .all: "All Items"
-        case .starred: "Starred"
-        }
+    init(_ todo: Todo) {
+        uuid = todo.uuid
+        text = todo.text
+        isCompleted = todo.isCompleted
+        order = todo.order
+        createdAt = todo.createdAt
+        completedAt = todo.completedAt
     }
 
-    var symbol: String {
-        switch self {
-        case .all: "tray"
-        case .starred: "star"
-        }
+    func apply(to todo: Todo) {
+        todo.uuid = uuid
+        todo.text = text
+        todo.isCompleted = isCompleted
+        todo.order = order
+        todo.createdAt = createdAt
+        todo.completedAt = completedAt
     }
 }
 
-/// App-wide state that menus, toolbars, and views share.
+/// What the panel shows.
+enum PanelMode: String, CaseIterable {
+    case list, archive
+}
+
+/// Where the keyboard is in the panel: nowhere, typing in one row, or a
+/// range of selected rows (Shift-arrow).
+enum PanelFocus: Equatable {
+    case none
+    case editing(UUID)
+    case selection(ListSelection<UUID>)
+}
+
+/// App-wide state the panel, menus, and Settings share.
 @Observable
 final class AppModel {
     let container: ModelContainer
-    var sidebar: SidebarItem? = .all
-    var selection: PersistentIdentifier?
-    /// Settings reopens on the last tab. Test and snapshot runs leave it alone.
-    var settingsTab: SettingsTab = SettingsTab(rawValue: UserDefaults.standard.string(forKey: "settings.tab") ?? "") ?? .general {
-        didSet { if !Store.isOverridden { UserDefaults.standard.set(settingsTab.rawValue, forKey: "settings.tab") } }
-    }
+    let undoManager = UndoManager()
+
+    var mode: PanelMode = .list { didSet { if mode != oldValue { focus = .none } } }
+    var focus: PanelFocus = .none
+    /// Todos not completed, in list order.
+    private(set) var todos: [Todo] = []
+    /// Completed todos, newest first.
+    private(set) var archived: [Todo] = []
+    /// Rows playing the completion animation. They stay in `todos` until it ends.
+    private(set) var completing: Set<UUID> = []
+    /// Settings reopens on the last tab.
+    var settingsTab: SettingsTab = .theme
+    /// Mirrors the panel's visibility for the Show and Hide menu items.
+    var panelVisible = false
+    /// True while the panel takes the keyboard. The traffic lights show color only then.
+    var panelIsKey = false
+
+    /// The list before the row now being edited changed, for one undo step.
+    private var editStart: [TodoRecord]?
+    private var editIsNew = false
+
+    private var context: ModelContext { container.mainContext }
 
     init(container: ModelContainer) {
         self.container = container
+        undoManager.levelsOfUndo = 100
+        reload()
     }
 
-    func addItem(title: String = "") {
-        let item = Item(title: ItemTitle.clean(title))
-        if sidebar == .starred { item.isStarred = true }
-        container.mainContext.insert(item)
-        // The id is temporary until the first save, so save before selecting.
-        try? container.mainContext.save()
-        selection = item.id
+    // MARK: Reading
+
+    func reload() {
+        let all = (try? context.fetch(FetchDescriptor<Todo>())) ?? []
+        todos = all.filter { !$0.isCompleted }.sorted { $0.order < $1.order }
+        archived = all.filter(\.isCompleted).sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+    }
+
+    /// The rows the panel shows in the current mode.
+    var visible: [Todo] { mode == .list ? todos : archived }
+
+    func todo(_ id: UUID) -> Todo? {
+        todos.first { $0.uuid == id } ?? archived.first { $0.uuid == id }
+    }
+
+    var editingID: UUID? {
+        if case .editing(let id) = focus { id } else { nil }
+    }
+
+    /// The ids highlighted as selected.
+    var selectedIDs: [UUID] {
+        switch focus {
+        case .none: []
+        case .editing(let id): [id]
+        case .selection(let s): s.ids(in: visible.map(\.uuid))
+        }
+    }
+
+    // MARK: Adding and editing
+
+    /// Adds an empty todo after `id` (or at the end) and starts editing it.
+    /// Nothing is saved for undo until the text is committed.
+    func add(after id: UUID? = nil) {
+        if mode != .list { mode = .list }
+        commitEditing()
+        let index = id.flatMap { id in todos.firstIndex { $0.uuid == id } }
+        let before = index.map { todos[$0].order } ?? todos.last?.order
+        let after = index.flatMap { $0 + 1 < todos.count ? todos[$0 + 1].order : nil }
+        let start = records()
+        let todo = Todo(text: "", order: TodoOrder.between(before, after))
+        context.insert(todo)
+        save()
+        reload()
+        editStart = start
+        editIsNew = true
+        focus = .editing(todo.uuid)
+    }
+
+    /// Starts typing in a row. Ends any other edit first.
+    func beginEditing(_ id: UUID) {
+        guard editingID != id, mode == .list else { return }
+        commitEditing()
+        editStart = records()
+        editIsNew = false
+        focus = .editing(id)
+    }
+
+    /// Live text from the row's field. The model keeps it so a quit mid-edit loses nothing.
+    func updateText(_ id: UUID, _ text: String) {
+        todo(id)?.text = text
+    }
+
+    /// Ends the edit: an empty row is removed, a changed row gets one undo step.
+    /// Focus moves to `next`, or the row stays selected when `next` is nil.
+    func commitEditing(then next: PanelFocus? = nil) {
+        guard let id = editingID, let todo = todo(id) else {
+            if let next { focus = next }
+            return
+        }
+        let start = editStart
+        editStart = nil
+        if let text = TodoText.clean(todo.text) {
+            todo.text = text
+            save()
+            if let start, start != records() {
+                registerUndo(start, name: editIsNew ? "Add Todo" : "Edit Todo")
+            }
+            focus = next ?? .none
+        } else {
+            context.delete(todo)
+            save()
+            // An emptied row that existed before is a delete. A new empty row was never a todo.
+            if let start, !editIsNew { registerUndo(start, name: "Delete Todo") }
+            focus = next ?? .none
+        }
+        reload()
+    }
+
+    // MARK: Moving the keyboard
+
+    /// Up and Down while typing: edit the row above or below.
+    func editNeighbor(of id: UUID, step: Int) {
+        let ids = todos.map(\.uuid)
+        guard let index = ids.firstIndex(of: id) else { return }
+        let target = index + step
+        guard ids.indices.contains(target) else { return }
+        let targetID = ids[target]
+        commitEditing()
+        if todo(targetID) != nil { beginEditing(targetID) }
+    }
+
+    /// Shift-Up and Shift-Down: select rows. From typing, the typed row is the anchor.
+    func extendSelection(step: Int) {
+        let ids = visible.map(\.uuid)
+        switch focus {
+        case .none:
+            guard let first = step > 0 ? ids.first : ids.last else { return }
+            focus = .selection(ListSelection(first))
+        case .editing(let id):
+            commitEditing()
+            guard ids.contains(id) || todo(id) != nil else { return }
+            focus = .selection(ListSelection(id).moved(by: step, extend: true, in: visible.map(\.uuid)))
+        case .selection(let s):
+            focus = .selection(s.moved(by: step, extend: true, in: ids))
+        }
+    }
+
+    /// Up and Down with no row typing: move to one row. In the list that row starts typing.
+    func moveCursor(step: Int) {
+        let ids = visible.map(\.uuid)
+        let target: UUID?
+        switch focus {
+        case .none: target = step > 0 ? ids.first : ids.last
+        case .editing(let id): target = id
+        case .selection(let s): target = s.moved(by: step, extend: false, in: ids).cursor
+        }
+        guard let target else { return }
+        if mode == .list { beginEditing(target) } else { focus = .selection(ListSelection(target)) }
+    }
+
+    /// Click and Shift-click on a row.
+    func click(_ id: UUID, extend: Bool) {
+        if extend {
+            let anchor: UUID? = switch focus {
+            case .none: nil
+            case .editing(let e): e
+            case .selection(let s): s.anchor
+            }
+            commitEditing()
+            focus = .selection(ListSelection(anchor ?? id).extended(to: id))
+        } else if mode == .list {
+            beginEditing(id)
+        } else {
+            focus = .selection(ListSelection(id))
+        }
+    }
+
+    // MARK: Changing todos
+
+    /// Marks todos done. The rows play the check and sweep, then leave the list.
+    func complete(_ ids: [UUID]) {
+        let ids = ids.filter { todo($0)?.isCompleted == false && !completing.contains($0) }
+        guard !ids.isEmpty else { return }
+        commitEditing()
+        let start = records()
+        let live = ids.filter { todo($0) != nil }
+        guard !live.isEmpty else { return }
+        let next = todos.map(\.uuid).neighbor(afterRemoving: Set(live))
+        completing.formUnion(live)
+        Task {
+            try? await Task.sleep(for: .seconds(Motion.completionSettle))
+            self.finishCompleting(live, start: start, next: next)
+        }
+    }
+
+    private func finishCompleting(_ ids: [UUID], start: [TodoRecord], next: UUID?) {
+        for id in ids {
+            guard let todo = todo(id) else { continue }
+            todo.isCompleted = true
+            todo.completedAt = .now
+        }
+        completing.subtract(ids)
+        save()
+        registerUndo(start, name: ids.count == 1 ? "Complete Todo" : "Complete Todos")
+        if case .selection = focus { focus = next.map { .selection(ListSelection($0)) } ?? .none }
+        reload()
+    }
+
+    /// Completes the selected rows, or the row being typed in.
+    func completeSelected() {
+        complete(selectedIDs)
+    }
+
+    /// Moves completed todos back to the end of the list.
+    func restore(_ ids: [UUID]) {
+        let start = records()
+        var last = todos.last?.order
+        for id in ids {
+            guard let todo = todo(id), todo.isCompleted else { continue }
+            todo.isCompleted = false
+            todo.completedAt = nil
+            todo.order = TodoOrder.between(last, nil)
+            last = todo.order
+        }
+        save()
+        registerUndo(start, name: ids.count == 1 ? "Restore Todo" : "Restore Todos")
+        reload()
+    }
+
+    func delete(_ ids: [UUID]) {
+        guard !ids.isEmpty else { return }
+        if editingID != nil, ids != [editingID] { commitEditing() }
+        let start = editStart ?? records()
+        editStart = nil
+        let next = visible.map(\.uuid).neighbor(afterRemoving: Set(ids))
+        for id in ids { if let todo = todo(id) { context.delete(todo) } }
+        save()
+        registerUndo(start, name: ids.count == 1 ? "Delete Todo" : "Delete Todos")
+        focus = next.map { .selection(ListSelection($0)) } ?? .none
+        reload()
+    }
+
+    func deleteSelected() {
+        delete(selectedIDs)
+    }
+
+    /// Backspace in an empty row: remove it and keep typing at the end of the row above.
+    func deleteEmptyRow(_ id: UUID) {
+        let ids = todos.map(\.uuid)
+        guard let index = ids.firstIndex(of: id) else { return }
+        let above = index > 0 ? ids[index - 1] : nil
+        commitEditing()
+        if let above { beginEditing(above) }
+    }
+
+    /// Drag and Command-Option-arrow: moves rows so they land before the row now at `destination`.
+    func move(_ ids: [UUID], to destination: Int) {
+        let current = todos.map(\.uuid)
+        let indices = IndexSet(ids.compactMap { current.firstIndex(of: $0) })
+        guard !indices.isEmpty else { return }
+        let start = editStart ?? records()
+        let reordered = TodoOrder.moving(todos, indices: indices, to: destination)
+        guard reordered.map(\.uuid) != current else { return }
+        for (todo, order) in zip(reordered, TodoOrder.renumbered(count: reordered.count)) { todo.order = order }
+        save()
+        if editStart == nil { registerUndo(start, name: ids.count == 1 ? "Move Todo" : "Move Todos") }
+        reload()
+    }
+
+    /// Command-Option-Up and -Down: moves the selected rows one place.
+    func moveSelected(by step: Int) {
+        guard mode == .list else { return }
+        let ids = todos.map(\.uuid)
+        let selected = selectedIDs
+        let positions = selected.compactMap { ids.firstIndex(of: $0) }
+        guard let low = positions.min(), let high = positions.max() else { return }
+        if step < 0, low > 0 { move(selected, to: low - 1) }
+        if step > 0, high + 1 < ids.count { move(selected, to: high + 2) }
+    }
+
+    func clearArchive() {
+        guard !archived.isEmpty else { return }
+        let start = records()
+        for todo in archived { context.delete(todo) }
+        save()
+        registerUndo(start, name: "Clear Archive")
+        focus = .none
+        reload()
+    }
+
+    // MARK: Undo
+
+    private func records() -> [TodoRecord] {
+        ((try? context.fetch(FetchDescriptor<Todo>())) ?? []).map(TodoRecord.init)
+    }
+
+    /// One undo step that puts the whole list back to `records`. Redo puts it back again.
+    private func registerUndo(_ records: [TodoRecord], name: String) {
+        // The app groups undo by event. The self-test turns that off and groups each step itself.
+        let explicit = !undoManager.groupsByEvent && !undoManager.isUndoing && !undoManager.isRedoing
+        if explicit { undoManager.beginUndoGrouping() }
+        undoManager.registerUndo(withTarget: self) { model in
+            let now = model.records()
+            model.restoreAll(records)
+            model.registerUndo(now, name: name)
+        }
+        undoManager.setActionName(name)
+        if explicit { undoManager.endUndoGrouping() }
+    }
+
+    private func restoreAll(_ records: [TodoRecord]) {
+        editStart = nil
+        focus = .none
+        completing = []
+        let all = (try? context.fetch(FetchDescriptor<Todo>())) ?? []
+        var byID = Dictionary(all.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
+        for record in records {
+            if let todo = byID.removeValue(forKey: record.uuid) {
+                record.apply(to: todo)
+            } else {
+                let todo = Todo(text: record.text, order: record.order)
+                record.apply(to: todo)
+                context.insert(todo)
+            }
+        }
+        for leftover in byID.values { context.delete(leftover) }
+        save()
+        reload()
+    }
+
+    private func save() {
+        try? context.save()
+        if TodoOrder.isCrowded(todos.map(\.order)) {
+            for (index, order) in TodoOrder.renumbered(count: todos.count).enumerated() { todos[index].order = order }
+            try? context.save()
+        }
     }
 }

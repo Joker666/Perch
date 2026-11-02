@@ -1,11 +1,14 @@
 # DoFloaty
 
-A native macOS app in SwiftUI. It runs on this Mac only, with a local
-SwiftData database and no server.
+A tiny floating todo list for the Mac, a rebuild of FloatyDo. A borderless
+panel floats above other windows. A local SwiftData database, no server.
+Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 
 ## Layout
 
-- `Sources/DoFloaty/` the app. `App.swift` has the window, menus, and the database location.
+- `Sources/DoFloaty/` the app. `App.swift` has the menus, the menu bar item, and the database location.
+  `Models.swift` has `Todo` and `AppModel` (every action, focus, and undo). `Panel/` is the floating panel.
+  `Settings/` is the themed Settings window. `System/Hotkey.swift` is the global shortcut.
 - `Sources/DoFloatyKit/` rules and data logic with no SwiftUI. Tests in `Tests/DoFloatyKitTests/`.
 - `Package.swift` a Swift package. There is no Xcode project.
 - `build.sh` builds, signs, and installs `~/Applications/DoFloaty.app`.
@@ -18,8 +21,8 @@ SwiftData database and no server.
 - Unit tests: `swift test --scratch-path ~/Library/Developer/DoFloaty/test-build`.
 - Self-test (the app's real functions on a /tmp store): `tools/selftest.sh`. Exit 0 when every check passes. Add a check for every story with logic in `SelfTest.swift`.
 - After every UI change, take snapshots with sample data and look at them: `tools/snap.sh`.
-  It writes `/tmp/DoFloaty-shots/<page>-light.png` and `-dark.png` for every sidebar page, and `settings-<tab>-light.png` and `-dark.png` for every Settings tab, then quits. `APP_SNAPSHOT_PAGES=starred,settings tools/snap.sh` limits the pages (`SidebarItem` raw values, plus `settings`).
-  For a panel, sheet, or popover, add a capture to `Snapshot.swift` like the Settings loop.
+  It writes `/tmp/DoFloaty-shots/<page>-<theme>.png` for every panel state in `Snapshot.pages` and `settings-<tab>-<theme>.png` for every Settings tab, in Midnight and Matcha, then quits. `APP_SNAPSHOT_PAGES=panel,settings` limits the pages. `APP_SNAPSHOT_THEMES=plum,pool` picks the themes.
+  The snapshot run cannot take focus from the terminal, so traffic lights and the caret show inactive there.
 - Snapshots, seed data, and the self-test refuse to run without `APP_STORE` in /tmp.
 - Never test against the real database in `~/Library/Application Support/DoFloaty/`.
 - Then check the grid: `tools/grid-lint.sh` and `swift tools/check-layout.swift /tmp/DoFloaty-shots/*-layout.json`. Both print PASS.
@@ -27,18 +30,14 @@ SwiftData database and no server.
 
 ## Design rules
 
-- Use Apple's controls and system styles. Only the accent color is custom: `UI/Theme.swift` (`ThemeStore.defaultID`). People change it in Settings > Appearance. Light and dark mode follow the Mac.
-- Views use `.tint`, `Palette.accent`, `Palette.accentText` (accent-colored text), and `Palette.onAccent` (text on an accent fill). Never hard-code colors, radii, or durations in views.
-- Compare accents: add `APP_ACCENT=<id>` to the snapshot command.
-- Spacing comes from `Space` in `UI/Grid.swift`, on a 4 pt grid. Mark custom pages and cards with `.gridArea` and `.gridProbe`.
-- Windows open calm: `.noInitialFocus()` on every window and sheet (no focus ring or selected text on open), `.fitsContent()` on sheets and Settings tabs (no scroll bar with nothing to scroll). System scroll bars. Both in `UI/WindowBehavior.swift`.
-- Settings: one tab per topic in `SettingsView.swift`, one grouped Form per tab. Add a case to `SettingsTab` for a new tab.
-- Window chrome (title bar, toolbar, sidebar, menus, sheets) stays system. Buttons use system styles, like `.borderedProminent`.
-- Colors: `.primary`, `.secondary`, `.tint`, and system colors. Never fixed grays or white for text.
-- Every action has a menu bar item and a keyboard shortcut.
-- `Label` for icon and text pairs. SF Symbols for icons.
-- `ContentUnavailableView` for empty states.
-- Liquid Glass belongs to floating controls only, never to content.
+- The panel has its own look, matched to FloatyDo: 8 themes in `UI/Theme.swift`, each three colors. Every other color is the theme's text color at an opacity in `Palette`. Never hard-code colors, sizes, or durations in views: use `Palette`, `PanelStyle`, `Motion`, and `PanelMetrics` (DoFloatyKit).
+- A theme sets the whole app's appearance: dark themes give dark system controls, light themes light ones (`Prefs.applyAppearance`).
+- The panel height always fits its rows (`PanelController.fit`). Never add a fixed height to the panel.
+- The Settings window uses system controls (Slider, Picker, Button) tinted by the theme, on the theme's surface color.
+- Spacing in Settings comes from `Space` in `UI/Grid.swift`, on a 4 pt grid.
+- Every action has a menu bar item and a keyboard shortcut. Icon-only buttons have `.help` with the shortcut.
+- Names come from `docs/GLOSSARY.md`: Todo, List, Archive, Complete, Restore, Delete.
+- SF Symbols for icons. No FloatyDo assets.
 
 ## Skills
 
