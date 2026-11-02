@@ -35,8 +35,8 @@ enum AgentCommands {
                      params: [idParam], example: "perch todos show 3f2a9c1e --json", readOnly: true) { args, model in
             try find(try args.required("id"), in: model).agentJSON(in: model)
         },
-        AgentCommand(name: "todos add", summary: "Add a todo at the end of the List, or after another todo.",
-                     params: [.init(name: "text", required: true, help: "the todo, one line"),
+        AgentCommand(name: "todos add", summary: "Add a todo at the end of the List, or after another todo. \(todoStyle)",
+                     params: [.init(name: "text", required: true, help: "the todo: a short action that starts with a verb"),
                               .init(name: "after", help: "the id of the open todo to put it after")],
                      example: "perch todos add --text \"Call the dentist\" --json", undoable: true) { args, model in
             let after = try args.string("after").map { try openTodo($0, in: model).uuid }
@@ -45,8 +45,8 @@ enum AgentCommands {
             }
             return todo.agentJSON(in: model)
         },
-        AgentCommand(name: "todos update", summary: "Change a todo's text.",
-                     params: [idParam, .init(name: "text", required: true, help: "the new text, one line")],
+        AgentCommand(name: "todos update", summary: "Change a todo's text. \(todoStyle)",
+                     params: [idParam, .init(name: "text", required: true, help: "the new text: a short action that starts with a verb")],
                      example: "perch todos update 3f2a9c1e --text \"Call the dentist at 9\" --json", undoable: true) { args, model in
             let todo = try find(try args.required("id"), in: model)
             let text = try args.required("text")
@@ -137,6 +137,9 @@ enum AgentCommands {
 
     private static let idParam = AgentCommand.Param(name: "id", required: true, positional: true,
                                                      help: "the todo's id (the first 8 characters are enough)")
+
+    /// The panel shows one short line per todo, so agents write todos the way people do.
+    static let todoStyle = "Write each todo the way people do: a short action that starts with a verb, about 60 characters or less, such as \"Send Kiran the Slack draft\". Leave out background, ids, and links. The person knows the context."
 
     /// A todo, open or completed, by its id or the start of it.
     static func find(_ id: String, in model: AppModel) throws -> Todo {

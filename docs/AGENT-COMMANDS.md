@@ -7,7 +7,7 @@ What an agent can do in Perch through `perch <noun> <verb>` and `perch mcp`. Eac
 | `status` | read | | S-001, S-014 | Running, panel shown, List or Archive, todo counts, what Edit > Undo would take back, the themes and the appearance mode, global shortcut |
 | `todos list` | read | | S-001, S-014 | Open todos in list order, or `--archived` for completed ones. `--search`, `--limit`, `--offset` |
 | `todos show <id>` | read | | S-001 | One todo |
-| `todos add --text` | write | yes | S-002, S-003 | Add a todo at the end, or `--after <id>` |
+| `todos add --text` | write | yes | S-002, S-003 | Add a todo at the end, or `--after <id>`. The help asks for a short action that starts with a verb, about 60 characters or less |
 | `todos update <id> --text` | write | yes | S-004 | Change a todo's text |
 | `todos complete <id>` | write | yes | S-005, S-011 | Complete a todo. It moves to the Archive |
 | `todos restore <id>` | write | yes | S-015 | Move a completed todo back to the end of the List |

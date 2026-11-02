@@ -13,6 +13,9 @@ background.
 
 - Always add `--json` and read the JSON. Exit 0 is ok. Otherwise read
   `error.code` and `error.message`, and do what the message says.
+- Write a todo like a person does: a short action that starts with a verb,
+  about 60 characters or less ("Send Kiran the Slack draft"). Leave out
+  background, ids, and links. The panel shows one short line per todo.
 - Find ids with `perch todos list --json`, or `--search`. An id is 8 characters.
 - Destructive commands (`todos delete`, `archive clear`) only report what
   they would do. Show the user that report and ask before you run them

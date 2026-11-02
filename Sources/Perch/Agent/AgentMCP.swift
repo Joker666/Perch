@@ -22,7 +22,7 @@ enum AgentMCP {
                     "protocolVersion": params["protocolVersion"] as? String ?? "2025-06-18",
                     "capabilities": ["tools": [:]],
                     "serverInfo": ["name": "perch", "version": "1.0"],
-                    "instructions": "Tools that drive the Perch app on this Mac. Destructive tools only report what they would change unless yes is true.",
+                    "instructions": "Tools that drive the Perch app on this Mac. Destructive tools only report what they would change unless yes is true. \(AgentCommands.todoStyle)",
                 ]
             case "ping":
                 reply["result"] = [:] as JSONObject
