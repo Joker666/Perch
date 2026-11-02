@@ -210,3 +210,20 @@ func emptyText(_ input: String) {
     #expect(delete.matches(keyEquivalent: "\u{8}", modifiers: KeyCombo.command, layoutCharacter: nil))
     #expect(!delete.matches(keyEquivalent: "\r", modifiers: KeyCombo.command, layoutCharacter: nil))
 }
+
+// MARK: Window placement
+
+@Test func windowsStayOnScreen() {
+    let visible = CGRect(x: 0, y: 67, width: 2560, height: 1343) // a screen with the Dock at the bottom
+    let fits = CGRect(x: 1044, y: 600, width: 520, height: 374)
+    #expect(WindowPlacement.keptOnScreen(fits, in: visible) == fits)
+    // Grown down past the Dock: moves up just enough.
+    let low = CGRect(x: 1044, y: -100, width: 520, height: 480)
+    #expect(WindowPlacement.keptOnScreen(low, in: visible) == CGRect(x: 1044, y: 67, width: 520, height: 480))
+    // Past the right edge and under the menu bar.
+    let corner = CGRect(x: 2400, y: 1200, width: 520, height: 400)
+    #expect(WindowPlacement.keptOnScreen(corner, in: visible) == CGRect(x: 2040, y: 1010, width: 520, height: 400))
+    // Taller than the screen: the top edge stays on screen.
+    let tall = CGRect(x: 100, y: 0, width: 520, height: 2000)
+    #expect(WindowPlacement.keptOnScreen(tall, in: visible).maxY == visible.maxY)
+}

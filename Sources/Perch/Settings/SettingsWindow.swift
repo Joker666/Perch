@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import PerchKit
 
 /// The Settings tabs. Snapshot mode walks through every case.
 enum SettingsTab: String, CaseIterable, Identifiable {
@@ -45,6 +46,19 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         self.window = window
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+        keepOnScreen(window)
+    }
+
+    /// A taller tab grows the window down from its top edge. Near the bottom of
+    /// the screen that put rows under the Dock, so the window moves up instead.
+    func windowDidResize(_ notification: Notification) {
+        if let window = notification.object as? NSWindow { keepOnScreen(window) }
+    }
+
+    private func keepOnScreen(_ window: NSWindow) {
+        guard let visible = (window.screen ?? NSScreen.main)?.visibleFrame else { return }
+        let frame = WindowPlacement.keptOnScreen(window.frame, in: visible)
+        if frame != window.frame { window.setFrameOrigin(frame.origin) }
     }
 
     private func makeWindow() -> NSWindow {
