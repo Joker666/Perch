@@ -1,5 +1,4 @@
 import AppKit
-import Observation
 import PerchKit
 import SwiftUI
 
@@ -76,96 +75,6 @@ enum TodoFont: String, CaseIterable, Identifiable {
         }
         guard let design, let descriptor = base.fontDescriptor.withDesign(design) else { return base }
         return NSFont(descriptor: descriptor, size: size) ?? base
-    }
-}
-
-/// Everything people change in Settings, saved in UserDefaults. Test and
-/// snapshot runs (APP_STORE set) read the defaults but never write them.
-@Observable
-final class Prefs {
-    static let shared = Prefs()
-
-    static let defaultFontSize = 14.0
-    static let fontSizeRange = 11.0...18.0
-    static let defaultRadius = 16.0
-    static let radiusRange = 0.0...24.0
-
-    /// The one theme, used when `themeMode` is `.one`.
-    var themeID: String { didSet { save(themeID, "theme"); applyAppearance() } }
-    /// One theme all the time, or Match System: `lightThemeID` and `darkThemeID` follow macOS.
-    var themeMode: ThemeChoice.Mode { didSet { save(themeMode.rawValue, "themeMode"); applyAppearance() } }
-    var lightThemeID: String { didSet { save(lightThemeID, "themeLight"); applyAppearance() } }
-    var darkThemeID: String { didSet { save(darkThemeID, "themeDark"); applyAppearance() } }
-    /// Whether macOS shows Dark now. Read from the system setting, because Perch
-    /// sets its own appearance from the theme.
-    var systemIsDark = SystemAppearance.isDark { didSet { applyAppearance() } }
-    var font: TodoFont { didSet { save(font.rawValue, "font") } }
-    var fontSize: Double { didSet { save(fontSize, "fontSize") } }
-    var radius: Double { didSet { save(radius, "radius") } }
-    var iconID: String { didSet { save(iconID, "icon"); AppIcons.apply(iconID) } }
-    /// The clicks when you add or complete a todo (`FeedbackSound`). On by default.
-    /// Saved as "completionSound", its name when it covered only completing.
-    var playSounds: Bool { didSet { save(playSounds, "completionSound") } }
-
-    var themeChoice: ThemeChoice {
-        get { ThemeChoice(mode: themeMode, one: themeID, light: lightThemeID, dark: darkThemeID) }
-        set {
-            themeMode = newValue.mode
-            themeID = newValue.one
-            lightThemeID = newValue.light
-            darkThemeID = newValue.dark
-        }
-    }
-
-    /// The theme on screen now.
-    var theme: Theme { Theme.named(themeChoice.themeID(systemIsDark: systemIsDark)) }
-
-    private init() {
-        let env = ProcessInfo.processInfo.environment
-        let defaults = UserDefaults.standard
-        let one = env["APP_THEME"] ?? defaults.string(forKey: "theme") ?? Theme.all[0].id
-        themeID = one
-        // Test runs show the one theme they set, whatever the real app chose.
-        let saved = Store.isOverridden ? nil : defaults
-        themeMode = ThemeChoice.Mode(rawValue: saved?.string(forKey: "themeMode") ?? "") ?? .one
-        // Match System starts from the one theme in its own appearance and a fitting theme in the other.
-        let current = Theme.named(one)
-        lightThemeID = saved?.string(forKey: "themeLight") ?? (current.isDark ? "matcha" : current.id)
-        darkThemeID = saved?.string(forKey: "themeDark") ?? (current.isDark ? current.id : "midnight")
-        font = TodoFont(rawValue: defaults.string(forKey: "font") ?? "") ?? .system
-        fontSize = defaults.object(forKey: "fontSize") as? Double ?? Self.defaultFontSize
-        radius = defaults.object(forKey: "radius") as? Double ?? Self.defaultRadius
-        iconID = defaults.string(forKey: "icon") ?? Theme.all[0].id
-        playSounds = defaults.object(forKey: "completionSound") as? Bool ?? true
-        SystemAppearance.observe { Prefs.shared.systemIsDark = $0 }
-    }
-
-    /// Dark themes give the app dark controls, light themes light ones.
-    func applyAppearance() {
-        NSApp.appearance = theme.appearance
-    }
-
-    private func save(_ value: Any, _ key: String) {
-        guard !Store.isOverridden else { return }
-        UserDefaults.standard.set(value, forKey: key)
-    }
-}
-
-/// macOS Light or Dark. `NSApp.effectiveAppearance` cannot say, because Perch
-/// sets its own appearance from the theme, so this reads the system setting.
-enum SystemAppearance {
-    static var isDark: Bool {
-        CFPreferencesAppSynchronize(kCFPreferencesAnyApplication)
-        return CFPreferencesCopyAppValue("AppleInterfaceStyle" as CFString, kCFPreferencesAnyApplication) as? String == "Dark"
-    }
-
-    /// Calls `changed` when macOS switches between Light and Dark, also with Auto.
-    static func observe(_ changed: @escaping @MainActor (Bool) -> Void) {
-        DistributedNotificationCenter.default().addObserver(
-            forName: Notification.Name("AppleInterfaceThemeChangedNotification"), object: nil, queue: .main
-        ) { _ in
-            MainActor.assumeIsolated { changed(isDark) }
-        }
     }
 }
 
