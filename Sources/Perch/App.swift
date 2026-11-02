@@ -22,10 +22,23 @@ struct PerchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     private var model: AppModel { Shared.model }
 
+    /// The menu bar icon. `systemImage:` draws the square glyph at about 11 pt, smaller than
+    /// the other menu bar icons, so draw it at 16 pt. A template image follows the menu bar's color.
+    private static let menuBarIcon: NSImage = {
+        let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        let image = NSImage(systemSymbolName: "checkmark.square.fill", accessibilityDescription: "Perch")?
+            .withSymbolConfiguration(config) ?? NSImage()
+        image.isTemplate = true
+        return image
+    }()
+
     var body: some Scene {
-        MenuBarExtra("Perch", systemImage: "checkmark.square.fill") {
+        MenuBarExtra {
             MenuBarMenu()
                 .environment(model)
+        } label: {
+            Image(nsImage: Self.menuBarIcon)
+                .accessibilityLabel("Perch")
         }
         .commands {
             CommandGroup(after: .appInfo) {
