@@ -7,7 +7,7 @@
 # Secrets (Settings > Secrets and variables > Actions):
 #   SPARKLE_PRIVATE_KEY         required. `generate_keys --account perch -x key.txt`, then the file's text
 #   MACOS_CERTIFICATE_P12       base64 of the "Developer ID Application" certificate exported as .p12
-#   MACOS_CERTIFICATE_PASSWORD  the .p12 password
+#   MACOS_CERTIFICATE_PASSWORD  the .p12 password. Leave it out when the .p12 has none
 #   DEVELOPER_ID                "Developer ID Application: Your Name (TEAMID)"
 #   APPLE_API_KEY_P8            base64 of an App Store Connect API key (.p8) for notarytool
 #   APPLE_API_KEY_ID            that key's id

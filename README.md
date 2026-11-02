@@ -44,7 +44,7 @@ The workflow needs these repository secrets:
 | --- | --- |
 | `SPARKLE_PRIVATE_KEY` | Required. The text from `generate_keys --account perch -x key.txt` (Sparkle's `bin/` folder) |
 | `MACOS_CERTIFICATE_P12` | Base64 of your Developer ID Application certificate, exported as .p12 |
-| `MACOS_CERTIFICATE_PASSWORD` | The password of that .p12 |
+| `MACOS_CERTIFICATE_PASSWORD` | The password of that .p12. Leave it out when the .p12 has no password |
 | `DEVELOPER_ID` | `Developer ID Application: Your Name (TEAMID)` |
 | `APPLE_API_KEY_P8` | Base64 of an App Store Connect API key (.p8), for notarization |
 | `APPLE_API_KEY_ID` | That key's id |
