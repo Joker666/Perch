@@ -13,7 +13,8 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 - `Package.swift` a Swift package. There is no Xcode project.
 - `build.sh` builds, signs, and installs `~/Applications/Perch.app`.
 - `Icon/AppIcon.icon` the app icon, an Icon Composer file (JSON plus SVG layers). `build.sh` compiles it with `tools/make_icon.sh`; `tools/icon_review.sh` renders every look into one PNG.
-- `docs/` the brief, the screen index, and the user stories, when they exist.
+- `ARCHITECTURE.md` targets, layers, seams, and the rules that keep them working. Read it before a change that crosses layers.
+- `docs/` the brief, the screen index, and the user stories, when they exist. `docs/FIXLOG.md` has hard bugs and their rules.
 
 ## Build and check
 
