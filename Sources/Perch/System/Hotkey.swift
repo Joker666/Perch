@@ -22,8 +22,9 @@ final class Hotkey {
 
     private static let savedKey = "hotkey"
 
+    /// Test runs (APP_STORE set) start from the default, so your own shortcut cannot change a check.
     private init() {
-        if let data = UserDefaults.standard.data(forKey: Self.savedKey) {
+        if !Store.isOverridden, let data = UserDefaults.standard.data(forKey: Self.savedKey) {
             combo = try? JSONDecoder().decode(KeyCombo?.self, from: data)
         } else {
             combo = .defaultShowHide

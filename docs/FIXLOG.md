@@ -2,6 +2,15 @@
 
 Bugs that were hard to find, and the rule each one taught. Newest first.
 
+## 2026-11-02: The self-test failed after Rafi changed his shortcut
+
+"The global shortcut starts as ⌃⌥Space" failed after the shortcut was set to
+⌥Space in the real app. Test runs never saved the shortcut, but they still read
+the saved one from the real app's settings.
+Fix: in a test run, `Hotkey` starts from the default and never reads the saved shortcut.
+
+Rule: A test run neither reads nor writes a setting that a check depends on.
+
 ## 2026-11-02: A checkbox crashed the Settings window
 
 A SwiftUI checkbox (`.toggleStyle(.checkbox)`) in Settings > Theme crashed
