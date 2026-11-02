@@ -6,15 +6,15 @@
     <description>Updates for Perch, a tiny floating todo list for the Mac.</description>
     <language>en</language>
     <item>
-      <title>Version 0.1.0</title>
-      <pubDate>Mon, 02 Nov 2026 02:04:49 +0000</pubDate>
-      <sparkle:version>202611020203</sparkle:version>
-      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <title>Version 0.1.1</title>
+      <pubDate>Mon, 02 Nov 2026 02:31:03 +0000</pubDate>
+      <sparkle:version>202611020229</sparkle:version>
+      <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>The first release of Perch.</li><li>A small panel that floats above your work and fits its list.</li><li>Return adds a todo below. Arrows move, Shift selects more, and Command-Z undoes anything.</li><li>Complete, drag to reorder, and delete. Completed todos go to the Archive.</li><li>Eight themes, four fonts, text size, corner radius, and eight app icons.</li><li>Control-Option-Space shows the panel from any app.</li></ul>]]></description>
-      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.0</sparkle:fullReleaseNotesLink>
-      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.0/Perch.dmg"
-                 type="application/octet-stream" sparkle:edSignature="YSckm9UYzR/eeIywdXxqcOCt5bvupcfEvDzfTFJukIdA7MgBtwF1X3ClSbrsByE1ePVPnBSLIEme+Az+oNJQAA==" length="3467986" />
+      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>Let people pick the global shortcut in Settings</li></ul>]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.1</sparkle:fullReleaseNotesLink>
+      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.1/Perch.dmg"
+                 type="application/octet-stream" sparkle:edSignature="qskqjcQZayKFU9eKjfzjCEZ0FGdNbC+BG5eSEBkV7qdp0FABU5359nrDOedTo/FnwdsIgKkFwTSwgVe3BumFAA==" length="3508862" />
     </item>
   </channel>
 </rss>
