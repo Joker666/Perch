@@ -2,6 +2,18 @@
 
 Bugs that were hard to find, and the rule each one taught. Newest first.
 
+## 2026-11-02: Settings did not open
+
+Rafi reported that Settings did not open. The window was open but 1 pt wide.
+An animated tab change had set the Settings host's `sizingOptions` to `[]`, so
+SwiftUI no longer gave the window a size. The frame autosave ("Settings") then
+stored the zero-width frame, and every later open used it.
+Fix: the host is back on `sizingOptions = [.preferredContentSize]`, and the
+self-test checks that the window opens 520 pt wide.
+
+Rule: The Settings window takes its size from its content. Never turn off
+`.preferredContentSize` on its host, because the autosave keeps a bad frame.
+
 ## 2026-11-02: The self-test failed after Rafi changed his shortcut
 
 "The global shortcut starts as ⌃⌥Space" failed after the shortcut was set to
