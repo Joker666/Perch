@@ -89,7 +89,7 @@ private struct TodoList: View {
                     .offset(y: offset(at: index)) // grid: ok the dragged row follows the pointer
                     .zIndex(drag?.id == todo.uuid ? 1 : 0)
                     .animation(drag?.id == todo.uuid ? nil : Motion.dragReorder, value: target)
-                    .gesture(reorder(todo, index), including: model.editingID == todo.uuid ? .subviews : .all)
+                    .gesture(reorderGesture(todo, index), including: model.editingID == todo.uuid ? .subviews : .all)
                     .transition(.opacity)
             }
             ForEach(0..<PanelMetrics.fillerCount, id: \.self) { index in
@@ -99,32 +99,28 @@ private struct TodoList: View {
         .animation(Motion.collapse, value: model.todos.map(\.uuid))
     }
 
-    /// The index the dragged row would land on now.
-    private var target: Int? {
-        guard let drag else { return nil }
-        let moved = Int((drag.translation / metrics.rowHeight).rounded())
-        return max(0, min(model.todos.count - 1, drag.from + moved))
+    /// The drag as plain numbers (PerchKit), so its math has unit tests.
+    private var reorder: DragReorder? {
+        drag.map { DragReorder(from: $0.from, translation: $0.translation, rowHeight: metrics.rowHeight, count: model.todos.count) }
     }
+
+    private var target: Int? { reorder?.target }
 
     private func offset(at index: Int) -> CGFloat {
-        guard let drag, let target else { return 0 }
-        if index == drag.from { return drag.translation }
-        if drag.from < index, index <= target { return -metrics.rowHeight }
-        if target <= index, index < drag.from { return metrics.rowHeight }
-        return 0
+        reorder?.offset(at: index) ?? 0
     }
 
-    private func reorder(_ todo: Todo, _ index: Int) -> some Gesture {
+    private func reorderGesture(_ todo: Todo, _ index: Int) -> some Gesture {
         DragGesture(minimumDistance: 4)
             .onChanged { value in
                 drag = (todo.uuid, index, value.translation.height)
             }
             .onEnded { _ in
-                guard let drag, let target else { return }
+                guard let drag, let reorder else { return }
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
-                    model.move([drag.id], to: target > drag.from ? target + 1 : target)
+                    model.move([drag.id], to: reorder.destination)
                     self.drag = nil
                 }
             }

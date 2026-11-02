@@ -155,3 +155,35 @@ func emptyText(_ input: String) {
     #expect(RowFocus.selection(ListSelection(anchor: 3, cursor: 1)).selectedIDs(in: ids) == [1, 2, 3])
     #expect(RowFocus<Int>.none.selectedIDs(in: ids).isEmpty)
 }
+
+// MARK: Dragging to reorder
+
+@Test func destinationAccountsForTheShift() {
+    let list = ["a", "b", "c", "d"]
+    #expect(TodoOrder.destination(from: 0, to: 2) == 3)
+    #expect(TodoOrder.moving(list, indices: [0], to: TodoOrder.destination(from: 0, to: 2)) == ["b", "c", "a", "d"])
+    #expect(TodoOrder.destination(from: 3, to: 1) == 1)
+    #expect(TodoOrder.moving(list, indices: [3], to: TodoOrder.destination(from: 3, to: 1)) == ["a", "d", "b", "c"])
+}
+
+@Test func dragTargetFollowsWholeRows() {
+    let drag = DragReorder(from: 1, translation: 80, rowHeight: 36, count: 5)
+    #expect(drag.target == 3)
+    #expect(DragReorder(from: 1, translation: 17, rowHeight: 36, count: 5).target == 1)
+    #expect(DragReorder(from: 1, translation: -500, rowHeight: 36, count: 5).target == 0)
+    #expect(DragReorder(from: 1, translation: 500, rowHeight: 36, count: 5).target == 4)
+    #expect(drag.destination == 4)
+}
+
+@Test func passedRowsMakeRoom() {
+    let down = DragReorder(from: 1, translation: 80, rowHeight: 36, count: 5)
+    #expect(down.offset(at: 1) == 80)
+    #expect(down.offset(at: 2) == -36)
+    #expect(down.offset(at: 3) == -36)
+    #expect(down.offset(at: 0) == 0)
+    #expect(down.offset(at: 4) == 0)
+    let up = DragReorder(from: 3, translation: -72, rowHeight: 36, count: 5)
+    #expect(up.offset(at: 1) == 36)
+    #expect(up.offset(at: 2) == 36)
+    #expect(up.offset(at: 4) == 0)
+}

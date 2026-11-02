@@ -41,4 +41,10 @@ public enum TodoOrder {
         rest.insert(contentsOf: moved, at: insertAt)
         return rest
     }
+
+    /// The `destination` for `moving` that puts the item at `from` at index `to`.
+    /// A move down lands before the item after `to`, because `to` shifts up.
+    public static func destination(from: Int, to: Int) -> Int {
+        to > from ? to + 1 : to
+    }
 }

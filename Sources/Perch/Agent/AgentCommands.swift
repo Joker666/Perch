@@ -79,7 +79,7 @@ enum AgentCommands {
             let current = model.todos.firstIndex { $0.uuid == todo.uuid } ?? 0
             let target = position - 1
             guard target != current else { return ["changed": false, "todo": todo.agentJSON(in: model)] }
-            model.move([todo.uuid], to: target > current ? target + 1 : target)
+            model.move([todo.uuid], to: TodoOrder.destination(from: current, to: target))
             return ["changed": true, "todo": todo.agentJSON(in: model)]
         },
         AgentCommand(name: "todos delete", summary: "Delete a todo. Without --yes it only shows what it would delete.",
