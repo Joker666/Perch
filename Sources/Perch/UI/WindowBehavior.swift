@@ -9,31 +9,6 @@ extension View {
     func noInitialFocus() -> some View {
         background(WindowHook())
     }
-
-    /// Sizes a Form, List, or ScrollView to its content, up to `max` points.
-    /// A Settings page or sheet then grows to fit, and scrolls only when its
-    /// content is taller than `max`.
-    func fitsContent(max: CGFloat = 640) -> some View {
-        modifier(FitsContent(max: max))
-    }
-}
-
-private struct FitsContent: ViewModifier {
-    var max: CGFloat
-    @State private var height: CGFloat?
-
-    func body(content: Content) -> some View {
-        content
-            // Only the content's own height: the insets change as the window
-            // resizes, which would start a resize loop.
-            .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                geometry.contentSize.height.rounded(.up)
-            } action: { _, new in
-                if abs(new - (height ?? 0)) >= 1 { height = new }
-            }
-            .frame(height: height.map { min($0, max) })
-            .scrollBounceBehavior(.basedOnSize)
-    }
 }
 
 /// A zero-size view that reaches the NSWindow it sits in.

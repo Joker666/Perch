@@ -145,7 +145,6 @@ enum Motion {
     static let completionSweep = 0.25
     static let completionSettle = 0.6
     static let collapse = Animation.smooth(duration: 0.35)
-    static let reflow = Animation.smooth(duration: 0.22)
     static let dragReorder = Animation.smooth(duration: 0.16)
     static let hover = Animation.easeOut(duration: 0.14)
     static let resize = 0.22
