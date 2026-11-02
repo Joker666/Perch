@@ -268,10 +268,10 @@ func emptyText(_ input: String) {
     #expect(Spring(response: 0.3, dampingFraction: 1).value(at: 1) <= 1)
 }
 
-@Test func springScalesAboutTheCenter() {
+@Test func scaledFrameKeepsItsCenter() {
     let frame = CGRect(x: 100, y: 200, width: 400, height: 200)
-    let start = Spring.scaled(frame, from: 0.98, progress: 0)
+    let start = WindowPlacement.scaled(frame, from: 0.98, progress: 0)
     #expect(start.width == 392 && start.height == 196)
     #expect(start.midX == frame.midX && start.midY == frame.midY)
-    #expect(Spring.scaled(frame, from: 0.98, progress: 1) == frame)
+    #expect(WindowPlacement.scaled(frame, from: 0.98, progress: 1) == frame)
 }

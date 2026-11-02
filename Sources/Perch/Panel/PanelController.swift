@@ -49,16 +49,14 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     func show() {
         NSApp.activate()
-        finishHide()
-        if !panel.isVisible { beginAppear() }
+        appearIfHidden()
         panel.makeKeyAndOrderFront(nil)
         model.panelVisible = true
     }
 
     /// Shows the panel without taking the keyboard from the front app (the agent CLI's `open`).
     func reveal() {
-        finishHide()
-        if !panel.isVisible { beginAppear() }
+        appearIfHidden()
         panel.orderFrontRegardless()
         model.panelVisible = true
     }
@@ -95,19 +93,27 @@ final class PanelController: NSObject, NSWindowDelegate {
     var isAppearing: Bool { transition == .appearing }
     var isHiding: Bool { transition == .hiding }
 
+    private var reduceMotion: Bool { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
+
+    /// Brings back a panel that is fading out, or springs in a hidden one.
+    private func appearIfHidden() {
+        finishHide()
+        if !panel.isVisible { beginAppear() }
+    }
+
     /// Puts the panel at `Motion.appearScale` of its fitted frame. Each display
     /// frame then moves it along `Motion.appear` to the full size.
     private func beginAppear() {
-        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+        guard !reduceMotion else { return }
         let frame = fittedFrame()
         restingFrame = frame
-        panel.setFrame(Spring.scaled(frame, from: Motion.appearScale, progress: 0), display: false)
+        panel.setFrame(WindowPlacement.scaled(frame, from: Motion.appearScale, progress: 0), display: false)
         start(.appearing)
     }
 
     /// Shrinks the panel to `Motion.hideScale` and fades it out, then orders it out.
     private func beginHide() {
-        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+        guard !reduceMotion else {
             panel.orderOut(nil)
             return
         }
@@ -131,11 +137,11 @@ final class PanelController: NSObject, NSWindowDelegate {
         case .appearing:
             guard elapsed < Self.appearDuration else { finishAppear(); return }
             let progress = Motion.appear.value(at: elapsed)
-            panel.setFrame(Spring.scaled(frame, from: Motion.appearScale, progress: progress), display: true)
+            panel.setFrame(WindowPlacement.scaled(frame, from: Motion.appearScale, progress: progress), display: true)
         case .hiding:
             guard elapsed < Motion.hide else { finishHide(); return }
             let gone = Motion.hideCurve(elapsed / Motion.hide)
-            panel.setFrame(Spring.scaled(frame, from: Motion.hideScale, progress: 1 - gone), display: true)
+            panel.setFrame(WindowPlacement.scaled(frame, from: Motion.hideScale, progress: 1 - gone), display: true)
             panel.alphaValue = 1 - gone
         }
         panel.invalidateShadow()
@@ -207,7 +213,7 @@ final class PanelController: NSObject, NSWindowDelegate {
         let frame = fittedFrame()
         if restingFrame != nil { restingFrame = frame; return }
         guard frame != panel.frame else { panel.invalidateShadow(); return }
-        if animated && panel.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+        if animated && panel.isVisible && !reduceMotion {
             animate(to: frame, duration: Motion.resize, curve: Motion.resizeCurve)
         } else {
             panel.setFrame(frame, display: true)

@@ -1,4 +1,3 @@
-import CoreGraphics
 import Foundation
 
 /// A damped spring from 0 to 1, with SwiftUI's terms: `response` is the
@@ -33,12 +32,5 @@ public struct Spring: Sendable {
             if abs(value(at: t) - 1) > tolerance { last = t }
         }
         return last + step
-    }
-
-    /// `frame` scaled about its center, by `start` at progress 0 and by 1 at progress 1.
-    public static func scaled(_ frame: CGRect, from start: Double, progress: Double) -> CGRect {
-        let scale = start + (1 - start) * progress
-        let width = frame.width * scale, height = frame.height * scale
-        return CGRect(x: frame.midX - width / 2, y: frame.midY - height / 2, width: width, height: height)
     }
 }
