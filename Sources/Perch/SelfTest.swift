@@ -132,6 +132,21 @@ enum SelfTest {
         let saved = (try? fresh.fetchCount(FetchDescriptor<Todo>())) ?? 0
         check("Todos are saved to the store", saved == 3)
 
+        // Agent CLI entry points: one undo step each, the same code as the window
+        let added = m.add(text: "  From   an agent ")
+        check("add(text:) saves clean text in one step", added?.text == "From an agent" && m.editingID == nil)
+        check("add(text:) leaves one undo step", undo.undoActionName == "Add Todo")
+        check("add(text:) refuses empty text", m.add(text: "   ") == nil)
+        if let added {
+            check("rename changes the text", m.rename(added.uuid, to: "Renamed") && added.text == "Renamed")
+            check("rename to the same text changes nothing", !m.rename(added.uuid, to: "Renamed"))
+            m.complete([added.uuid], animated: false)
+            check("complete without animation finishes at once", m.archived.contains { $0.uuid == added.uuid })
+            undo.undo()
+            check("Undo takes back an instant complete", m.todos.contains { $0.uuid == added.uuid })
+            m.delete([added.uuid])
+        }
+
         // S-028 change the global shortcut
         let hotkey = Hotkey.shared
         check("The global shortcut starts as ⌃⌥Space", hotkey.combo == .defaultShowHide && hotkey.status == noErr,

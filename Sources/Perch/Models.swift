@@ -129,17 +129,50 @@ final class AppModel {
     func add(after id: UUID? = nil) {
         if mode != .list { mode = .list }
         commitEditing()
-        let index = id.flatMap { id in todos.firstIndex { $0.uuid == id } }
-        let before = index.map { todos[$0].order } ?? todos.last?.order
-        let after = index.flatMap { $0 + 1 < todos.count ? todos[$0 + 1].order : nil }
         let start = records()
-        let todo = Todo(text: "", order: TodoOrder.between(before, after))
+        let todo = Todo(text: "", order: insertionOrder(after: id))
         context.insert(todo)
         save()
         reload()
         editStart = start
         editIsNew = true
         focus = .editing(todo.uuid)
+    }
+
+    /// Adds a todo with its text in one step, with one undo step. The agent
+    /// CLI uses it. Returns nil when the text is empty.
+    @discardableResult
+    func add(text: String, after id: UUID? = nil) -> Todo? {
+        guard let text = TodoText.clean(text) else { return nil }
+        commitEditing()
+        let start = records()
+        let todo = Todo(text: text, order: insertionOrder(after: id))
+        context.insert(todo)
+        save()
+        registerUndo(start, name: "Add Todo")
+        reload()
+        return todo
+    }
+
+    /// Changes a todo's text without the typing flow, with one undo step.
+    /// Returns false when the text was already the same. Empty text is refused.
+    func rename(_ id: UUID, to text: String) -> Bool {
+        guard let todo = todo(id), let text = TodoText.clean(text), todo.text != text else { return false }
+        if editingID == id { commitEditing() }
+        let start = records()
+        todo.text = text
+        save()
+        registerUndo(start, name: "Edit Todo")
+        reload()
+        return true
+    }
+
+    /// The order value for a todo placed after `id`, or at the end of the List.
+    private func insertionOrder(after id: UUID?) -> Double {
+        let index = id.flatMap { id in todos.firstIndex { $0.uuid == id } }
+        let before = index.map { todos[$0].order } ?? todos.last?.order
+        let after = index.flatMap { $0 + 1 < todos.count ? todos[$0 + 1].order : nil }
+        return TodoOrder.between(before, after)
     }
 
     /// Starts typing in a row. Ends any other edit first.
@@ -244,7 +277,9 @@ final class AppModel {
     // MARK: Changing todos
 
     /// Marks todos done. The rows play the check and sweep, then leave the list.
-    func complete(_ ids: [UUID]) {
+    /// `animated: false` (the agent CLI) completes at once, so its Undo step is
+    /// registered inside the command and Edit > Undo works on the first click.
+    func complete(_ ids: [UUID], animated: Bool = true) {
         let ids = ids.filter { todo($0)?.isCompleted == false && !completing.contains($0) }
         guard !ids.isEmpty else { return }
         commitEditing()
@@ -252,6 +287,10 @@ final class AppModel {
         let live = ids.filter { todo($0) != nil }
         guard !live.isEmpty else { return }
         let next = todos.map(\.uuid).neighbor(afterRemoving: Set(live))
+        guard animated else {
+            finishCompleting(live, start: start, next: next)
+            return
+        }
         completing.formUnion(live)
         Task {
             try? await Task.sleep(for: .seconds(Motion.completionSettle))

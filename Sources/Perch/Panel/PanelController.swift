@@ -43,6 +43,12 @@ final class PanelController: NSObject, NSWindowDelegate {
         model.panelVisible = true
     }
 
+    /// Shows the panel without taking the keyboard from the front app (the agent CLI's `open`).
+    func reveal() {
+        panel.orderFrontRegardless()
+        model.panelVisible = true
+    }
+
     func hide() {
         model.commitEditing()
         panel.orderOut(nil)

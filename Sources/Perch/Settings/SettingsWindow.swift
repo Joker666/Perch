@@ -57,6 +57,12 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         return window
     }
 
+    /// Edit > Undo in Settings takes back todo changes too, like in the panel,
+    /// including changes an agent made through the CLI.
+    func windowWillReturnUndoManager(_ window: NSWindow) -> UndoManager? {
+        model.undoManager
+    }
+
     private func recolor(_ window: NSWindow) {
         window.backgroundColor = NSColor(hex: Prefs.shared.theme.surface)
     }
