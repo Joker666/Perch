@@ -86,7 +86,7 @@ private struct TodoList: View {
         VStack(spacing: 0) {
             ForEach(Array(model.todos.enumerated()), id: \.element.uuid) { index, todo in
                 TodoRow(todo: todo, metrics: metrics, isDragging: drag?.id == todo.uuid)
-                    .offset(y: offset(at: index))
+                    .offset(y: offset(at: index)) // grid: ok the dragged row follows the pointer
                     .zIndex(drag?.id == todo.uuid ? 1 : 0)
                     .animation(drag?.id == todo.uuid ? nil : Motion.dragReorder, value: target)
                     .gesture(reorder(todo, index), including: model.editingID == todo.uuid ? .subviews : .all)

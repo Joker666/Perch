@@ -279,7 +279,7 @@ struct TrafficLights: View {
         return Button(action: action) {
             Circle()
                 .fill(active ? Color(hex: color) : Palette.inactiveLight)
-                .overlay { Circle().strokeBorder(.black.opacity(active ? 0.12 : 0), lineWidth: 0.5) }
+                .overlay { Circle().strokeBorder(.black.opacity(active ? 0.12 : 0), lineWidth: 0.5) } // grid: ok hairline edge like the system buttons
                 .overlay {
                     Image(systemName: glyph)
                         .font(.system(size: 6.5, weight: .heavy))

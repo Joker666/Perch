@@ -158,7 +158,7 @@ private struct Keycap: View {
             .font(.system(size: 12, weight: .medium).monospacedDigit())
             .padding(.horizontal, Space.sm)
             .padding(.vertical, 2)
-            .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Palette.control))
+            .background(RoundedRectangle(cornerRadius: PanelStyle.keycapRadius, style: .continuous).fill(Palette.control))
     }
 }
 
@@ -190,7 +190,7 @@ struct IconSettings: View {
                 Circle()
                     .strokeBorder(Palette.circle, lineWidth: 1)
                     .overlay { Circle().fill(Palette.text).padding(4).opacity(current ? 1 : 0) }
-                    .frame(width: 18, height: 18)
+                    .frame(width: PanelStyle.radioSize, height: PanelStyle.radioSize)
                 AppIconView(theme: theme, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(theme.name).font(.system(size: 13, weight: .medium))

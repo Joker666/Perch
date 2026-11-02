@@ -29,7 +29,8 @@ struct TodoRow: View {
         .contentShape(Rectangle())
         .onHover { inside in withAnimation(Motion.hover) { hovering = inside } }
         .contextMenu { menu }
-        .accessibilityElement(children: .combine)
+        // While typing, VoiceOver must reach the text field, so the row only groups its parts when idle.
+        .accessibilityElement(children: isEditing ? .contain : .combine)
         .accessibilityLabel(todo.text)
         .accessibilityValue(todo.isCompleted ? "Completed" : "")
         .accessibilityAction(named: todo.isCompleted ? "Restore" : "Complete") {
@@ -134,7 +135,7 @@ struct CheckCircle: View {
                     .opacity(checked ? 1 : 0)
             }
             .frame(width: size, height: size)
-            .padding(3)
+            .padding(PanelStyle.circleHitPadding)
             .contentShape(Circle())
             .animation(.spring(duration: 0.3, bounce: 0.4), value: checked)
         }
@@ -155,7 +156,7 @@ struct FillerRow: View {
             Circle()
                 .strokeBorder(Palette.filler(index), lineWidth: 1)
                 .frame(width: metrics.circleSize, height: metrics.circleSize)
-                .padding(3)
+                .padding(PanelStyle.circleHitPadding)
             Spacer()
         }
         .padding(.horizontal, PanelStyle.rowInset)
@@ -165,5 +166,6 @@ struct FillerRow: View {
         .accessibilityElement()
         .accessibilityLabel("New todo")
         .accessibilityAddTraits(.isButton)
+        .accessibilityAction { model.add() }
     }
 }

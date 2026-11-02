@@ -61,16 +61,16 @@ private struct TodoCommands: View {
 
     var body: some View {
         Divider()
-        Button("Complete") { model.completeSelected() }
+        Button("Complete Todo") { model.completeSelected() }
             .keyboardShortcut(.return, modifiers: .command)
             .disabled(model.mode != .list || model.selectedIDs.isEmpty)
-        Button("Delete") { model.deleteSelected() }
+        Button("Delete Todo") { model.deleteSelected() }
             .keyboardShortcut(.delete, modifiers: .command)
             .disabled(model.selectedIDs.isEmpty)
-        Button("Move Up") { model.moveSelected(by: -1) }
+        Button("Move Todo Up") { model.moveSelected(by: -1) }
             .keyboardShortcut(.upArrow, modifiers: [.command, .option])
             .disabled(model.mode != .list || model.selectedIDs.isEmpty)
-        Button("Move Down") { model.moveSelected(by: 1) }
+        Button("Move Todo Down") { model.moveSelected(by: 1) }
             .keyboardShortcut(.downArrow, modifiers: [.command, .option])
             .disabled(model.mode != .list || model.selectedIDs.isEmpty)
         Divider()

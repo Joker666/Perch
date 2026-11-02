@@ -162,6 +162,10 @@ enum PanelStyle {
     static let trafficLightLeading: CGFloat = 16
     static let trafficLightSpacing: CGFloat = 8
     static let titlebarTrailing: CGFloat = 10
+    /// Around the 18 pt circle, for the reference app's 24 pt hit area.
+    static let circleHitPadding: CGFloat = 3
+    static let radioSize: CGFloat = 18
+    static let keycapRadius: CGFloat = 6
 }
 
 extension Color {
