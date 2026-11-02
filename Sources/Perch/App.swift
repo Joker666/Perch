@@ -28,6 +28,10 @@ struct PerchApp: App {
                 .environment(model)
         }
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { Updates.check() }
+                    .disabled(!Updates.isAvailable)
+            }
             CommandGroup(replacing: .appSettings) {
                 Button("Settings…") { SettingsWindowController.shared.show() }
                     .keyboardShortcut(",")
@@ -119,6 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let panel = PanelController(model: model)
         self.panel = panel
         Hotkey.register { PanelController.shared.quickAdd() }
+        Updates.start()
 
         if SelfTest.requested {
             SelfTest.runIfRequested(model: model)

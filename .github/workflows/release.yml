@@ -1,0 +1,131 @@
+# Builds Perch.dmg for a version tag, notarizes it when the Apple secrets
+# exist, signs it for Sparkle, publishes a GitHub release, and updates the
+# appcast on the project site.
+#
+#   git tag v1.0.0 && git push origin v1.0.0
+#
+# Secrets (Settings > Secrets and variables > Actions):
+#   SPARKLE_PRIVATE_KEY         required. `generate_keys --account perch -x key.txt`, then the file's text
+#   MACOS_CERTIFICATE_P12       base64 of the "Developer ID Application" certificate exported as .p12
+#   MACOS_CERTIFICATE_PASSWORD  the .p12 password
+#   DEVELOPER_ID                "Developer ID Application: Your Name (TEAMID)"
+#   APPLE_API_KEY_P8            base64 of an App Store Connect API key (.p8) for notarytool
+#   APPLE_API_KEY_ID            that key's id
+#   APPLE_API_ISSUER_ID         that key's issuer id
+# Without the last six, the dmg is ad hoc signed and not notarized.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the v, like 1.0.0. The tag v<version> must exist."
+        required: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version && format('v{0}', inputs.version) || github.ref }}
+
+      - name: Use the newest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Clean the version
+        run: echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Import the Developer ID certificate
+        env:
+          P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
+        run: |
+          if [[ -z "$P12" || -z "$DEVELOPER_ID" ]]; then
+            echo "No Developer ID secrets: the dmg will be ad hoc signed and not notarized."
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          keychain_password=$(uuidgen)
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple: -k "$keychain_password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/cert.p12"
+          echo "DEVELOPER_ID=$DEVELOPER_ID" >> "$GITHUB_ENV"
+
+      - name: Write the signing keys
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          API_KEY: ${{ secrets.APPLE_API_KEY_P8 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          if [[ -z "$SPARKLE_PRIVATE_KEY" ]]; then
+            echo "::error::Add the SPARKLE_PRIVATE_KEY secret. Updates cannot be signed without it."
+            exit 1
+          fi
+          printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle.key"
+          echo "SPARKLE_KEY_FILE=$RUNNER_TEMP/sparkle.key" >> "$GITHUB_ENV"
+          if [[ -n "$API_KEY" && -n "$API_KEY_ID" && -n "$API_ISSUER_ID" ]]; then
+            echo "$API_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+            {
+              echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/notary.p8"
+              echo "APPLE_API_KEY_ID=$API_KEY_ID"
+              echo "APPLE_API_ISSUER_ID=$API_ISSUER_ID"
+            } >> "$GITHUB_ENV"
+          fi
+
+      - name: Build, sign, and notarize
+        run: tools/release.sh
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$VERSION" dist/Perch.dmg --title "Perch $VERSION" --generate-notes --verify-tag \
+            || gh release upload "v$VERSION" dist/Perch.dmg --clobber
+
+      - name: Commit the appcast
+        run: |
+          cp site/appcast.xml "$RUNNER_TEMP/appcast.xml"
+          git fetch origin main
+          git checkout -B main origin/main
+          cp "$RUNNER_TEMP/appcast.xml" site/appcast.xml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/appcast.xml
+          git commit -m "Point the appcast at Perch $VERSION" || echo "appcast unchanged"
+          git push origin main
+
+      - name: Remove the signing keys
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/sparkle.key" "$RUNNER_TEMP/notary.p8"
+          security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true
+
+  # A push made with the workflow token does not start other workflows, so deploy the site here.
+  site:
+    needs: release
+    uses: ./.github/workflows/pages.yml
+    with:
+      ref: main

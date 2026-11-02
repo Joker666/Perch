@@ -4,12 +4,16 @@ import PackageDescription
 let package = Package(
     name: "Perch",
     platforms: [.macOS(.v26)],
+    dependencies: [
+        // Auto updates from the appcast on the project site.
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.7.0"),
+    ],
     targets: [
         // Rules and data logic with no SwiftUI, so tests run without the app.
         .target(name: "PerchKit"),
         .executableTarget(
             name: "Perch",
-            dependencies: ["PerchKit"],
+            dependencies: ["PerchKit", .product(name: "Sparkle", package: "Sparkle")],
             // App code runs on the main thread unless you say otherwise.
             swiftSettings: [.defaultIsolation(MainActor.self)]
         ),

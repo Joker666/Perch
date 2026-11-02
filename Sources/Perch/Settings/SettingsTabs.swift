@@ -236,6 +236,11 @@ struct AboutSettings: View {
             Text("Inspired by FloatyDo by Raffi Chilingaryan and Emirhan.")
                 .font(.system(size: 11))
                 .foregroundStyle(Palette.secondaryText)
+            if Updates.isAvailable {
+                Button("Check for Updates…") { Updates.check() }
+                    .controlSize(.small)
+                    .padding(.top, Space.sm)
+            }
         }
         .frame(maxWidth: .infinity)
     }

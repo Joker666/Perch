@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Perch, a tiny floating todo list for the Mac</title>
+  <meta name="description" content="Perch keeps today's todos in a small panel in the corner of your screen. Keyboard-first, eight themes, free and open source.">
+  <meta property="og:title" content="Perch">
+  <meta property="og:description" content="A tiny floating todo list for the Mac.">
+  <meta property="og:image" content="https://joker666.github.io/Perch/assets/panel-midnight.png">
+  <meta property="og:url" content="https://joker666.github.io/Perch/">
+  <meta name="theme-color" content="#F4F2EE" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111116" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="alternate" type="application/rss+xml" title="Perch updates" href="appcast.xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./">
+      <img src="favicon.svg" alt="" width="28" height="28">
+      <span>Perch</span>
+    </a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#keys">Keys</a>
+      <a href="https://github.com/Joker666/Perch">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="pitch">
+        <p class="eyebrow">Free for macOS 26</p>
+        <h1>Today's todos, perched in the corner.</h1>
+        <p class="lede">Perch is a small panel that floats above your work. Type a todo, press Return, get back to it. No projects, no due dates, no tags. Just the list you would otherwise write on paper.</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/Joker666/Perch/releases/latest/download/Perch.dmg">
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 1.5v8.2m0 0L4.8 6.5M8 9.7l3.2-3.2M2.5 11v1.8c0 .9.7 1.7 1.7 1.7h7.6c.9 0 1.7-.8 1.7-1.7V11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Download for Mac
+          </a>
+          <a class="button" href="https://github.com/Joker666/Perch">View the source</a>
+        </div>
+        <p class="fine">Requires macOS 26 on Apple silicon. Updates itself.</p>
+      </div>
+
+      <figure class="stage" id="stage" data-theme="midnight">
+        <img id="shot" src="assets/panel-midnight.png" width="400" height="384"
+             alt="The Perch panel in the Midnight theme, with six todos and two selected.">
+        <figcaption>
+          <div class="swatches" role="radiogroup" aria-label="Theme">
+            <button role="radio" aria-checked="true" data-theme="midnight" style="--c:#14141F" title="Midnight"></button>
+            <button role="radio" aria-checked="false" data-theme="navy" style="--c:#1B2130" title="Navy"></button>
+            <button role="radio" aria-checked="false" data-theme="forest" style="--c:#1F2724" title="Forest"></button>
+            <button role="radio" aria-checked="false" data-theme="plum" style="--c:#2A1E28" title="Plum"></button>
+            <button role="radio" aria-checked="false" data-theme="pool" style="--c:#DCEFFC" title="Pool"></button>
+            <button role="radio" aria-checked="false" data-theme="blossom" style="--c:#F2D1E1" title="Blossom"></button>
+            <button role="radio" aria-checked="false" data-theme="matcha" style="--c:#CFDDB5" title="Matcha"></button>
+            <button role="radio" aria-checked="false" data-theme="sand" style="--c:#E6E0D6" title="Sand"></button>
+          </div>
+          <span id="theme-name">Midnight</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="features" id="features">
+      <h2>Small on purpose</h2>
+      <div class="grid">
+        <article>
+          <h3>Keyboard first</h3>
+          <p>Return adds a todo below. Arrows move between rows. Shift selects more. ⌘↩ completes, ⌘⌫ deletes, ⌘Z undoes anything.</p>
+        </article>
+        <article>
+          <h3>Fits itself</h3>
+          <p>The panel grows and shrinks with your list, so it never wastes space and never needs a scroll bar.</p>
+        </article>
+        <article>
+          <h3>Drag to reorder</h3>
+          <p>Priorities change during the day. Drag a todo, or press ⌥⌘↑ and ⌥⌘↓.</p>
+        </article>
+        <article>
+          <h3>Always one shortcut away</h3>
+          <p>⌃⌥Space shows the panel from any app with a new todo ready to type. Press it again to put it away.</p>
+        </article>
+        <article>
+          <h3>An archive, not a trash can</h3>
+          <p>Completed todos move to the Archive, newest first. Click the check to bring one back.</p>
+        </article>
+        <article>
+          <h3>Yours to tune</h3>
+          <p>Eight themes, four fonts, the text size, the corner radius, and an app icon to match.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="tour">
+      <figure>
+        <img src="assets/archive.png" width="400" height="168" alt="The Archive view with three completed todos, crossed out." loading="lazy">
+        <figcaption>The Archive keeps what you finished.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/settings.png" width="520" height="297" alt="Settings with the theme swatches, font, font size, and radius." loading="lazy">
+        <figcaption>Settings take the colors of your theme.</figcaption>
+      </figure>
+    </section>
+
+    <section class="keys" id="keys">
+      <h2>The keys</h2>
+      <dl>
+        <div><dt><kbd>⌃⌥Space</kbd></dt><dd>Show or hide Perch from any app</dd></div>
+        <div><dt><kbd>↩</kbd></dt><dd>Add a todo below</dd></div>
+        <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Move between todos</dd></div>
+        <div><dt><kbd>⇧↑</kbd> <kbd>⇧↓</kbd></dt><dd>Select more todos</dd></div>
+        <div><dt><kbd>⌘↩</kbd></dt><dd>Complete</dd></div>
+        <div><dt><kbd>⌘⌫</kbd></dt><dd>Delete</dd></div>
+        <div><dt><kbd>⌥⌘↑</kbd> <kbd>⌥⌘↓</kbd></dt><dd>Move a todo up or down</dd></div>
+        <div><dt><kbd>⌘1</kbd> <kbd>⌘2</kbd></dt><dd>List or Archive</dd></div>
+        <div><dt><kbd>⌘Z</kbd></dt><dd>Undo</dd></div>
+      </dl>
+    </section>
+
+    <section class="closing">
+      <h2>Free, open source, and private.</h2>
+      <p>Your todos stay on your Mac. Perch has no account, no server, and no tracking. The code is on GitHub under the MIT License.</p>
+      <a class="button primary" href="https://github.com/Joker666/Perch/releases/latest/download/Perch.dmg">Download Perch</a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Made by <a href="https://github.com/Joker666">Rafi</a>. Inspired by <a href="https://floatydo.com">FloatyDo</a> by Raffi Chilingaryan and Emirhan. Perch is an independent project and is not affiliated with FloatyDo.</p>
+  </footer>
+
+  <script>
+    (() => {
+      const names = { midnight: "Midnight", navy: "Navy", forest: "Forest", plum: "Plum",
+                      pool: "Pool", blossom: "Blossom", matcha: "Matcha", sand: "Sand" };
+      const stage = document.getElementById("stage");
+      const shot = document.getElementById("shot");
+      const label = document.getElementById("theme-name");
+      const buttons = [...document.querySelectorAll(".swatches button")];
+      // Load every theme once, so switching never flashes.
+      Object.keys(names).forEach(t => { new Image().src = `assets/panel-${t}.png`; });
+      function pick(theme) {
+        stage.dataset.theme = theme;
+        shot.src = `assets/panel-${theme}.png`;
+        shot.alt = `The Perch panel in the ${names[theme]} theme, with six todos and two selected.`;
+        label.textContent = names[theme];
+        buttons.forEach(b => b.setAttribute("aria-checked", String(b.dataset.theme === theme)));
+      }
+      buttons.forEach((b, i) => {
+        b.addEventListener("click", () => pick(b.dataset.theme));
+        b.addEventListener("keydown", e => {
+          const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+          if (!step) return;
+          e.preventDefault();
+          const next = buttons[(i + step + buttons.length) % buttons.length];
+          next.focus();
+          pick(next.dataset.theme);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

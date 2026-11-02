@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Perch</title>
+    <link>https://joker666.github.io/Perch/appcast.xml</link>
+    <description>Updates for Perch, a tiny floating todo list for the Mac.</description>
+    <language>en</language>
+  </channel>
+</rss>
