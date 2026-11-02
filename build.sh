@@ -42,9 +42,14 @@ bin="$scratch/$config/$name"
 # swift build can report success while an edited file failed to compile. Catch that.
 stale=$(find "$here/Sources" -name '*.swift' -newer "$bin" | head -1)
 if [[ -n "$stale" ]]; then
-  echo "build failed: binary is older than $stale"
-  swift build -c $config --package-path "$here" --scratch-path "$scratch" 2>&1 | grep -E "error" | head -20
-  exit 1
+  errors=$(swift build -c $config --package-path "$here" --scratch-path "$scratch" 2>&1 | grep -E "error" | head -20 || true)
+  if [[ -n "$errors" ]]; then
+    echo "build failed: binary is older than $stale"
+    echo "$errors"
+    exit 1
+  fi
+  # An edit that compiles to the same code, like a comment, does not relink the binary.
+  touch "$bin"
 fi
 
 app_dir="${APP_DIR:-$HOME/Applications}"
