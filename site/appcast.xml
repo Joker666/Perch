@@ -6,15 +6,15 @@
     <description>Updates for Perch, a tiny floating todo list for the Mac.</description>
     <language>en</language>
     <item>
-      <title>Version 0.1.1</title>
-      <pubDate>Mon, 02 Nov 2026 02:31:03 +0000</pubDate>
-      <sparkle:version>202611020229</sparkle:version>
-      <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+      <title>Version 0.1.2</title>
+      <pubDate>Mon, 02 Nov 2026 06:02:03 +0000</pubDate>
+      <sparkle:version>202611020600</sparkle:version>
+      <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>Let people pick the global shortcut in Settings</li><li>Offer updates only for newer version tags, with notes in the update window</li></ul>]]></description>
-      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.1</sparkle:fullReleaseNotesLink>
-      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.1/Perch.dmg"
-                 type="application/octet-stream" sparkle:edSignature="qskqjcQZayKFU9eKjfzjCEZ0FGdNbC+BG5eSEBkV7qdp0FABU5359nrDOedTo/FnwdsIgKkFwTSwgVe3BumFAA==" length="3508862" />
+      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>⌘Z and the todo shortcuts now work the first time you press them after Perch comes to the front.</li><li>The List keeps its order when you add many todos in one place.</li><li>Undo, the todo items, and Show or Hide Perch in the menus now follow what you do.</li><li>The menu bar icon is now the same size as the other menu bar icons.</li><li>New: the perch command and an MCP server let Claude Code and scripts list, add, change, complete, move, and delete your todos. Edit &gt; Undo takes back what an agent did.</li></ul>]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.2</sparkle:fullReleaseNotesLink>
+      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.2/Perch.dmg"
+                 type="application/octet-stream" sparkle:edSignature="JT+OxeE4TQVvptRTl7+jvFhfeksZ95b+UvZGhx1mjelqSmQmhs/IyMzQuOLKICMK/BOkHCWWShBQ7z/mxHmoBA==" length="3630043" />
     </item>
   </channel>
 </rss>
