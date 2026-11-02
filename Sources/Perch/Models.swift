@@ -145,12 +145,8 @@ final class AppModel {
     func add(text: String, after id: UUID? = nil) -> Todo? {
         guard let text = TodoText.clean(text) else { return nil }
         commitEditing()
-        let start = records()
         let todo = Todo(text: text, order: insertionOrder(after: id))
-        context.insert(todo)
-        save()
-        registerUndo(start, name: "Add Todo")
-        reload()
+        change("Add Todo") { context.insert(todo) }
         return todo
     }
 
@@ -159,11 +155,7 @@ final class AppModel {
     func rename(_ id: UUID, to text: String) -> Bool {
         guard let todo = todo(id), let text = TodoText.clean(text), todo.text != text else { return false }
         if editingID == id { commitEditing() }
-        let start = records()
-        todo.text = text
-        save()
-        registerUndo(start, name: "Edit Todo")
-        reload()
+        change("Edit Todo") { todo.text = text }
         return true
     }
 
@@ -318,18 +310,16 @@ final class AppModel {
 
     /// Moves completed todos back to the end of the list.
     func restore(_ ids: [UUID]) {
-        let start = records()
-        var last = todos.last?.order
-        for id in ids {
-            guard let todo = todo(id), todo.isCompleted else { continue }
-            todo.isCompleted = false
-            todo.completedAt = nil
-            todo.order = TodoOrder.between(last, nil)
-            last = todo.order
+        change(ids.count == 1 ? "Restore Todo" : "Restore Todos") {
+            var last = todos.last?.order
+            for id in ids {
+                guard let todo = todo(id), todo.isCompleted else { continue }
+                todo.isCompleted = false
+                todo.completedAt = nil
+                todo.order = TodoOrder.between(last, nil)
+                last = todo.order
+            }
         }
-        save()
-        registerUndo(start, name: ids.count == 1 ? "Restore Todo" : "Restore Todos")
-        reload()
     }
 
     func delete(_ ids: [UUID]) {
@@ -385,15 +375,24 @@ final class AppModel {
 
     func clearArchive() {
         guard !archived.isEmpty else { return }
-        let start = records()
-        for todo in archived { context.delete(todo) }
-        save()
-        registerUndo(start, name: "Clear Archive")
+        change("Clear Archive") { for todo in archived { context.delete(todo) } }
         focus = .none
-        reload()
     }
 
-    // MARK: Undo
+    // MARK: Saving and undo
+
+    /// One change to the todos, with its steps in the order that keeps the List right:
+    /// run `body`, save (which renumbers a crowded List), add an undo step named
+    /// `undoName` that puts back `start`, and reload. A change that left the todos
+    /// as they were adds no undo step. With `undoName` nil it adds none either,
+    /// because the change belongs to an edit that is still open.
+    private func change(_ undoName: String?, from start: [TodoRecord]? = nil, _ body: () -> Void) {
+        let start = undoName == nil ? nil : start ?? records()
+        body()
+        save()
+        if let undoName, let start, start != records() { registerUndo(start, name: undoName) }
+        reload()
+    }
 
     private func records() -> [TodoRecord] {
         ((try? context.fetch(FetchDescriptor<Todo>())) ?? []).map(TodoRecord.init)
