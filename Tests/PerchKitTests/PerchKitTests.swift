@@ -97,3 +97,61 @@ func emptyText(_ input: String) {
     let data = try JSONEncoder().encode(combo)
     #expect(try JSONDecoder().decode(KeyCombo.self, from: data) == combo)
 }
+
+// MARK: Focus rules
+
+@Test func neighborStopsAtTheEnds() {
+    let ids = [1, 2, 3]
+    #expect(FocusRules.neighbor(of: 2, step: 1, in: ids) == 3)
+    #expect(FocusRules.neighbor(of: 2, step: -1, in: ids) == 1)
+    #expect(FocusRules.neighbor(of: 1, step: -1, in: ids) == nil)
+    #expect(FocusRules.neighbor(of: 3, step: 1, in: ids) == nil)
+    #expect(FocusRules.neighbor(of: 9, step: 1, in: ids) == nil)
+}
+
+@Test func cursorTypesInListAndSelectsInArchive() {
+    let ids = [1, 2, 3]
+    #expect(FocusRules.cursor(from: .none, step: 1, in: ids, isList: true) == .editing(1))
+    #expect(FocusRules.cursor(from: .none, step: -1, in: ids, isList: true) == .editing(3))
+    #expect(FocusRules.cursor(from: .none, step: 1, in: ids, isList: false) == .selection(ListSelection(1)))
+    let range = RowFocus.selection(ListSelection(anchor: 1, cursor: 2))
+    #expect(FocusRules.cursor(from: range, step: 1, in: ids, isList: true) == .editing(3))
+    #expect(FocusRules.cursor(from: .none, step: 1, in: [Int](), isList: true) == nil)
+}
+
+@Test func shiftArrowsExtendFromTheTypedRow() {
+    let ids = [1, 2, 3]
+    #expect(FocusRules.extending(.none, step: 1, in: ids) == .selection(ListSelection(1)))
+    #expect(FocusRules.extending(.none, step: -1, in: ids) == .selection(ListSelection(3)))
+    #expect(FocusRules.extending(.editing(2), step: 1, in: ids) == .selection(ListSelection(anchor: 2, cursor: 3)))
+    let range = RowFocus.selection(ListSelection(anchor: 2, cursor: 3))
+    #expect(FocusRules.extending(range, step: -2, in: ids) == .selection(ListSelection(anchor: 2, cursor: 1)))
+    // A new row left empty is gone when the edit ends, so there is nothing to extend from.
+    #expect(FocusRules.extending(.editing(9), step: 1, in: ids) == nil)
+    #expect(FocusRules.extending(RowFocus<Int>.none, step: 1, in: []) == nil)
+}
+
+@Test func clicksTypeOrSelect() {
+    #expect(FocusRules.click(2, extend: false, from: .none, isList: true) == .editing(2))
+    #expect(FocusRules.click(2, extend: false, from: .editing(1), isList: false) == .selection(ListSelection(2)))
+    #expect(FocusRules.click(3, extend: true, from: .editing(1), isList: true) == .selection(ListSelection(anchor: 1, cursor: 3)))
+    let range = RowFocus.selection(ListSelection(anchor: 2, cursor: 3))
+    #expect(FocusRules.click(1, extend: true, from: range, isList: true) == .selection(ListSelection(anchor: 2, cursor: 1)))
+    #expect(FocusRules.click(2, extend: true, from: .none, isList: true) == .selection(ListSelection(2)))
+}
+
+@Test func removingSelectsTheNextRow() {
+    let ids = [1, 2, 3, 4]
+    #expect(FocusRules.afterRemoving([2, 3], from: ids) == .selection(ListSelection(4)))
+    #expect(FocusRules.afterRemoving([4], from: ids) == .selection(ListSelection(3)))
+    #expect(FocusRules.afterRemoving([1, 2, 3, 4], from: ids) == .none)
+}
+
+@Test func focusNamesItsRows() {
+    let ids = [1, 2, 3]
+    #expect(RowFocus.editing(2).editingID == 2)
+    #expect(RowFocus.selection(ListSelection(2)).editingID == nil)
+    #expect(RowFocus.editing(2).selectedIDs(in: ids) == [2])
+    #expect(RowFocus.selection(ListSelection(anchor: 3, cursor: 1)).selectedIDs(in: ids) == [1, 2, 3])
+    #expect(RowFocus<Int>.none.selectedIDs(in: ids).isEmpty)
+}

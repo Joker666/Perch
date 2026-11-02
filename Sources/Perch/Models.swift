@@ -53,13 +53,8 @@ enum PanelMode: String, CaseIterable {
     case list, archive
 }
 
-/// Where the keyboard is in the panel: nowhere, typing in one row, or a
-/// range of selected rows (Shift-arrow).
-enum PanelFocus: Equatable {
-    case none
-    case editing(UUID)
-    case selection(ListSelection<UUID>)
-}
+/// Where the keyboard is in the panel. The rules that move it are `FocusRules` (PerchKit).
+typealias PanelFocus = RowFocus<UUID>
 
 /// App-wide state the panel, menus, and Settings share.
 @Observable
@@ -109,18 +104,10 @@ final class AppModel {
         todos.first { $0.uuid == id } ?? archived.first { $0.uuid == id }
     }
 
-    var editingID: UUID? {
-        if case .editing(let id) = focus { id } else { nil }
-    }
+    var editingID: UUID? { focus.editingID }
 
     /// The ids highlighted as selected.
-    var selectedIDs: [UUID] {
-        switch focus {
-        case .none: []
-        case .editing(let id): [id]
-        case .selection(let s): s.ids(in: visible.map(\.uuid))
-        }
-    }
+    var selectedIDs: [UUID] { focus.selectedIDs(in: visible.map(\.uuid)) }
 
     // MARK: Adding and editing
 
@@ -201,59 +188,35 @@ final class AppModel {
 
     /// Up and Down while typing: edit the row above or below.
     func editNeighbor(of id: UUID, step: Int) {
-        let ids = todos.map(\.uuid)
-        guard let index = ids.firstIndex(of: id) else { return }
-        let target = index + step
-        guard ids.indices.contains(target) else { return }
-        let targetID = ids[target]
+        guard let target = FocusRules.neighbor(of: id, step: step, in: todos.map(\.uuid)) else { return }
         commitEditing()
-        if todo(targetID) != nil { beginEditing(targetID) }
+        if todo(target) != nil { beginEditing(target) }
     }
 
     /// Shift-Up and Shift-Down: select rows. From typing, the typed row is the anchor.
     func extendSelection(step: Int) {
-        let ids = visible.map(\.uuid)
-        switch focus {
-        case .none:
-            guard let first = step > 0 ? ids.first : ids.last else { return }
-            focus = .selection(ListSelection(first))
-        case .editing(let id):
-            commitEditing()
-            guard ids.contains(id) || todo(id) != nil else { return }
-            focus = .selection(ListSelection(id).moved(by: step, extend: true, in: visible.map(\.uuid)))
-        case .selection(let s):
-            focus = .selection(s.moved(by: step, extend: true, in: ids))
-        }
+        let before = focus
+        if before.editingID != nil { commitEditing() }
+        if let next = FocusRules.extending(before, step: step, in: visible.map(\.uuid)) { focus = next }
     }
 
     /// Up and Down with no row typing: move to one row. In the list that row starts typing.
     func moveCursor(step: Int) {
-        let ids = visible.map(\.uuid)
-        let target: UUID?
-        switch focus {
-        case .none: target = step > 0 ? ids.first : ids.last
-        case .editing(let id): target = id
-        case .selection(let s): target = s.moved(by: step, extend: false, in: ids).cursor
+        if let next = FocusRules.cursor(from: focus, step: step, in: visible.map(\.uuid), isList: mode == .list) {
+            go(to: next)
         }
-        guard let target else { return }
-        if mode == .list { beginEditing(target) } else { focus = .selection(ListSelection(target)) }
     }
 
     /// Click and Shift-click on a row.
     func click(_ id: UUID, extend: Bool) {
-        if extend {
-            let anchor: UUID? = switch focus {
-            case .none: nil
-            case .editing(let e): e
-            case .selection(let s): s.anchor
-            }
-            commitEditing()
-            focus = .selection(ListSelection(anchor ?? id).extended(to: id))
-        } else if mode == .list {
-            beginEditing(id)
-        } else {
-            focus = .selection(ListSelection(id))
-        }
+        let next = FocusRules.click(id, extend: extend, from: focus, isList: mode == .list)
+        if extend { commitEditing() }
+        go(to: next)
+    }
+
+    /// Typing in a row starts an edit. Any other focus is set as it is.
+    private func go(to next: PanelFocus) {
+        if let id = next.editingID { beginEditing(id) } else { focus = next }
     }
 
     // MARK: Changing todos
@@ -268,7 +231,7 @@ final class AppModel {
         let start = records()
         let live = ids.filter { todo($0) != nil }
         guard !live.isEmpty else { return }
-        let next = todos.map(\.uuid).neighbor(afterRemoving: Set(live))
+        let next = FocusRules.afterRemoving(Set(live), from: todos.map(\.uuid))
         guard animated else {
             finishCompleting(live, start: start, next: next)
             return
@@ -280,7 +243,7 @@ final class AppModel {
         }
     }
 
-    private func finishCompleting(_ ids: [UUID], start: [TodoRecord], next: UUID?) {
+    private func finishCompleting(_ ids: [UUID], start: [TodoRecord], next: PanelFocus) {
         completing.subtract(ids)
         change(ids.count == 1 ? "Complete Todo" : "Complete Todos", from: start) {
             for id in ids {
@@ -289,7 +252,7 @@ final class AppModel {
                 todo.completedAt = .now
             }
         }
-        if case .selection = focus { focus = next.map { .selection(ListSelection($0)) } ?? .none }
+        if case .selection = focus { focus = next }
     }
 
     /// Completes the selected rows, or the row being typed in.
@@ -316,11 +279,11 @@ final class AppModel {
         if editingID != nil, ids != [editingID] { commitEditing() }
         let start = editStart ?? records()
         editStart = nil
-        let next = visible.map(\.uuid).neighbor(afterRemoving: Set(ids))
+        let next = FocusRules.afterRemoving(Set(ids), from: visible.map(\.uuid))
         change(ids.count == 1 ? "Delete Todo" : "Delete Todos", from: start) {
             for id in ids { if let todo = todo(id) { context.delete(todo) } }
         }
-        focus = next.map { .selection(ListSelection($0)) } ?? .none
+        focus = next
     }
 
     func deleteSelected() {
@@ -329,9 +292,8 @@ final class AppModel {
 
     /// Backspace in an empty row: remove it and keep typing at the end of the row above.
     func deleteEmptyRow(_ id: UUID) {
-        let ids = todos.map(\.uuid)
-        guard let index = ids.firstIndex(of: id) else { return }
-        let above = index > 0 ? ids[index - 1] : nil
+        guard todos.contains(where: { $0.uuid == id }) else { return }
+        let above = FocusRules.neighbor(of: id, step: -1, in: todos.map(\.uuid))
         commitEditing()
         if let above { beginEditing(above) }
     }
