@@ -121,3 +121,46 @@ longer adds an empty undo step. `restoreAll` still saves on its own, because
 it is the undo step and must always register Redo. Before and after, the 48
 self-test checks, `check-agent-cli.sh`, 12 unit tests, and the grid lint pass.
 Card 3 stays open.
+
+## Second pass: card 3 and other findings
+
+Rafi asked for card 3, and for duplication, dead code, and other changes that
+make testing easier. Done, one commit each:
+
+- `33ee546` **Card 3.** The keyboard and click rules (`FocusRules`) and the
+  focus type (`RowFocus`) are in PerchKit, with 6 unit tests. I compared one
+  reducer with a key enum against one function per rule, and chose the
+  functions: each rule ends the edit at a different time, so a reducer would
+  also have to return "end the edit first". One edge changed: Shift-arrow
+  right after leaving a new row empty now selects from the first or last row,
+  not from the removed row.
+- `2b9a6c3` **Dead code.** Removed `fitsContent` (from the template) and
+  `Motion.reflow`. Kept `gridProbe` and `Space.section`, which the grid tools
+  and the spacing scale use.
+- `6c88326` **Drag reorder.** The target row, the room the other rows make,
+  and the destination are in `DragReorder`, with 3 unit tests. The drag and
+  `perch todos move` had each written the destination rule. Now both call
+  `TodoOrder.destination`.
+- `b2b2308` **Shortcut matching.** The rule that finds a menu item with the
+  same shortcut moved to `KeyCombo.matches`, with 2 unit tests. The modifier
+  flags change to Carbon flags in one place.
+- `a5dc30f` **Small duplicates.** The resize, spring-back, and check
+  animations used numbers in views. They now use `Motion` tokens, as the design
+  rules ask. The fitted frame, the Show and Hide Perch title, and a row's
+  complete-or-restore action are each written once.
+- `1b07e66` **build.sh.** A comment-only edit did not relink the binary, and
+  build.sh reported a failed build. It now builds again and stops only on a
+  real error.
+
+Before and after: 48 self-test checks, `check-agent-cli.sh`, the grid lint,
+and the layout check pass. Unit tests went from 12 to 23. Snapshots in
+Midnight and Matcha look the same.
+
+### Still open, not done
+
+- **Shortcut recorder steps** [Worth exploring]. Escape cancels, Delete turns
+  the shortcut off, a key with no modifier is refused. This decision could be
+  a PerchKit rule with unit tests. The menu check stays in the app.
+- **Panel size and place** [Speculative]. The rubber band for both edges
+  in `windowWillResize`, the Archive's 2-row minimum, and the on-screen check
+  for a saved position could move to `PanelMetrics`. Each is a few lines.

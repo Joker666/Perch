@@ -6,7 +6,7 @@ Perch is a Swift package with two targets. There is no Xcode project.
 
 | Target | What it holds | Depends on |
 |---|---|---|
-| `PerchKit` | Rules and data logic with no SwiftUI or AppKit: todo text, order values, list selection, panel sizes, key combos. | Foundation only |
+| `PerchKit` | Rules and data logic with no SwiftUI or AppKit: todo text, order values, list selection, keyboard focus rules, drag reorder, panel sizes, key combos and shortcut matching. | Foundation only |
 | `Perch` | The app: SwiftData store, model, panel, Settings, menus, global shortcut, updates, agent CLI. Code runs on the main actor unless it says otherwise. | `PerchKit`, Sparkle |
 | `PerchKitTests` | Unit tests for `PerchKit` (`swift test`). | `PerchKit` |
 
@@ -39,6 +39,9 @@ types that take plain values.
   saves (and renumbers a crowded List), adds one undo step, and reloads, in
   that order. Only `restoreAll`, which is the undo step itself, saves on its
   own. See `docs/FIXLOG.md` for the bug that the order prevents.
+- **Keyboard and click rules live in `FocusRules`** (PerchKit). `AppModel`
+  decides when an edit ends, asks the rule where the keyboard goes, and
+  applies the answer. A new key or click rule gets a unit test there.
 - **Undo is a whole-list snapshot.** Each step stores `TodoRecord`s of every
   todo and puts them all back. One `UndoManager` (`AppModel.undoManager`)
   serves the panel, Settings, and agent commands, so Edit > Undo takes back
