@@ -81,6 +81,9 @@ quiet codesign "${sign_flags[@]}" "$fw"
 quiet codesign "${sign_flags[@]}" "$app"
 codesign --verify --strict "$app" || { echo "signature check failed"; exit 1; }
 echo "installed $app $version ($build) (signed: ${identity})"
+# The CLI: the app binary under a short name on PATH (bama agent-cli skill).
+mkdir -p "$HOME/.local/bin"
+ln -sf "$app/Contents/MacOS/$name" "$HOME/.local/bin/perch"
 
 if [[ " $* " == *" --open "* ]]; then
   osascript -e "quit app \"$name\"" 2>/dev/null || true

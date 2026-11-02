@@ -17,7 +17,6 @@ enum Shared {
     static let model = AppModel(container: Store.makeContainer())
 }
 
-@main
 struct PerchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     private var model: AppModel { Shared.model }
@@ -136,6 +135,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let panel = PanelController(model: model)
         self.panel = panel
         Hotkey.shared.start { PanelController.shared.quickAdd() }
+        // The agent CLI and MCP server reach the app through this socket (Agent/).
+        AgentRouter.model = model
+        AgentSocket.listen { AgentRouter.handle($0) }
         Updates.start()
 
         if SelfTest.requested {
