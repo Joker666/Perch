@@ -224,7 +224,7 @@ final class AppModel {
     // MARK: Changing todos
 
     /// Marks todos done. The rows play the check and sweep, then leave the list.
-    /// `animated: false` (the agent CLI) completes at once, inside the command's undo group.
+    /// `animated: false` (the agent CLI) completes at once and silently, inside the command's undo group.
     func complete(_ ids: [UUID], animated: Bool = true) {
         let ids = ids.filter { todo($0)?.isCompleted == false && !completing.contains($0) }
         guard !ids.isEmpty else { return }
@@ -237,6 +237,7 @@ final class AppModel {
             finishCompleting(live, start: start, next: next)
             return
         }
+        CompletionSound.play()
         completing.formUnion(live)
         Task {
             try? await Task.sleep(for: .seconds(Motion.completionSettle))

@@ -2,6 +2,17 @@
 
 Bugs that were hard to find, and the rule each one taught. Newest first.
 
+## 2026-11-02: A checkbox crashed the Settings window
+
+A SwiftUI checkbox (`.toggleStyle(.checkbox)`) in Settings > Theme crashed
+Perch with "more Update Constraints in Window passes than there are views in
+the window". The Settings window takes its height from its content. Plain text
+in the same row worked, and the checkbox crashed inside the grid and outside it.
+`.fixedSize()` and `.gridCellUnsizedAxes` did not help. Found by `tools/snap.sh`.
+Fix: a small switch (`.toggleStyle(.switch)`) works.
+
+Rule: After a new control in Settings, run `tools/snap.sh` before you commit. A layout loop shows only when the window opens.
+
 ## 2026-11-02: build.sh failed after an edit to a comment
 
 After an edit that changed only a comment, SwiftPM did not relink the binary,

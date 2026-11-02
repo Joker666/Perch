@@ -94,6 +94,8 @@ final class Prefs {
     var fontSize: Double { didSet { save(fontSize, "fontSize") } }
     var radius: Double { didSet { save(radius, "radius") } }
     var iconID: String { didSet { save(iconID, "icon"); AppIcons.apply(iconID) } }
+    /// The chime when you complete a todo (`CompletionSound`). On by default.
+    var completionSound: Bool { didSet { save(completionSound, "completionSound") } }
 
     var theme: Theme { Theme.named(themeID) }
 
@@ -105,6 +107,7 @@ final class Prefs {
         fontSize = defaults.object(forKey: "fontSize") as? Double ?? Self.defaultFontSize
         radius = defaults.object(forKey: "radius") as? Double ?? Self.defaultRadius
         iconID = defaults.string(forKey: "icon") ?? Theme.all[0].id
+        completionSound = defaults.object(forKey: "completionSound") as? Bool ?? true
     }
 
     /// Dark themes give the app dark controls, light themes light ones.

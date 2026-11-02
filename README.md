@@ -13,7 +13,7 @@ A tiny floating todo list for the Mac. Perch keeps today's todos in a small pane
 - **Drag to reorder**, or press ⌥⌘↑ and ⌥⌘↓.
 - **Global shortcut.** ⌃⌥Space shows the panel from any app with a new todo ready to type. Pick your own in Settings > Shortcuts.
 - **Archive.** Completed todos move there, newest first. Click the check to bring one back.
-- **Yours to tune.** Eight themes, four fonts, font size, corner radius, and eight app icons.
+- **Yours to tune.** Eight themes, four fonts, font size, corner radius, eight app icons, and a completion sound you can turn off.
 - **Private.** Todos stay on your Mac in a local database. No account, no server, no tracking.
 - **Works with agents.** The `perch` command and an MCP server let Claude Code and scripts list, add, and complete todos in the running app. Edit > Undo takes back what an agent did.
 - **Updates itself** with [Sparkle](https://sparkle-project.org).

@@ -18,4 +18,4 @@ What an agent can do in Perch through `perch <noun> <verb>` and `perch mcp`. Eac
 | `hide` | write | | S-022 | Hide the panel |
 | `theme set <name>` | write | | S-017 | Use one of the 8 themes |
 
-Not commands: font, font size, radius, app icon, and the global shortcut stay in Settings. They are personal taste, and agents gain little from them.
+Not commands: font, font size, radius, app icon, sound, and the global shortcut stay in Settings. They are personal taste, and agents gain little from them.

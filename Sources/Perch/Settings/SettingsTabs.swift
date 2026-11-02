@@ -3,7 +3,7 @@ import SwiftUI
 /// Label column width for the Theme tab, so every control starts on one edge.
 private let labelWidth: CGFloat = 100
 
-/// Settings > Theme: background, font, font size, and radius.
+/// Settings > Theme: background, font, font size, radius, and the completion sound.
 struct ThemeSettings: View {
     @Bindable private var prefs = Prefs.shared
 
@@ -40,6 +40,16 @@ struct ThemeSettings: View {
                     .labelsHidden()
                 value("\(Int(prefs.radius)) px")
                 ResetButton(disabled: prefs.radius == Prefs.defaultRadius) { prefs.radius = Prefs.defaultRadius }
+            }
+            GridRow {
+                label("Sound")
+                // A switch, not a checkbox: a SwiftUI checkbox in this self-sizing window loops on layout and crashes.
+                Toggle("Play a sound when you complete a todo", isOn: $prefs.completionSound)
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .labelsHidden()
+                    .help("Play a sound when you complete a todo")
+                    .gridCellColumns(3)
             }
         }
     }

@@ -294,6 +294,20 @@ Acceptance:
 - [manual] Release springs to the nearest allowed size with the snappy curve.
 Status: done
 
+### S-031 Hear a todo get completed
+As the user, I complete a todo and hear a short, quiet chime.
+Screens: settings-theme
+Acceptance:
+- [self] Completing in the panel (circle, ⌘↩, or the context menu) plays the sound. An agent's `perch todos complete` plays none.
+- [snap] Settings > Theme has a Sound switch, on by default. Its help says "Play a sound when you complete a todo".
+- [manual] No sound when macOS has "Play user interface sound effects" off.
+UX:
+- Flow: click the circle -> check, chime, and sweep together
+- Surface: feedback only, no window
+- Words: Settings label "Sound", and the switch's help "Play a sound when you complete a todo"
+- Access: the sound adds to the check and the sweep, so nothing depends on hearing it
+Status: done
+
 ## Dropped
 - iPhone app and iCloud sync: one user, one Mac for now (later: iCloud sync).
 - In-app purchases: vendor only.

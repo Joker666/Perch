@@ -147,6 +147,20 @@ enum SelfTest {
             m.delete([added.uuid])
         }
 
+        // S-031 the completion sound: the panel asks for it, an agent's complete does not
+        check("The completion sound is a valid sound", (CompletionSound.sound?.duration ?? 0) > 0.2,
+              "\(CompletionSound.sound?.duration ?? 0) s")
+        if let quiet = m.add(text: "Sound check") {
+            let asked = CompletionSound.requests
+            m.complete([quiet.uuid], animated: false)
+            check("An agent's complete plays no sound", CompletionSound.requests == asked)
+            m.restore([quiet.uuid])
+            m.complete([quiet.uuid])
+            check("Completing in the panel plays the sound", CompletionSound.requests == asked + 1)
+            try? await Task.sleep(for: .seconds(Motion.completionSettle + 0.2))
+            m.delete([quiet.uuid])
+        }
+
         // Many adds at one spot crowd the order values. Renumbering keeps the List in order.
         if let first = m.add(text: "Order A") {
             m.add(text: "Order B")
