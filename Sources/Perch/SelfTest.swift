@@ -339,9 +339,12 @@ enum SelfTest {
         try? await Task.sleep(for: .seconds(0.5))
         if let window = settings.window, let visible = window.screen?.visibleFrame {
             let fits = { abs(window.contentLayoutRect.height - settings.contentHeight) < 1 }
-            window.setFrameTopLeftPoint(NSPoint(x: visible.minX + 40, y: visible.maxY - 40))
+            // A saved frame 1 pt wide once hid the window. Fitting puts the width back.
+            window.setFrame(NSRect(x: visible.minX + 40, y: visible.maxY - 440, width: 1, height: 400), display: false)
+            settings.fit(contentHeight: settings.contentHeight)
             let before = window.frame
-            check("The Settings window fits the Theme tab", fits(), "\(window.contentLayoutRect.height) for \(settings.contentHeight)")
+            check("The Settings window fits the Theme tab", fits() && window.frame.width == SettingsView.width,
+                  "\(window.frame) for \(settings.contentHeight)")
             m.settingsTab = .shortcuts
             try? await Task.sleep(for: .seconds(0.6))
             let after = window.frame

@@ -52,21 +52,22 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     /// The height of the tab bar and the tab, under the title bar. The self-test reads it.
     private(set) var contentHeight: CGFloat = 0
 
-    /// Fits the window to the height of the tab's content, with the top edge
-    /// fixed. A tab change animates on the same curve as the cross-fade.
-    /// Near the bottom of the screen the window moves up instead of under the Dock.
+    /// Fits the window to the tab's content, with the top edge fixed. A tab
+    /// change animates on the same curve as the cross-fade. Near the bottom of
+    /// the screen the window moves up instead of under the Dock.
     func fit(contentHeight: CGFloat) {
         self.contentHeight = contentHeight
         guard let window, contentHeight > 0 else { return }
         let titlebar = window.frame.height - window.contentLayoutRect.height
         var frame = window.frame
         frame.origin.y = frame.maxY - contentHeight - titlebar
-        frame.size.height = contentHeight + titlebar
+        frame.size = NSSize(width: SettingsView.width, height: contentHeight + titlebar)
         if let visible = (window.screen ?? NSScreen.main)?.visibleFrame {
             frame = WindowPlacement.keptOnScreen(frame, in: visible)
         }
         guard frame != window.frame else { return }
-        guard window.isVisible, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+        let animate = window.isVisible && frame.width == window.frame.width
+        guard animate, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
             window.setFrame(frame, display: true)
             return
         }
@@ -93,6 +94,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.delegate = self
+        // The hosting controller no longer sizes the window, and the autosave
+        // name saves the frame at once, so set the width first.
+        window.setContentSize(NSSize(width: SettingsView.width, height: 400))
         window.setFrameAutosaveName(Store.isOverridden ? "" : "Settings")
         if !window.setFrameUsingName("Settings") { window.center() }
         recolor(window)
@@ -126,6 +130,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 }
 
 struct SettingsView: View {
+    static let width: CGFloat = 520
     @Environment(AppModel.self) private var model
     /// The tab fading out after a tab change. It sits on top without taking
     /// space, so the window fits the new tab while the two cross-fade.
@@ -151,7 +156,7 @@ struct SettingsView: View {
                     }
                 }
         }
-        .frame(width: 520)
+        .frame(width: Self.width)
         .fixedSize(horizontal: false, vertical: true)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
             SettingsWindowController.shared.fit(contentHeight: height)
