@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Builds Perch and installs it to ~/Applications/Perch.app.
+# Builds Perch and installs it to /Applications/Perch.app, where the dmg installs it too.
 # Build products live in ~/Library/Developer/Perch, outside the repo
 # (and outside Dropbox or iCloud, which would try to sync them).
 #
@@ -8,7 +8,7 @@
 #        ./build.sh --open     install, then quit the running copy and open the new one
 #
 # Environment:
-#   APP_DIR=<dir>        put Perch.app there instead of ~/Applications (tools/release.sh uses dist/)
+#   APP_DIR=<dir>        put Perch.app there instead of /Applications (tools/release.sh uses dist/)
 #   VERSION=1.2.0        CFBundleShortVersionString. Default: the latest v* tag, or 0.1.0
 #   BUILD=202611011200   CFBundleVersion, which Sparkle compares. Default: the current time
 #   SIGN_IDENTITY=...    signing identity. A "Developer ID Application" identity also turns on
@@ -52,7 +52,7 @@ if [[ -n "$stale" ]]; then
   touch "$bin"
 fi
 
-app_dir="${APP_DIR:-$HOME/Applications}"
+app_dir="${APP_DIR:-/Applications}"
 app="$app_dir/$name.app"
 mkdir -p "$app_dir"
 rm -rf "$app"

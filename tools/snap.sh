@@ -4,7 +4,7 @@
 #        APP_SNAPSHOT_PAGES=starred,settings tools/snap.sh   only those pages
 #        tools/snap.sh -AppleShowScrollBars Always          extra arguments go to the app
 set -u
-app=~/Applications/Perch.app/Contents/MacOS/Perch
+app=/Applications/Perch.app/Contents/MacOS/Perch
 store=/tmp/Perch-test.store
 shots=/tmp/Perch-shots
 # A crashed run leaves saved window state, and the next launch would wait on a "reopen windows?" alert.

@@ -3,7 +3,7 @@ import Foundation
 /// A small MCP server over stdin and stdout (JSON-RPC, one message per line).
 /// Every AgentCommand becomes a tool ("todos add" -> "todos_add"), and each
 /// call goes to the running app, like the CLI. Register it once:
-///   claude mcp add --scope user perch -- ~/Applications/Perch.app/Contents/MacOS/Perch mcp
+///   claude mcp add --scope user perch -- /Applications/Perch.app/Contents/MacOS/Perch mcp
 /// Optional: Claude Code drives the CLI fine without it. Use it for Claude
 /// Desktop and other clients that have no shell.
 enum AgentMCP {

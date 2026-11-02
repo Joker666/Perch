@@ -4,4 +4,4 @@ set -u
 rm -rf ~/Library/Saved\ Application\ State/com.rafi.perch.savedState
 store=/tmp/Perch-self.store
 rm -f $store $store-shm $store-wal
-APP_STORE=$store ~/Applications/Perch.app/Contents/MacOS/Perch --selftest
+APP_STORE=$store /Applications/Perch.app/Contents/MacOS/Perch --selftest

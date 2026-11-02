@@ -18,12 +18,30 @@ A tiny floating todo list for the Mac. Perch keeps today's todos in a small pane
 - **Works with agents.** The `perch` command and an MCP server let Claude Code and scripts list, add, and complete todos in the running app. Edit > Undo takes back what an agent did.
 - **Updates itself** with [Sparkle](https://sparkle-project.org).
 
+## Agents
+
+Claude Code, Claude Desktop, and scripts can read and change your todos in the running app. Each change shows in the panel at once, and Edit > Undo takes it back. Delete commands only report what they would do until you add `--yes`. The commands are in [docs/AGENT-COMMANDS.md](docs/AGENT-COMMANDS.md).
+
+The `perch` command is the app itself. `build.sh` links it for you. After a dmg install, link it once (`~/.local/bin` must be on your `PATH`):
+
+```bash
+mkdir -p ~/.local/bin
+ln -sf /Applications/Perch.app/Contents/MacOS/Perch ~/.local/bin/perch
+perch todos list
+```
+
+The MCP server, for Claude Code and other MCP clients:
+
+```bash
+claude mcp add --scope user perch -- /Applications/Perch.app/Contents/MacOS/Perch mcp
+```
+
 ## Build from source
 
 You need macOS 26 and Xcode 26 or later. There is no Xcode project: Perch is a Swift package.
 
 ```bash
-./build.sh --open        # build, install to ~/Applications/Perch.app, and open it
+./build.sh --open        # build, install to /Applications/Perch.app, and open it
 swift test --scratch-path ~/Library/Developer/Perch/test-build
 tools/selftest.sh        # the app's real functions on a test database
 tools/snap.sh            # screenshots of every panel state and Settings tab

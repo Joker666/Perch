@@ -4,7 +4,7 @@ import SwiftUI
 import PerchKit
 
 /// Screenshot mode for agents.
-///   APP_STORE=/tmp/test.store APP_SNAPSHOT=/tmp/shots ~/Applications/Perch.app/Contents/MacOS/Perch
+///   APP_STORE=/tmp/test.store APP_SNAPSHOT=/tmp/shots /Applications/Perch.app/Contents/MacOS/Perch
 /// writes <page>-<theme>.png for every panel state and settings-<tab>-<theme>.png
 /// for every Settings tab, in a dark theme and a light theme, then quits.
 /// Each PNG gets a <page>-<theme>-layout.json with the grid probes (tools/check-layout.swift).
