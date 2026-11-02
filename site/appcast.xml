@@ -5,5 +5,15 @@
     <link>https://rafihasan.com/Perch/appcast.xml</link>
     <description>Updates for Perch, a tiny floating todo list for the Mac.</description>
     <language>en</language>
+    <item>
+      <title>Version 0.1.0</title>
+      <pubDate>Mon, 02 Nov 2026 02:04:49 +0000</pubDate>
+      <sparkle:version>202611020203</sparkle:version>
+      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.0</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.0/Perch.dmg"
+                 type="application/octet-stream" sparkle:edSignature="YSckm9UYzR/eeIywdXxqcOCt5bvupcfEvDzfTFJukIdA7MgBtwF1X3ClSbrsByE1ePVPnBSLIEme+Az+oNJQAA==" length="3467986" />
+    </item>
   </channel>
 </rss>
