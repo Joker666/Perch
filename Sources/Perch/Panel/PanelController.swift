@@ -29,6 +29,7 @@ final class PanelController: NSObject, NSWindowDelegate {
         panel.undo = model.undoManager
         panel.delegate = self
         panel.setFrame(NSRect(origin: savedOrigin(), size: NSSize(width: width, height: fittedHeight())), display: false)
+        panel.setFrame(fittedFrame(), display: false)
         track()
         installKeyMonitor()
     }
@@ -106,7 +107,8 @@ final class PanelController: NSObject, NSWindowDelegate {
         }
     }
 
-    /// Sets the fitted height with the top edge fixed, so rows grow downward.
+    /// Sets the fitted height with the top edge fixed, so rows grow downward,
+    /// until the panel reaches the Dock. Then the panel moves up.
     func fit(animated: Bool) {
         guard !panel.inLiveResize else { return }
         let frame = fittedFrame()
@@ -119,13 +121,15 @@ final class PanelController: NSObject, NSWindowDelegate {
         }
     }
 
-    /// The fitted height at the chosen width, with the top edge where it is now.
-    private func fittedFrame() -> NSRect {
+    /// The fitted height at the chosen width, with the top edge where it is now,
+    /// moved up when that would put rows under the Dock or off the screen.
+    func fittedFrame() -> NSRect {
         var frame = panel.frame
         let height = fittedHeight()
         frame.origin.y = frame.maxY - height
         frame.size = NSSize(width: width, height: height)
-        return frame
+        guard let visible = (panel.screen ?? NSScreen.main)?.visibleFrame else { return frame }
+        return WindowPlacement.keptOnScreen(frame, in: visible)
     }
 
     private func animate(to frame: NSRect, duration: Double, curve: CAMediaTimingFunction) {

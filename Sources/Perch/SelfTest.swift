@@ -77,6 +77,19 @@ enum SelfTest {
               abs(panel.panel.frame.height - metrics.height(rows: m.todos.count + PanelMetrics.fillerCount)) < 1,
               "height \(panel.panel.frame.height)")
 
+        // A panel at the bottom of the screen moves up as it grows, so no row goes under the Dock
+        if let visible = (panel.panel.screen ?? NSScreen.main)?.visibleFrame {
+            let start = panel.panel.frame
+            panel.panel.setFrameOrigin(NSPoint(x: start.minX, y: visible.minY))
+            let added = (1...3).compactMap { m.add(text: "Low panel \($0)") }
+            panel.fit(animated: false)
+            let frame = panel.panel.frame
+            check("A panel at the bottom moves up as it grows", frame.minY >= visible.minY - 0.5 && frame.height > start.height,
+                  "bottom \(frame.minY), Dock top \(visible.minY)")
+            m.delete(added.map(\.uuid))
+            panel.panel.setFrame(start, display: false)
+        }
+
         // S-008, S-009 selection
         m.focus = .none
         m.moveCursor(step: 1)
