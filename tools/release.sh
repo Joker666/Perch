@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Builds a release: dist/Perch.app, dist/Perch.dmg, and site/appcast.xml.
+# Builds a release: dist/Perch.app, dist/Perch.dmg, dist/notes.md, and site/appcast.xml.
 # The GitHub release workflow runs this. It also works on your Mac.
 #
 # Usage: VERSION=1.0.0 tools/release.sh
@@ -10,6 +10,7 @@
 #   APPLE_API_KEY_PATH    App Store Connect API key (.p8) for notarytool
 #   APPLE_API_KEY_ID      its key id
 #   APPLE_API_ISSUER_ID   its issuer id
+#   RELEASE_NOTES         a file of "- " lines to use as the notes instead of the commit subjects
 #   SPARKLE_KEY_FILE      Sparkle's private EdDSA key, exported with `generate_keys -x`.
 #                         Without it, sign_update reads the key from your keychain (account "perch").
 set -euo pipefail
@@ -55,7 +56,24 @@ else
   signature=$("$sparkle_bin/sign_update" --account perch "$dmg")
 fi
 
-# 5. The appcast on the project site points at this release.
+# 5. Release notes: the commit subjects since the last tag. Commit messages say what people can
+# now do, so they read as notes. RELEASE_NOTES=<file> uses a hand-written list of "- " lines instead.
+ref="v$version"
+git -C "$here" rev-parse -q --verify "$ref" >/dev/null || ref=HEAD
+prev=$(git -C "$here" describe --tags --abbrev=0 --match 'v*' "$ref^" 2>/dev/null || true)
+notes="$dist/notes.md"
+if [[ -n "${RELEASE_NOTES:-}" ]]; then
+  cp "$RELEASE_NOTES" "$notes"
+else
+  git -C "$here" log --no-merges --format='- %s' "${prev:+$prev..}$ref" | grep -v '^- Point the appcast at' | head -20 > "$notes" || true
+fi
+[[ -s "$notes" ]] || echo "- Bug fixes and small improvements." > "$notes"
+# The same list as HTML, shown in Sparkle's update window. The GitHub page is only a link,
+# because a releaseNotesLink would load the whole GitHub site into that window.
+items=$(sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/^- \(.*\)$/<li>\1<\/li>/' "$notes" | tr -d '\n')
+style='<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style>'
+
+# 6. The appcast on the project site points at this release.
 pub_date=$(LC_ALL=C date -u "+%a, %d %b %Y %H:%M:%S +0000")
 cat > "$here/site/appcast.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -71,7 +89,8 @@ cat > "$here/site/appcast.xml" <<EOF
       <sparkle:version>$build</sparkle:version>
       <sparkle:shortVersionString>$version</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <sparkle:releaseNotesLink>https://github.com/$repo/releases/tag/v$version</sparkle:releaseNotesLink>
+      <description><![CDATA[$style<ul>$items</ul>]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/$repo/releases/tag/v$version</sparkle:fullReleaseNotesLink>
       <enclosure url="https://github.com/$repo/releases/download/v$version/$name.dmg"
                  type="application/octet-stream" $signature />
     </item>
