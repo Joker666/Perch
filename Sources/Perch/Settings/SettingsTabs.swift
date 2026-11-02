@@ -105,6 +105,7 @@ private struct ResetButton: View {
 
 /// Settings > Shortcuts: the global shortcut and the keys inside the panel.
 struct ShortcutsSettings: View {
+    @State private var recording = ShortcutRecording()
     private let rows: [(String, String)] = [
         ("New todo", "⌘N"),
         ("Add a todo below", "↩"),
@@ -124,13 +125,9 @@ struct ShortcutsSettings: View {
                     Text("Show or hide Perch")
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
-                    Keycap(Hotkey.display)
+                    ShortcutRecorder(recording: recording)
                 }
-                Text(Hotkey.status == noErr
-                     ? "Works from any app. Opens a new todo, ready to type."
-                     : "Another app uses \(Hotkey.display). Quit that app, then restart Perch.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Palette.secondaryText)
+                ShortcutCaption(recording: recording)
             }
             Rectangle().fill(Palette.divider).frame(height: 1)
             VStack(spacing: Space.sm) {

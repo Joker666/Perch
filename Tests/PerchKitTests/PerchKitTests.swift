@@ -74,3 +74,26 @@ func emptyText(_ input: String) {
     #expect(PanelMetrics.rubberBand(10_000) < 60)
     #expect(PanelMetrics.rubberBand(-20) == -PanelMetrics.rubberBand(20))
 }
+
+@Test func keyComboSymbolsUseApplesOrder() {
+    let all = KeyCombo(keyCode: 40, modifiers: KeyCombo.command | KeyCombo.shift | KeyCombo.option | KeyCombo.control)
+    #expect(all.modifierSymbols == "⌃⌥⇧⌘")
+    #expect(KeyCombo.defaultShowHide.modifierSymbols == "⌃⌥")
+    #expect(KeyCombo.specialName(49) == "Space")
+    #expect(KeyCombo.specialName(122) == "F1")
+    #expect(KeyCombo.specialName(0) == nil)
+}
+
+@Test func globalShortcutsNeedAModifier() {
+    #expect(!KeyCombo(keyCode: 0, modifiers: 0).isAllowedGlobally)
+    #expect(!KeyCombo(keyCode: 0, modifiers: KeyCombo.shift).isAllowedGlobally)
+    #expect(KeyCombo(keyCode: 0, modifiers: KeyCombo.option).isAllowedGlobally)
+    #expect(KeyCombo(keyCode: 96, modifiers: 0).isAllowedGlobally)
+}
+
+@Test func keyComboDropsOtherFlagsAndRoundTrips() throws {
+    let combo = KeyCombo(keyCode: 49, modifiers: KeyCombo.control | 0x4000)
+    #expect(combo.modifiers == KeyCombo.control)
+    let data = try JSONEncoder().encode(combo)
+    #expect(try JSONDecoder().decode(KeyCombo.self, from: data) == combo)
+}

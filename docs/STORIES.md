@@ -239,6 +239,24 @@ Acceptance:
 - [snap] Icon, "Perch", "Version 1.0 (1)", and a one-line credit.
 Status: done
 
+### S-028 Change the global shortcut
+As the user, I click the shortcut in Settings > Shortcuts and press a new combination to show and hide Perch.
+Screens: settings-shortcuts
+Depends: S-023
+Acceptance:
+- [self] A new shortcut registers at once and is saved. Reset brings back ⌃⌥Space.
+- [self] A key with no ⌘, ⌥, or ⌃ is refused, unless it is a function key.
+- [self] A combination that is a Perch menu item, like ⌘N, is refused with the item's name.
+- [manual] A combination another app owns is refused, and the old shortcut stays.
+- [manual] Escape cancels recording. Delete turns the shortcut off.
+UX:
+- Flow: Settings > Shortcuts -> click the shortcut -> "Press a shortcut" -> press keys -> the new shortcut shows, or a reason under it
+- Surface: inline control (changes one value on screen)
+- States: recording "Press a shortcut"; off "Off"; refused, with the reason in the caption; another app owns it
+- Words: "Press a shortcut", "Reset", "Add ⌘, ⌥, or ⌃ to F, so it does not take the key from other apps."
+- Access: VoiceOver "Show or hide Perch shortcut, ⌃⌥Space"
+Status: done
+
 ## M6 Polish
 
 ### S-025 Context menu on a todo

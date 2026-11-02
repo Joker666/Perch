@@ -11,7 +11,7 @@ A tiny floating todo list for the Mac. Perch keeps today's todos in a small pane
 - **Keyboard first.** Return adds a todo below, arrows move between rows, Shift selects more, ⌘↩ completes, ⌘⌫ deletes, ⌘Z undoes anything.
 - **Fits itself.** The panel grows and shrinks with the list, and springs back when you resize it too far.
 - **Drag to reorder**, or press ⌥⌘↑ and ⌥⌘↓.
-- **Global shortcut.** ⌃⌥Space shows the panel from any app with a new todo ready to type.
+- **Global shortcut.** ⌃⌥Space shows the panel from any app with a new todo ready to type. Pick your own in Settings > Shortcuts.
 - **Archive.** Completed todos move there, newest first. Click the check to bring one back.
 - **Yours to tune.** Eight themes, four fonts, text size, corner radius, and eight app icons.
 - **Private.** Todos stay on your Mac in a local database. No account, no server, no tracking.

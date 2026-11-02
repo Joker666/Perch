@@ -122,7 +122,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SettingsWindowController.shared.model = model
         let panel = PanelController(model: model)
         self.panel = panel
-        Hotkey.register { PanelController.shared.quickAdd() }
+        Hotkey.shared.start { PanelController.shared.quickAdd() }
         Updates.start()
 
         if SelfTest.requested {

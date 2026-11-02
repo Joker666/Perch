@@ -132,6 +132,22 @@ enum SelfTest {
         let saved = (try? fresh.fetchCount(FetchDescriptor<Todo>())) ?? 0
         check("Todos are saved to the store", saved == 3)
 
+        // S-028 change the global shortcut
+        let hotkey = Hotkey.shared
+        check("The global shortcut starts as ⌃⌥Space", hotkey.combo == .defaultShowHide && hotkey.status == noErr,
+              "status \(hotkey.status)")
+        check("The shortcut shows as ⌃⌥Space", KeyNames.display(.defaultShowHide) == "⌃⌥Space")
+        let newCombo = KeyCombo(keyCode: 35, modifiers: KeyCombo.control | KeyCombo.option | KeyCombo.command) // ⌃⌥⌘P
+        check("A new shortcut registers", hotkey.change(to: newCombo) == noErr && hotkey.combo == newCombo)
+        check("Its name comes from the keyboard layout", KeyNames.display(newCombo) == "⌃⌥⌘P", KeyNames.display(newCombo))
+        let newTodo = KeyCombo(keyCode: 45, modifiers: KeyCombo.command) // ⌘N
+        check("⌘N is refused as Perch's own New Todo", hotkey.menuConflict(newTodo) == "New Todo",
+              hotkey.menuConflict(newTodo) ?? "no conflict found")
+        check("A shortcut with no modifier is refused", !KeyCombo(keyCode: 35, modifiers: 0).isAllowedGlobally)
+        check("The shortcut can be turned off", hotkey.change(to: nil) == noErr && hotkey.combo == nil)
+        hotkey.change(to: .defaultShowHide)
+        check("Reset brings back ⌃⌥Space", hotkey.combo == .defaultShowHide && hotkey.status == noErr)
+
         // S-017 themes
         check("There are 8 themes", Theme.all.count == 8)
         check("Theme ids are unique", Set(Theme.all.map(\.id)).count == Theme.all.count)
