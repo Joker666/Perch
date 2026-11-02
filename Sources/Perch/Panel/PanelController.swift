@@ -84,7 +84,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     private func rowCount() -> Int {
         switch model.mode {
         case .list: model.todos.count + PanelMetrics.fillerCount
-        case .archive: max(model.archived.count, 2)
+        case .archive: max(model.archived.count, PanelMetrics.emptyArchiveRows)
         }
     }
 

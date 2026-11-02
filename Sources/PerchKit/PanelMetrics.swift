@@ -3,6 +3,8 @@ import Foundation
 /// Sizes of the floating panel. The panel's height always fits its rows.
 public struct PanelMetrics: Equatable, Sendable {
     public static let fillerCount = 3
+    /// Height of the empty Archive's "Nothing completed yet", in rows.
+    public static let emptyArchiveRows = 2
     public static let minWidth = 320.0
     public static let maxWidth = 520.0
     public static let defaultWidth = 400.0

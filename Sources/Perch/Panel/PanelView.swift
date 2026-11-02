@@ -139,7 +139,7 @@ private struct ArchiveList: View {
                     .font(.system(size: Prefs.shared.fontSize, design: Prefs.shared.font.design))
                     .foregroundStyle(Palette.tertiaryText)
                     .frame(maxWidth: .infinity)
-                    .frame(height: metrics.rowHeight * 2)
+                    .frame(height: metrics.rowHeight * Double(PanelMetrics.emptyArchiveRows))
             } else {
                 ForEach(model.archived, id: \.uuid) { todo in
                     TodoRow(todo: todo, metrics: metrics)
