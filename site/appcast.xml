@@ -11,7 +11,7 @@
       <sparkle:version>202611020229</sparkle:version>
       <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>Let people pick the global shortcut in Settings</li></ul>]]></description>
+      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>Let people pick the global shortcut in Settings</li><li>Offer updates only for newer version tags, with notes in the update window</li></ul>]]></description>
       <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.1</sparkle:fullReleaseNotesLink>
       <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.1/Perch.dmg"
                  type="application/octet-stream" sparkle:edSignature="qskqjcQZayKFU9eKjfzjCEZ0FGdNbC+BG5eSEBkV7qdp0FABU5359nrDOedTo/FnwdsIgKkFwTSwgVe3BumFAA==" length="3508862" />
