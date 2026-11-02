@@ -181,3 +181,14 @@ One real duplicate: the empty Archive is 2 rows high in two places,
 in `ArchiveList`. If one changes, the panel height stops fitting its content.
 Proposal: `PanelMetrics.emptyArchiveRows = 2`, used in both places.
 Plan: 1 commit.
+
+Rafi chose both. Done:
+
+- `f6c50d1` adds `PanelMetrics.emptyArchiveRows`. A snapshot of an empty
+  Archive shows the panel fits "Nothing completed yet" with no extra space.
+- `4103114` makes `ShortcutRecording.handle` internal and adds 5 self-test
+  checks: a key with no modifier, ⌘N, Escape, Delete, and a new shortcut.
+  The self-test now has 53 checks.
+
+The panel glue in `PanelController` stays where it is. Nothing in this review
+is still open.
