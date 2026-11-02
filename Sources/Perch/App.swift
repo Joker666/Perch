@@ -52,9 +52,9 @@ struct PerchApp: App {
                 Button("New Todo") { PanelController.shared.show(); model.add() }
                     .keyboardShortcut("n")
             }
-            CommandGroup(after: .pasteboard) {
-                TodoCommands().environment(model)
-            }
+            // Undo, Redo, the todo commands, and Show or Hide Perch are AppKit items
+            // (System/AppMenus.swift): SwiftUI never redraws this menu after launch.
+            CommandGroup(replacing: .undoRedo) {}
             CommandGroup(before: .toolbar) {
                 Button("List") { model.mode = .list }
                     .keyboardShortcut("1")
@@ -62,36 +62,7 @@ struct PerchApp: App {
                     .keyboardShortcut("2")
                 Divider()
             }
-            CommandGroup(before: .windowList) {
-                Button(model.panelVisible ? "Hide Perch" : "Show Perch") { PanelController.shared.toggle() }
-                    .keyboardShortcut("0")
-                Divider()
-            }
         }
-    }
-}
-
-/// Edit menu items that act on the selected todos.
-private struct TodoCommands: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        Divider()
-        Button("Complete Todo") { model.completeSelected() }
-            .keyboardShortcut(.return, modifiers: .command)
-            .disabled(model.mode != .list || model.selectedIDs.isEmpty)
-        Button("Delete Todo") { model.deleteSelected() }
-            .keyboardShortcut(.delete, modifiers: .command)
-            .disabled(model.selectedIDs.isEmpty)
-        Button("Move Todo Up") { model.moveSelected(by: -1) }
-            .keyboardShortcut(.upArrow, modifiers: [.command, .option])
-            .disabled(model.mode != .list || model.selectedIDs.isEmpty)
-        Button("Move Todo Down") { model.moveSelected(by: 1) }
-            .keyboardShortcut(.downArrow, modifiers: [.command, .option])
-            .disabled(model.mode != .list || model.selectedIDs.isEmpty)
-        Divider()
-        Button("Clear Archive…") { confirmClearArchive(model) }
-            .disabled(model.archived.isEmpty)
     }
 }
 
@@ -135,6 +106,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let panel = PanelController(model: model)
         self.panel = panel
         Hotkey.shared.start { PanelController.shared.quickAdd() }
+        // After SwiftUI has built the main menu.
+        DispatchQueue.main.async { AppMenus.shared.install() }
         // The agent CLI and MCP server reach the app through this socket (Agent/).
         AgentRouter.model = model
         AgentSocket.listen { AgentRouter.handle($0) }

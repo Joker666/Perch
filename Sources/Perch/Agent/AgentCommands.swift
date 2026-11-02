@@ -8,11 +8,12 @@ import PerchKit
 /// same model method. Data changes are `undoable`: Edit > Undo takes them back.
 enum AgentCommands {
     static let all: [AgentCommand] = [
-        AgentCommand(name: "status", summary: "Show whether the panel is shown, List or Archive, todo counts, the theme, and the global shortcut.",
+        AgentCommand(name: "status", summary: "Show whether the panel is shown, List or Archive, todo counts, what Edit > Undo would take back, the theme, and the global shortcut.",
                      example: "perch status --json", readOnly: true) { _, model in
             ["running": true, "panelShown": model.panelVisible, "page": model.mode.rawValue,
              "open": model.todos.count, "completed": model.archived.count,
              "theme": Prefs.shared.themeID,
+             "undo": model.undoManager.canUndo ? model.undoManager.undoMenuItemTitle : "nothing to undo",
              "shortcut": Hotkey.shared.combo.map { KeyNames.display($0) } ?? "off"]
         },
         AgentCommand(name: "todos list", summary: "List open todos in list order, or completed ones with --archived.",

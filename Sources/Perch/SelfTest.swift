@@ -147,6 +147,31 @@ enum SelfTest {
             m.delete([added.uuid])
         }
 
+        // Edit and Window menu items follow the model (AppKit validation, System/AppMenus.swift)
+        AppMenus.shared.ensure()
+        func menuItem(_ menu: String, _ action: Selector) -> NSMenuItem? {
+            NSApp.mainMenu?.items.first { $0.submenu?.title == menu }?.submenu?.items.first { $0.action == action }
+        }
+        if let undoItem = menuItem("Edit", #selector(AppMenus.undo(_:))) {
+            let temp = m.add(text: "Menu check")
+            let enabled = AppMenus.shared.validateMenuItem(undoItem)
+            check("Edit > Undo names the last change", enabled && undoItem.title == "Undo Add Todo", undoItem.title)
+            if let temp { m.delete([temp.uuid]) }
+        } else {
+            check("Edit > Undo is in the menu", false)
+        }
+        if let toggle = menuItem("Window", #selector(AppMenus.showOrHide(_:))) {
+            panel.hide()
+            _ = AppMenus.shared.validateMenuItem(toggle)
+            let hiddenTitle = toggle.title
+            panel.show()
+            _ = AppMenus.shared.validateMenuItem(toggle)
+            check("Window menu says Show Perch, then Hide Perch", hiddenTitle == "Show Perch" && toggle.title == "Hide Perch",
+                  "\(hiddenTitle), \(toggle.title)")
+        } else {
+            check("Show or Hide Perch is in the Window menu", false)
+        }
+
         // S-028 change the global shortcut
         let hotkey = Hotkey.shared
         check("The global shortcut starts as ⌃⌥Space", hotkey.combo == .defaultShowHide && hotkey.status == noErr,
