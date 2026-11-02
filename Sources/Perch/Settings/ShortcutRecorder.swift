@@ -41,7 +41,8 @@ final class ShortcutRecording {
         Hotkey.shared.change(to: .defaultShowHide)
     }
 
-    private func handle(_ event: NSEvent) {
+    /// One key press while recording. Not private, so the self-test can send key events.
+    func handle(_ event: NSEvent) {
         let combo = KeyNames.combo(from: event)
         switch (combo.keyCode, combo.modifiers) {
         case (53, 0):

@@ -210,6 +210,33 @@ enum SelfTest {
         hotkey.change(to: .defaultShowHide)
         check("Reset brings back ⌃⌥Space", hotkey.combo == .defaultShowHide && hotkey.status == noErr)
 
+        // The recorder in Settings > Shortcuts, fed real key events
+        func key(_ code: UInt16, _ flags: NSEvent.ModifierFlags = [], _ text: String = "") -> NSEvent {
+            NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: flags, timestamp: 0, windowNumber: 0,
+                             context: nil, characters: text, charactersIgnoringModifiers: text,
+                             isARepeat: false, keyCode: code)!
+        }
+        let recorder = ShortcutRecording()
+        recorder.start()
+        recorder.handle(key(35, [], "p"))
+        check("The recorder refuses a key with no modifier and keeps recording",
+              recorder.isRecording && recorder.problem?.hasPrefix("Add ⌘, ⌥, or ⌃") == true, recorder.problem ?? "no problem")
+        recorder.handle(key(45, .command, "n"))
+        check("The recorder refuses ⌘N, Perch's New Todo",
+              recorder.isRecording && recorder.problem == "⌘N is New Todo in Perch. Press another shortcut.",
+              recorder.problem ?? "no problem")
+        recorder.handle(key(53, [], "\u{1b}"))
+        check("Escape stops recording and keeps the old shortcut",
+              !recorder.isRecording && recorder.problem == nil && hotkey.combo == .defaultShowHide && hotkey.status == noErr)
+        recorder.start()
+        recorder.handle(key(51, [], "\u{7f}"))
+        check("Delete stops recording and turns the shortcut off", !recorder.isRecording && hotkey.combo == nil)
+        recorder.start()
+        recorder.handle(key(35, [.control, .option, .command], "p"))
+        check("The recorder saves a new shortcut", !recorder.isRecording && hotkey.combo == newCombo && recorder.problem == nil,
+              recorder.problem ?? "")
+        hotkey.change(to: .defaultShowHide)
+
         // S-017 themes
         check("There are 8 themes", Theme.all.count == 8)
         check("Theme ids are unique", Set(Theme.all.map(\.id)).count == Theme.all.count)
