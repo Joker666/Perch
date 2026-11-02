@@ -33,7 +33,7 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 - `tools/release.sh` builds `dist/Perch.app` and `dist/Perch.dmg`, notarizes when the Apple values are set, signs the dmg for Sparkle, and rewrites `site/appcast.xml`. `.github/workflows/release.yml` runs it for each `v*` tag. README lists the secrets.
 - Sparkle: `System/Updates.swift`. The feed URL and public key are in `Info.plist.in`. The private key is in the login keychain under the account `perch`. Never commit it.
 - Keep `site/appcast.xml` an empty feed in commits made by hand. Only the release workflow fills it.
-- `site/` is the website, published by `.github/workflows/pages.yml` to https://joker666.github.io/Perch/. No build step: plain HTML and CSS.
+- `site/` is the website, published by `.github/workflows/pages.yml` to https://rafihasan.com/Perch/. No build step: plain HTML and CSS.
 
 ## Design rules
 

@@ -62,7 +62,7 @@ cat > "$here/site/appcast.xml" <<EOF
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
     <title>$name</title>
-    <link>https://joker666.github.io/$name/appcast.xml</link>
+    <link>https://rafihasan.com/$name/appcast.xml</link>
     <description>Updates for $name, a tiny floating todo list for the Mac.</description>
     <language>en</language>
     <item>

@@ -4,7 +4,7 @@ A tiny floating todo list for the Mac. Perch keeps today's todos in a small pane
 
 <p align="center"><img src="site/assets/panel-midnight.png" width="400" alt="The Perch panel in the Midnight theme"></p>
 
-**[Download Perch](https://github.com/Joker666/Perch/releases/latest/download/Perch.dmg)** · [Website](https://joker666.github.io/Perch/) · Requires macOS 26 on Apple silicon
+**[Download Perch](https://github.com/Joker666/Perch/releases/latest/download/Perch.dmg)** · [Website](https://rafihasan.com/Perch/) · Requires macOS 26 on Apple silicon
 
 ## Features
 
@@ -56,7 +56,7 @@ Without the Developer ID and API key secrets, the dmg is ad hoc signed and not n
 
 ## Website
 
-`site/` is the website at [joker666.github.io/Perch](https://joker666.github.io/Perch/). The [Site workflow](.github/workflows/pages.yml) publishes it with GitHub Pages when `site/` changes on `main`, and after every release.
+`site/` is the website at [rafihasan.com/Perch](https://rafihasan.com/Perch/). GitHub serves it there because the account's user site has that custom domain, so `joker666.github.io/Perch` redirects to it. The app's update feed uses the HTTPS address directly: the redirect goes to plain HTTP, which macOS blocks. The [Site workflow](.github/workflows/pages.yml) publishes it with GitHub Pages when `site/` changes on `main`, and after every release.
 
 ## Credits
 

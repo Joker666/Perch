@@ -1,4 +1,4 @@
-# Publishes site/ to https://joker666.github.io/Perch/ with GitHub Pages.
+# Publishes site/ to https://rafihasan.com/Perch/ with GitHub Pages.
 # Runs when site/ changes on main, by hand, and after each release (for the appcast).
 name: Site
 
