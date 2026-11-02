@@ -156,11 +156,28 @@ Before and after: 48 self-test checks, `check-agent-cli.sh`, the grid lint,
 and the layout check pass. Unit tests went from 12 to 23. Snapshots in
 Midnight and Matcha look the same.
 
-### Still open, not done
+### Still open: verdicts
 
-- **Shortcut recorder steps** [Worth exploring]. Escape cancels, Delete turns
-  the shortcut off, a key with no modifier is refused. This decision could be
-  a PerchKit rule with unit tests. The menu check stays in the app.
-- **Panel size and place** [Speculative]. The rubber band for both edges
-  in `windowWillResize`, the Archive's 2-row minimum, and the on-screen check
-  for a saved position could move to `PanelMetrics`. Each is a few lines.
+**Shortcut recorder steps**  [Strong as a self-test check, not as a PerchKit rule]
+
+A PerchKit rule would be a shallow three-case enum (Escape cancels, Delete
+turns the shortcut off, a key with no modifier is refused). The modifier rule
+already has a unit test (`isAllowedGlobally`), and the refusal messages and the
+menu check need the app. What has no test today is the recorder itself:
+`ShortcutRecording.handle` is private, and no check calls it.
+Proposal: make `handle` internal and add self-test checks that send key
+events for Escape, Delete, a key with no modifier, and ⌘N. They check the real
+messages and that the old shortcut comes back after Escape.
+Plan: 1 commit.
+
+**Panel size and place**  [Not recommended, except one constant]
+
+PanelMetrics already holds and tests the math: the rubber band, the height,
+and the width clamp. What is left in `PanelController` is glue: two width
+branches, the 2-row minimum, and one on-screen check for a saved position.
+Moving it would add a type for a few lines that are hard to get wrong.
+One real duplicate: the empty Archive is 2 rows high in two places,
+`max(archived.count, 2)` in `PanelController.rowCount` and `rowHeight * 2`
+in `ArchiveList`. If one changes, the panel height stops fitting its content.
+Proposal: `PanelMetrics.emptyArchiveRows = 2`, used in both places.
+Plan: 1 commit.
