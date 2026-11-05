@@ -28,13 +28,16 @@ todos on one Mac. A test store (`APP_STORE`) never syncs.
 The Developer ID build can use only the Production environment, and
 Production gets record types only from a schema deploy.
 
-1. Build once with the Development environment and add a todo:
-   `ICLOUD_ENV=Development ./build.sh --open`. CloudKit makes the record
-   types in Development.
-2. CloudKit Console > `iCloud.com.rafi.perch` > Schema: deploy the schema to
-   Production.
-3. Build again without `ICLOUD_ENV`. Local builds then use Production, so
-   they show the same todos as the release app.
+1. Make the record types in Development from a store in /tmp, so your real
+   todos never go to Development:
+   ```
+   ICLOUD_ENV=Development APP_DIR=/tmp/perch-dev ./build.sh
+   APP_STORE=/tmp/Perch-schema.store /tmp/perch-dev/Perch.app/Contents/MacOS/Perch --cloudkit-schema
+   ./build.sh
+   ```
+   The last build puts `~/.local/bin/perch` back on `/Applications/Perch.app`.
+2. CloudKit Console > `iCloud.com.rafi.perch` > Development > Deploy Schema
+   Changes. Check that it creates the `CD_Todo` type, then deploy.
 
 Deploy the schema again before a release that adds a property to `Todo`.
 CloudKit accepts only added properties with default values. Never rename or
