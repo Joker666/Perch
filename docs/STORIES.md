@@ -356,6 +356,54 @@ Acceptance:
 - [manual] A build without a provisioning profile has no iCloud entitlement and works as before.
 Status: released in 0.1.6. The setup is done. The manual checks between two Macs are not done yet.
 
+## M7 iPhone and iPad
+
+The iOS app shares the todo model, undo, themes, and iCloud container with the
+Mac app (docs/research/floatydo-ios.md). Free. No Home Screen widget.
+
+### S-036 See and add todos on iPhone
+As the user, I open Perch on my iPhone and see my List in my theme. I tap the empty row at the end, type a todo, and press Return to add another one.
+Acceptance:
+- [self] Adding, editing, and emptying a row on iOS use the same model calls as the Mac panel.
+- [manual] The list fills the screen in the theme's surface color. Each todo is one line with an open circle.
+- [manual] Return adds the next row. "Done" above the keyboard ends editing. An emptied row is removed.
+Status: todo
+
+### S-037 Complete, delete, and reorder on iPhone
+As the user, I tap a circle to complete a todo, swipe to delete one, and drag to reorder.
+Acceptance:
+- [self] Complete, delete, and move use the same model calls as the Mac.
+- [manual] The circle shows a check, the text is struck through, and the row leaves the List.
+- [manual] Shake, or three-finger swipe, undoes the last change.
+Status: todo
+
+### S-038 See my Archive on iPhone
+As the user, I open the Archive, restore a todo, delete one, or clear them all.
+Acceptance:
+- [manual] A bottom bar switches between List, Archive, and Settings.
+- [manual] Clear asks first.
+Status: todo
+
+### S-039 Pick my theme, font, and icon on iPhone
+As the user, I open Settings and pick one of the 8 themes, the font, the size, and the app icon.
+Acceptance:
+- [self] The 8 themes and their colors are the same code as on the Mac.
+- [manual] The app icon changes with the system prompt.
+Status: todo
+
+### S-040 Same todos on my iPhone and my Mac
+As the user, I sign in to the same iCloud account, and the iPhone shows the Mac's todos, and the Mac shows the iPhone's.
+Acceptance:
+- [self] The iOS app opens the store with the same container, iCloud.com.rafi.perch, and never syncs a test store.
+- [manual] A todo added on the Mac shows on the iPhone, and the other way, within about a minute.
+Status: todo
+
+### S-041 Use Perch on iPad
+As the user, I run the same app on iPad with the same screens.
+Acceptance:
+- [manual] The list is readable at full width, and the bottom bar and the "+" button are in reach.
+Status: todo
+
 ## Dropped
 - iPhone app: one user, on the Mac. iCloud sync between Macs is S-035.
 - In-app purchases: vendor only.

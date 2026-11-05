@@ -99,11 +99,12 @@ other work.
   App Store Connect record and app review. The Mac app stays on Developer ID and
   Sparkle.
 
-## Decisions for Rafi
+## Decisions (Rafi, 2026-11-04)
 
-1. Xcode project: XcodeGen `project.yml` (text, easy to review) or a normal
-   `.xcodeproj` in git.
-2. Bundle ID: the same `com.rafi.perch` (simple, same App ID and container) or
-   a new one such as `com.rafi.perch.ios`.
-3. Version 1 scope: items 1 to 5, or also the widget (item 6).
-4. Price: free, or free with a lifetime unlock like FloatyDo.
+1. Xcode project: XcodeGen `iOS/project.yml`. The generated project is not in git.
+2. Bundle ID: the same `com.rafi.perch`, with the same iCloud container.
+3. Version 1: items 1 to 5. No Home Screen widget.
+4. Price: free, with no in-app purchase.
+5. Shared code: files that both apps use live in `Sources/Perch/Shared/`. SwiftPM
+   builds them into the Mac app, and the iOS target compiles the same files.
+   Platform code uses `#if os(macOS)`.
