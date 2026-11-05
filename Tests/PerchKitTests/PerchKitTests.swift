@@ -62,7 +62,9 @@ func emptyText(_ input: String) {
     let m = PanelMetrics(fontSize: 14)
     #expect(m.rowHeight == 36)
     #expect(m.circleSize == 18)
-    #expect(m.height(rows: 3) == 4 + 36 + 4 + 3 * 36 + 16)
+    // Top inset, title bar, gap, three rows, bottom inset. Outside #expect: CI cannot type-check the sum in time.
+    let threeRows: Double = 4 + 36 + 4 + 3 * 36 + 16
+    #expect(m.height(rows: 3) == threeRows)
     #expect(m.height(rows: 100, maxHeight: 500) == 500)
     #expect(PanelMetrics.clampWidth(100) == PanelMetrics.minWidth)
     #expect(PanelMetrics.clampWidth(900) == PanelMetrics.maxWidth)
