@@ -6,15 +6,15 @@
     <description>Updates for Perch, a tiny floating todo list for the Mac.</description>
     <language>en</language>
     <item>
-      <title>Version 0.1.6</title>
-      <pubDate>Thu, 05 Nov 2026 00:59:32 +0000</pubDate>
-      <sparkle:version>202611050057</sparkle:version>
-      <sparkle:shortVersionString>0.1.6</sparkle:shortVersionString>
+      <title>Version 0.1.7</title>
+      <pubDate>Thu, 05 Nov 2026 04:07:07 +0000</pubDate>
+      <sparkle:version>202611050405</sparkle:version>
+      <sparkle:shortVersionString>0.1.7</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>New: your todos sync with iCloud. Sign in to the same iCloud account on each Mac, and the same todos show on all of them. There is no account or server of Perch's own.</li><li>Undo takes back only your own change. It never removes a todo that came from another Mac.</li><li>`perch status` shows whether iCloud sync and its push updates are on.</li></ul>]]></description>
-      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.6</sparkle:fullReleaseNotesLink>
-      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.6/Perch.dmg"
-                 type="application/octet-stream" sparkle:edSignature="+0k7aLQpYWxczRDaowHa1gbX+eCbjvn5WcgAEbIe6NJ7cBX9bH4B0HPaRBWHctY7pJROoE+9U7Ast/Rju4/6DQ==" length="3585016" />
+      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>New: Settings &gt; General can open Perch when you log in and can hide its Dock icon.</li><li>Settings opens beside the panel and remembers where you move it. Its tabs have more room.</li><li>The Dock keeps the icon you picked, also after the Dock restarts and while Perch is quit.</li><li>A todo that syncs in from another device no longer goes into the undo of the todo you are typing.</li></ul>]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.7</sparkle:fullReleaseNotesLink>
+      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.7/Perch.dmg"
+                 type="application/octet-stream" sparkle:edSignature="d9IHkodsLmeD+AJxyP5SB10HqRcwurtw25Q2uj9Qu8x5acyYSh7lcjj0pHxxTSGbQV4OYYvSBRwDR/+CgZoaAQ==" length="4862375" />
     </item>
   </channel>
 </rss>
