@@ -354,7 +354,7 @@ Acceptance:
 - [manual] The first launch with sync uploads the todos that were already on the Mac.
 - [manual] Signed out of iCloud, Perch works as before and keeps the todos on the Mac.
 - [manual] A build without a provisioning profile has no iCloud entitlement and works as before.
-Status: code done. Needs the iCloud container and profiles (docs/ICLOUD.md), then the manual checks.
+Status: released in 0.1.6. The setup is done. The manual checks between two Macs are not done yet.
 
 ## Dropped
 - iPhone app: one user, on the Mac. iCloud sync between Macs is S-035.

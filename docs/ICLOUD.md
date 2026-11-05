@@ -22,6 +22,11 @@ todos on one Mac. A test store (`APP_STORE`) never syncs.
    prints "iCloud sync on (Production)".
 5. Add the Developer ID profile to the repository secrets as
    `MACOS_PROVISION_PROFILE`: `base64 -i Perch.provisionprofile | pbcopy`.
+   A copy is at `~/Library/Developer/Perch/Perch-DeveloperID.provisionprofile`
+   for a local `tools/release.sh` (set `PROVISION_PROFILE` to it).
+   The profile must hold the same Developer ID certificate as
+   `MACOS_CERTIFICATE_P12`. When that certificate changes, make the profile
+   again and update both secrets.
 
 ## The CloudKit schema
 
