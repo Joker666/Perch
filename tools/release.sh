@@ -13,6 +13,8 @@
 #   RELEASE_NOTES         a file of "- " lines to use as the notes instead of the commit subjects
 #   SPARKLE_KEY_FILE      Sparkle's private EdDSA key, exported with `generate_keys -x`.
 #                         Without it, sign_update reads the key from your keychain (account "perch").
+#   PROVISION_PROFILE     the Developer ID provisioning profile with iCloud. Without it the app
+#                         does not sync with iCloud (build.sh, docs/ICLOUD.md).
 set -euo pipefail
 here=${0:A:h:h}
 name=Perch

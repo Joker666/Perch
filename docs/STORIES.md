@@ -343,7 +343,20 @@ Acceptance:
 - [manual] With Reduce Motion on, the panel shows and hides at once.
 Status: done
 
+### S-035 Have the same todos on every Mac
+As the user, I sign in to the same iCloud account on two Macs and see the same todos on both, without an account or a server of Perch's own.
+Acceptance:
+- [self] A test store never syncs with iCloud.
+- [self] Undo takes back only this Mac's change, not a todo that iCloud added from another Mac.
+- [self] Todos with the same order value sort by creation time, then id, the same on every Mac.
+- [self] `perch status` says whether iCloud sync is on.
+- [manual] A todo added on one Mac shows on the other within about a minute, and a complete, a move, and a delete do too.
+- [manual] The first launch with sync uploads the todos that were already on the Mac.
+- [manual] Signed out of iCloud, Perch works as before and keeps the todos on the Mac.
+- [manual] A build without a provisioning profile has no iCloud entitlement and works as before.
+Status: code done. Needs the iCloud container and profiles (docs/ICLOUD.md), then the manual checks.
+
 ## Dropped
-- iPhone app and iCloud sync: one user, one Mac for now (later: iCloud sync).
+- iPhone app: one user, on the Mac. iCloud sync between Macs is S-035.
 - In-app purchases: vendor only.
 - Due dates, lists, tags, notes: FloatyDo leaves them out on purpose.

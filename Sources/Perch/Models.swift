@@ -1,4 +1,5 @@
 import AppKit
+import CoreData
 import Foundation
 import SwiftData
 import PerchKit
@@ -95,8 +96,26 @@ final class AppModel {
 
     func reload() {
         let all = (try? context.fetch(FetchDescriptor<Todo>())) ?? []
-        todos = all.filter { !$0.isCompleted }.sorted { $0.order < $1.order }
+        todos = Self.listOrder(all)
         archived = all.filter(\.isCompleted).sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+    }
+
+    /// Open todos in list order. Two Macs can give two todos the same order value, so
+    /// ties go by creation time and then id, the same on every Mac.
+    private static func listOrder(_ all: [Todo]) -> [Todo] {
+        all.filter { !$0.isCompleted }.sorted {
+            ($0.order, $0.createdAt, $0.uuid.uuidString) < ($1.order, $1.createdAt, $1.uuid.uuidString)
+        }
+    }
+
+    /// Reloads after iCloud merges changes from another Mac into the store.
+    func reloadOnSync() {
+        let center = NotificationCenter.default
+        for name in [Notification.Name.NSPersistentStoreRemoteChange, NSManagedObjectContext.didMergeChangesObjectIDsNotification] {
+            center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.reload() }
+            }
+        }
     }
 
     /// The rows the panel shows in the current mode.
@@ -340,7 +359,10 @@ final class AppModel {
         let start = undoName == nil ? nil : start ?? records()
         body()
         save()
-        if let undoName, let start, start != records() { registerUndo(start, name: undoName) }
+        if let undoName, let start {
+            let touched = Self.changedIDs(start, records())
+            if !touched.isEmpty { registerUndo(start.filter { touched.contains($0.uuid) }, touched: touched, name: undoName) }
+        }
         reload()
     }
 
@@ -348,26 +370,36 @@ final class AppModel {
         ((try? context.fetch(FetchDescriptor<Todo>())) ?? []).map(TodoRecord.init)
     }
 
-    /// One undo step that puts the whole list back to `records`. Redo puts it back again.
-    private func registerUndo(_ records: [TodoRecord], name: String) {
+    /// The ids of todos that were added, removed, or changed between two copies of the list.
+    private static func changedIDs(_ old: [TodoRecord], _ new: [TodoRecord]) -> Set<UUID> {
+        let before = Dictionary(old.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
+        let after = Dictionary(new.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
+        return Set(before.keys).union(after.keys).filter { before[$0] != after[$0] }
+    }
+
+    /// One undo step that puts the `touched` todos back to `records`. Redo puts them back again.
+    /// Other todos stay as they are, so undo never takes back a change from another Mac.
+    private func registerUndo(_ records: [TodoRecord], touched: Set<UUID>, name: String) {
         // The app groups undo by event. The self-test turns that off and groups each step itself.
         let explicit = !undoManager.groupsByEvent && !undoManager.isUndoing && !undoManager.isRedoing
         if explicit { undoManager.beginUndoGrouping() }
         undoManager.registerUndo(withTarget: self) { model in
-            let now = model.records()
-            model.restoreAll(records)
-            model.registerUndo(now, name: name)
+            let now = model.records().filter { touched.contains($0.uuid) }
+            model.restore(records, touched: touched)
+            model.registerUndo(now, touched: touched, name: name)
         }
         undoManager.setActionName(name)
         if explicit { undoManager.endUndoGrouping() }
     }
 
-    private func restoreAll(_ records: [TodoRecord]) {
+    /// Makes the `touched` todos match `records`: changes them, adds the missing ones, and
+    /// deletes the ones `records` does not have.
+    private func restore(_ records: [TodoRecord], touched: Set<UUID>) {
         editStart = nil
         focus = .none
         completing = []
         let all = (try? context.fetch(FetchDescriptor<Todo>())) ?? []
-        var byID = Dictionary(all.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
+        var byID = Dictionary(all.filter { touched.contains($0.uuid) }.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
         for record in records {
             if let todo = byID.removeValue(forKey: record.uuid) {
                 record.apply(to: todo)
@@ -387,7 +419,7 @@ final class AppModel {
         try? context.save()
         // Read the open todos from the store, not `todos`, which misses a todo added in this change.
         let all = (try? context.fetch(FetchDescriptor<Todo>())) ?? []
-        let open = all.filter { !$0.isCompleted }.sorted { $0.order < $1.order }
+        let open = Self.listOrder(all)
         guard TodoOrder.isCrowded(open.map(\.order)) else { return }
         for (todo, order) in zip(open, TodoOrder.renumbered(count: open.count)) { todo.order = order }
         try? context.save()

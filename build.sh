@@ -13,6 +13,9 @@
 #   BUILD=202611011200   CFBundleVersion, which Sparkle compares. Default: the current time
 #   SIGN_IDENTITY=...    signing identity. A "Developer ID Application" identity also turns on
 #                        the hardened runtime and a secure timestamp, which notarization needs
+#   PROVISION_PROFILE=.. a provisioning profile with iCloud, which turns on iCloud sync.
+#                        Default: ~/Library/Developer/Perch/Perch.provisionprofile (docs/ICLOUD.md)
+#   ICLOUD_ENV=...       Production (default) or Development, the CloudKit environment
 set -euo pipefail
 here=${0:A:h}
 name="Perch"
@@ -74,6 +77,40 @@ sparkle="$scratch/$config/Sparkle.framework"
 ditto "$sparkle" "$app/Contents/Frameworks/Sparkle.framework"
 install_name_tool -add_rpath "@executable_path/../Frameworks" "$app/Contents/MacOS/$name" 2>/dev/null || true
 
+# iCloud sync needs a provisioning profile with iCloud for this app (docs/ICLOUD.md).
+# Without one the app has no iCloud entitlement and keeps its todos on this Mac only.
+profile="${PROVISION_PROFILE:-$HOME/Library/Developer/Perch/Perch.provisionprofile}"
+icloud_env="${ICLOUD_ENV:-Production}"
+app_flags=()
+if [[ -f "$profile" ]]; then
+  fail() { echo "iCloud: $1 ($profile)"; exit 1; }
+  [[ "$identity" != "-" ]] || fail "an ad hoc signature cannot use iCloud. Add a signing identity"
+  [[ "$icloud_env" == Development || "$icloud_env" == Production ]] || fail "ICLOUD_ENV must be Development or Production"
+  plist="$scratch/profile.plist"
+  security cms -D -i "$profile" > "$plist" 2>/dev/null || fail "not a provisioning profile"
+  team=$(/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "$plist")
+  bundle=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$app/Contents/Info.plist")
+  [[ "$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.application-identifier" "$plist")" == "$team.$bundle" ]] \
+    || fail "the profile is not for $bundle"
+  # macOS stops an app at launch when its certificate is not in the profile.
+  hash=$(security find-identity -v -p codesigning | grep -F "\"$identity\"" | head -1 | awk '{print $2}' || true)
+  found=
+  for ((i = 0; i < $(plutil -extract DeveloperCertificates raw -o - "$plist"); i++)); do
+    cert=$(plutil -extract "DeveloperCertificates.$i" raw -o - "$plist" | base64 -D | shasum | awk '{print toupper($1)}')
+    [[ "$cert" == "$hash" ]] && found=1
+  done
+  [[ -n "$found" ]] || fail "the profile does not include the certificate of $identity"
+  aps=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.developer.aps-environment" "$plist" 2>/dev/null || echo production)
+  entitlements="$scratch/$name.entitlements"
+  sed -e "s/__TEAM__/$team/g" -e "s/__BUNDLE__/$bundle/g" -e "s/__ICLOUD_ENV__/$icloud_env/" -e "s/__APS__/$aps/" \
+    "$here/$name.entitlements.in" > "$entitlements"
+  cp "$profile" "$app/Contents/embedded.provisionprofile"
+  app_flags=(--entitlements "$entitlements")
+  sync_note="iCloud sync on ($icloud_env)"
+else
+  sync_note="iCloud sync off: no profile at $profile"
+fi
+
 xattr -cr "$app"
 # Sign from the inside out, as Sparkle's documentation describes. No --deep.
 fw="$app/Contents/Frameworks/Sparkle.framework"
@@ -83,9 +120,9 @@ quiet codesign "${sign_flags[@]}" --preserve-metadata=entitlements "$fw/Versions
 quiet codesign "${sign_flags[@]}" "$fw/Versions/B/Autoupdate"
 quiet codesign "${sign_flags[@]}" "$fw/Versions/B/Updater.app"
 quiet codesign "${sign_flags[@]}" "$fw"
-quiet codesign "${sign_flags[@]}" "$app"
+quiet codesign "${sign_flags[@]}" "${app_flags[@]}" "$app"
 codesign --verify --strict "$app" || { echo "signature check failed"; exit 1; }
-echo "installed $app $version ($build) (signed: ${identity})"
+echo "installed $app $version ($build) (signed: ${identity}, $sync_note)"
 # The CLI: the app binary under a short name on PATH (bama agent-cli skill).
 mkdir -p "$HOME/.local/bin"
 ln -sf "$app/Contents/MacOS/$name" "$HOME/.local/bin/perch"

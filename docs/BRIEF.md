@@ -33,6 +33,6 @@ FloatyDo by Raffi Chilingaryan (floatydo.com). Notes in `docs/research/floatydo-
 Own parts, like FloatyDo: a borderless rounded panel with 8 color themes (4 dark, 4 light), hollow circles, a row highlight, and spring motion. The Settings window uses standard Mac controls tinted by the active theme. We use our own icons and SF Symbols, not FloatyDo assets.
 
 ## Not in version one
-- iPhone app and iCloud sync (later: iCloud sync).
+- iPhone app. iCloud sync came later (S-035).
 - In-app purchases.
 - Due dates, lists, tags, or notes on a todo.

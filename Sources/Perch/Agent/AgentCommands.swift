@@ -7,14 +7,15 @@ import PerchKit
 /// window, on the main actor. `undoable` changes go to Edit > Undo.
 enum AgentCommands {
     static let all: [AgentCommand] = [
-        AgentCommand(name: "status", summary: "Show whether the panel is shown, List or Archive, todo counts, what Edit > Undo would take back, the themes, and the global shortcut.",
+        AgentCommand(name: "status", summary: "Show whether the panel is shown, List or Archive, todo counts, what Edit > Undo would take back, the themes, the global shortcut, and whether the todos sync with iCloud.",
                      example: "perch status --json", readOnly: true) { _, model in
             ["running": true, "panelShown": model.panelVisible, "page": model.mode.rawValue,
              "open": model.todos.count, "completed": model.archived.count,
              "theme": Prefs.shared.theme.id, "themeMode": Prefs.shared.themeMode.rawValue,
              "lightTheme": Prefs.shared.lightThemeID, "darkTheme": Prefs.shared.darkThemeID,
              "undo": model.undoManager.canUndo ? model.undoManager.undoMenuItemTitle : "nothing to undo",
-             "shortcut": Hotkey.shared.combo.map { KeyNames.display($0) } ?? "off"]
+             "shortcut": Hotkey.shared.combo.map { KeyNames.display($0) } ?? "off",
+             "iCloud": Store.syncs ? "on" : "off"]
         },
         AgentCommand(name: "todos list", summary: "List open todos in list order, or completed ones with --archived.",
                      params: [.init(name: "archived", kind: .boolean, help: "completed todos, newest first"),

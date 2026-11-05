@@ -1,4 +1,5 @@
 import AppKit
+import Security
 import SwiftData
 import SwiftUI
 
@@ -111,6 +112,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AgentRouter.model = model
         AgentSocket.listen { AgentRouter.handle($0) }
         Updates.start()
+        // iCloud tells the app about changes from other Macs with a silent push.
+        if Store.syncs {
+            NSApp.registerForRemoteNotifications()
+            model.reloadOnSync()
+        }
 
         if SelfTest.requested {
             SelfTest.runIfRequested(model: model)
@@ -136,8 +142,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Where the data lives: ~/Library/Application Support/Perch/Perch.store
+/// Where the data lives: ~/Library/Application Support/Perch/Perch.store, copied to
+/// iCloud when the build has the iCloud entitlement (docs/ICLOUD.md).
 enum Store {
+    /// The iCloud container from the app's entitlements. build.sh adds them only when it
+    /// has a provisioning profile with iCloud. Without them the todos stay on this Mac.
+    static let iCloudContainer: String? = {
+        guard let task = SecTaskCreateFromSelf(nil),
+              let value = SecTaskCopyValueForEntitlement(task, "com.apple.developer.icloud-container-identifiers" as CFString, nil)
+        else { return nil }
+        return (value as? [String])?.first
+    }()
+
+    /// True when this store syncs with iCloud. A test store never does.
+    static var syncs: Bool { !isOverridden && iCloudContainer != nil }
+
     /// True when APP_STORE points somewhere else (tests, snapshots, seed data).
     static var isOverridden: Bool {
         !(ProcessInfo.processInfo.environment["APP_STORE"] ?? "").isEmpty
@@ -154,7 +173,9 @@ enum Store {
 
     static func makeContainer() -> ModelContainer {
         do {
-            return try ModelContainer(for: Todo.self, configurations: ModelConfiguration(url: url))
+            // Never .automatic: it would sync any store, test stores too.
+            let cloud: ModelConfiguration.CloudKitDatabase = if syncs, let id = iCloudContainer { .private(id) } else { .none }
+            return try ModelContainer(for: Todo.self, configurations: ModelConfiguration(url: url, cloudKitDatabase: cloud))
         } catch {
             fatalError("Could not open the database at \(url.path): \(error)")
         }

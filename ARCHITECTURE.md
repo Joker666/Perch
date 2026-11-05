@@ -17,7 +17,8 @@ types that take plain values.
 ## Layers in the app
 
 - **Store and model** (`App.swift` `Store`, `Models.swift`). One SwiftData
-  container. `AppModel` holds the todos, the focus (typing or selection),
+  container. It syncs with iCloud when the app has the iCloud entitlement
+  (docs/ICLOUD.md), and `AppModel` reloads when iCloud merges a change. `AppModel` holds the todos, the focus (typing or selection),
   and every action. The panel, the menus, Settings, and the agent CLI all
   call the same `AppModel` methods.
 - **Windows** (`Panel/`, `Settings/`). AppKit windows with SwiftUI content.
@@ -39,13 +40,15 @@ types that take plain values.
 
 - **Every todo change goes through `AppModel.change`.** It runs the change,
   saves (and renumbers a crowded List), adds one undo step, and reloads, in
-  that order. Only `restoreAll`, which is the undo step itself, saves on its
+  that order. Only `restore`, which is the undo step itself, saves on its
   own. See `docs/FIXLOG.md` for the bug that the order prevents.
 - **Keyboard and click rules live in `FocusRules`** (PerchKit). `AppModel`
   decides when an edit ends, asks the rule where the keyboard goes, and
   applies the answer. A new key or click rule gets a unit test there.
-- **Undo is a whole-list snapshot.** Each step stores `TodoRecord`s of every
-  todo and puts them all back. One `UndoManager` (`AppModel.undoManager`)
+- **Undo puts back only what the change touched.** Each step stores the
+  `TodoRecord`s of the todos the change added, removed, or changed, and puts
+  only those back. Then undo never takes back a change that iCloud merged
+  from another Mac. One `UndoManager` (`AppModel.undoManager`)
   serves the panel, Settings, and agent commands, so Edit > Undo takes back
   a change an agent made.
 - **Menus with live state are AppKit items** (`AppMenus`). SwiftUI rebuilds
@@ -58,6 +61,7 @@ types that take plain values.
 |---|---|---|
 | `APP_STORE` | `~/Library/Application Support/Perch/Perch.store` and `agent.sock` | a store in /tmp and `<store>.sock` |
 | `AgentCommands.all` | the CLI and MCP tools | `check-agent-cli.sh` (bama agent-cli skill) and the self-test |
+| iCloud | CloudKit when the app has the iCloud entitlement | never when `APP_STORE` is set |
 | `Updates` | Sparkle with `TagVersionRules` | off when `APP_STORE` is set or the app is not bundled |
 | `Hotkey` | saves the shortcut in UserDefaults | does not save when `APP_STORE` is set |
 | `Prefs` | saves Settings in UserDefaults | reads them but never writes when `APP_STORE` is set |

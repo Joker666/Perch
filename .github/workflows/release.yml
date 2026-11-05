@@ -12,7 +12,9 @@
 #   APPLE_API_KEY_P8            base64 of an App Store Connect API key (.p8) for notarytool
 #   APPLE_API_KEY_ID            that key's id
 #   APPLE_API_ISSUER_ID         that key's issuer id
-# Without the last six, the dmg is ad hoc signed and not notarized.
+#   MACOS_PROVISION_PROFILE     base64 of the Developer ID provisioning profile with iCloud (docs/ICLOUD.md)
+# Without the six before it, the dmg is ad hoc signed and not notarized.
+# Without the profile, the app keeps its todos on one Mac and does not sync with iCloud.
 name: Release
 
 on:
@@ -81,7 +83,13 @@ jobs:
           API_KEY: ${{ secrets.APPLE_API_KEY_P8 }}
           API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
         run: |
+          if [[ -n "$PROFILE" ]]; then
+            echo "$PROFILE" | base64 --decode > "$RUNNER_TEMP/Perch.provisionprofile"
+          fi
+          # build.sh turns on iCloud sync only when this file exists.
+          echo "PROVISION_PROFILE=$RUNNER_TEMP/Perch.provisionprofile" >> "$GITHUB_ENV"
           if [[ -z "$SPARKLE_PRIVATE_KEY" ]]; then
             echo "::error::Add the SPARKLE_PRIVATE_KEY secret. Updates cannot be signed without it."
             exit 1
@@ -132,7 +140,7 @@ jobs:
       - name: Remove the signing keys
         if: always()
         run: |
-          rm -f "$RUNNER_TEMP/sparkle.key" "$RUNNER_TEMP/notary.p8"
+          rm -f "$RUNNER_TEMP/sparkle.key" "$RUNNER_TEMP/notary.p8" "$RUNNER_TEMP/Perch.provisionprofile"
           security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true
 
   # A push made with the workflow token does not start other workflows, so deploy the site here,

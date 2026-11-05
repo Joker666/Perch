@@ -20,6 +20,7 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 ## Build and check
 
 - Build and install: `./build.sh`. Add `--open` to restart the app with the new build. The build shows warnings. Fix them.
+- iCloud sync turns on when build.sh finds a provisioning profile with iCloud. Setup and schema: `docs/ICLOUD.md`.
 - Unit tests: `swift test --scratch-path ~/Library/Developer/Perch/test-build`.
 - Self-test (the app's real functions on a /tmp store): `tools/selftest.sh`. Exit 0 when every check passes. Add a check for every story with logic in `SelfTest.swift`.
 - Agent CLI: `build.sh` links `~/.local/bin/perch`. After a change to `Agent/`, run `check-agent-cli.sh /Applications/Perch.app/Contents/MacOS/Perch` from the bama agent-cli skill's `scripts/`, and update `docs/AGENT-COMMANDS.md` and `.claude/skills/perch/SKILL.md`.

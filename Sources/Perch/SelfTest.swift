@@ -232,6 +232,32 @@ enum SelfTest {
             m.delete(m.todos.filter { $0.text.hasPrefix("Order ") }.map(\.uuid))
         }
 
+        // iCloud sync (docs/ICLOUD.md). A test store never syncs, so these checks write to
+        // the store directly, the way iCloud does when it merges a change from another Mac.
+        check("A test store never syncs with iCloud", !Store.syncs)
+        let store = m.container.mainContext
+        if let mine = m.add(text: "Sync mine") {
+            let theirs = Todo(text: "Sync theirs", order: TodoOrder.between(m.todos.last?.order, nil))
+            store.insert(theirs)
+            try? store.save()
+            m.reload()
+            undo.undo()
+            check("Undo takes back only this Mac's change, not a todo from another Mac",
+                  !m.todos.contains { $0.uuid == mine.uuid } && m.todos.contains { $0.uuid == theirs.uuid }, texts().joined(separator: ", "))
+            m.delete([theirs.uuid])
+        }
+        let order = TodoOrder.between(m.todos.last?.order, nil)
+        let later = Todo(text: "Tie later", order: order)
+        let earlier = Todo(text: "Tie earlier", order: order)
+        earlier.createdAt = later.createdAt.addingTimeInterval(-60)
+        store.insert(later)
+        store.insert(earlier)
+        try? store.save()
+        m.reload()
+        let ties = texts().filter { $0.hasPrefix("Tie ") }
+        check("Todos with the same order value sort by creation time", ties == ["Tie earlier", "Tie later"], ties.joined(separator: ", "))
+        m.delete([earlier.uuid, later.uuid])
+
         // Edit and Window menu items follow the model (AppKit validation, System/AppMenus.swift)
         AppMenus.shared.ensure()
         func menuItem(_ menu: String, _ action: Selector) -> NSMenuItem? {
