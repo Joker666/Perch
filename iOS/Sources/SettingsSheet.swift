@@ -1,7 +1,7 @@
 import PerchKit
 import SwiftUI
 
-/// Theme, font, sounds, app icon, and About, as a sheet over the List.
+/// Theme, font, sounds, app icon, the version, and iCloud, as a sheet over the List.
 struct SettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppModel.self) private var model

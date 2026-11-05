@@ -1,7 +1,7 @@
 import Foundation
 
-/// Which theme Perch shows: one theme all the time, or one theme for macOS
-/// Light and one for macOS Dark. Values are theme ids.
+/// Which theme Perch shows: one theme all the time, or one theme for the system's
+/// Light and one for its Dark. Values are theme ids.
 public struct ThemeChoice: Equatable, Sendable {
     public enum Mode: String, CaseIterable, Sendable {
         case one
@@ -33,7 +33,7 @@ public struct ThemeChoice: Equatable, Sendable {
     }
 
     /// Sets the theme for `appearance`. With nil it sets the theme on screen
-    /// now: the one theme, or with Match System the one for the current macOS appearance.
+    /// now: the one theme, or with Match System the one for the current system appearance.
     public mutating func set(_ id: String, for appearance: Appearance?, systemIsDark: Bool) {
         switch appearance ?? (mode == .one ? nil : systemIsDark ? .dark : .light) {
         case .light: light = id

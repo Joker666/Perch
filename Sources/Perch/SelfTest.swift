@@ -39,7 +39,7 @@ enum SelfTest {
         let panel = PanelController.shared!
         panel.hide()
         panel.show()
-        // S-034 the panel springs in from 98% of its size, about its center, and hides at once
+        // S-034 the panel springs in from 98% of its size, about its center, and shrinks and fades out
         if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             check("Reduce Motion shows the panel without the spring", !panel.isAppearing)
         } else {

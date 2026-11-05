@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Snapshots of every page in light and dark, with seed data, on a fresh test store.
 # Usage: tools/snap.sh            all pages
-#        APP_SNAPSHOT_PAGES=starred,settings tools/snap.sh   only those pages
+#        APP_SNAPSHOT_PAGES=panel,settings tools/snap.sh     only those pages
 #        tools/snap.sh -AppleShowScrollBars Always          extra arguments go to the app
 set -u
 app=/Applications/Perch.app/Contents/MacOS/Perch

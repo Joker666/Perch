@@ -13,7 +13,7 @@
 #   APPLE_API_KEY_ID            that key's id
 #   APPLE_API_ISSUER_ID         that key's issuer id
 #   MACOS_PROVISION_PROFILE     base64 of the Developer ID provisioning profile with iCloud (docs/ICLOUD.md)
-# Without the six before it, the dmg is ad hoc signed and not notarized.
+# Without the certificate and API key secrets, the dmg is ad hoc signed and not notarized.
 # Without the profile, the app keeps its todos on one Mac and does not sync with iCloud.
 name: Release
 

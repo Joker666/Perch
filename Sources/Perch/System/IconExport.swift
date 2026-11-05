@@ -63,7 +63,7 @@ enum IconExport {
         }
     }
 
-    /// 1024 pt, opaque: the App Store refuses an icon with an alpha channel.
+    /// 1024 px, opaque: the App Store refuses an icon with an alpha channel.
     private static func png(_ theme: Theme) throws -> Data {
         let size = 1024
         let renderer = ImageRenderer(content: AppIconView(theme: theme, size: CGFloat(size), fullBleed: true))

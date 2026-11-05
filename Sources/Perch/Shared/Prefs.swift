@@ -19,12 +19,12 @@ final class Prefs {
 
     /// The one theme, used when `themeMode` is `.one`.
     var themeID: String { didSet { save(themeID, "theme"); applyAppearance() } }
-    /// One theme all the time, or Match System: `lightThemeID` and `darkThemeID` follow macOS.
+    /// One theme all the time, or Match System: `lightThemeID` and `darkThemeID` follow the system.
     var themeMode: ThemeChoice.Mode { didSet { save(themeMode.rawValue, "themeMode"); applyAppearance() } }
     var lightThemeID: String { didSet { save(lightThemeID, "themeLight"); applyAppearance() } }
     var darkThemeID: String { didSet { save(darkThemeID, "themeDark"); applyAppearance() } }
-    /// Whether macOS shows Dark now. Read from the system setting, because Perch
-    /// sets its own appearance from the theme.
+    /// Whether the system shows Dark now. Read from the system, because Perch sets
+    /// its own appearance from the theme.
     var systemIsDark = SystemAppearance.isDark { didSet { applyAppearance() } }
     var font: TodoFont { didSet { save(font.rawValue, "font") } }
     var fontSize: Double { didSet { save(fontSize, "fontSize") } }

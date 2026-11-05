@@ -8,7 +8,7 @@ import SwiftUI
 //   APP_SNAPSHOT=<dir> Perch   save a PNG of every panel state and Settings tab in two themes, then quit
 //   APP_SEED=1 Perch           fill an empty /tmp store with sample todos (tools/snap.sh)
 //   Perch --selftest           run the self-test on a /tmp store and quit with 0 or 1 (tools/selftest.sh)
-//   APP_THEME=<id> Perch       run with another theme from Theme.all (UI/Theme.swift)
+//   APP_THEME=<id> Perch       run with another theme from Theme.all (Shared/Theme.swift)
 //   APP_GRID=1 Perch           draw grid lines every 8 pt and the layout probes over the window
 
 /// The one model the panel, menus, and Settings share.
@@ -112,7 +112,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AgentRouter.model = model
         AgentSocket.listen { AgentRouter.handle($0) }
         Updates.start()
-        // iCloud tells the app about changes from other Macs with a silent push.
+        // iCloud tells the app about changes from other devices with a silent push.
         if Store.syncs {
             model.iCloudPush = "waiting"
             NSApp.registerForRemoteNotifications()

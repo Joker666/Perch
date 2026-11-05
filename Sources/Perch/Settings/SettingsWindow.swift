@@ -111,7 +111,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.delegate = self
-        // Settings used to save its whole frame, which also kept a stale size. Only the corner is saved now.
+        // Older versions saved the whole frame, size included. Only the corner is saved now.
         if !Store.isOverridden { UserDefaults.standard.removeObject(forKey: "NSWindow Frame Settings") }
         recolor(window)
         trackTheme(window)

@@ -5,10 +5,9 @@ import UIKit
 #endif
 import SwiftUI
 
-/// The eight app icons, one per theme, drawn in code. Picking one in
-/// Settings > Icon changes the Dock icon at once. The choice is applied
-/// again at every launch. On iOS the icons are alternate app icons in the
-/// bundle (iOS/Assets.xcassets), and iOS shows its own alert for a change.
+/// The eight app icons, one per theme, drawn in code. On the Mac the picked icon
+/// replaces the Dock icon while Perch runs. On iOS they are alternate icons in
+/// iOS/Icons.xcassets, and iOS asks before it changes the icon.
 enum AppIcons {
     #if os(macOS)
     /// Drawn once per theme, because Perch applies the icon again each time it becomes active.
@@ -16,10 +15,8 @@ enum AppIcons {
     /// How many times Perch set the Dock icon. The self-test reads it.
     private(set) static var applied = 0
 
-    /// Sets the Dock icon while Perch runs. The Dock goes back to the bundle icon when it
-    /// makes a new tile (the Dock switch, a new build, a Dock restart), so Perch calls this
-    /// again then. While Perch is not running, the Dock tile plug-in shows the icon
-    /// (DockTile/PerchDockTile.swift), and the notification tells it about a change.
+    /// Sets the Dock icon. A new Dock tile shows the bundle icon again, so Perch also
+    /// calls this on activation. The notification updates the Dock tile plug-in (DockTile/).
     static func apply(_ id: String) {
         applied += 1
         // The bundle icon is Midnight. Other icons replace it while the app runs.

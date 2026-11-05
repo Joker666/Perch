@@ -3,8 +3,8 @@
 # and theme, in /tmp/Perch-ios-shots/<page>-<theme>.png. Build the app first:
 #   cd iOS && xcodegen && xcodebuild -scheme PerchPhone -destination 'platform=iOS Simulator,name=iPhone 18 Pro' -derivedDataPath ~/Library/Developer/Perch/ios-build build
 #   tools/ios-snap.sh                     every page in Midnight and Matcha
-# A page ending in -empty runs without sample todos, like archive-empty.
 #   PAGES="list edit" THEMES=pool tools/ios-snap.sh
+# A page ending in -empty runs without sample todos, like archive-empty.
 set -euo pipefail
 device="${DEVICE:-iPhone 18 Pro}"
 app="$HOME/Library/Developer/Perch/ios-build/Build/Products/Debug-iphonesimulator/Perch.app"

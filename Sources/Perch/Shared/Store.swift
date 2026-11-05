@@ -4,8 +4,8 @@ import SwiftData
 import Security
 #endif
 
-/// Where the data lives: ~/Library/Application Support/Perch/Perch.store, copied to
-/// iCloud when the build has the iCloud entitlement (docs/ICLOUD.md).
+/// Where the data lives: Application Support/Perch/Perch.store, synced with iCloud
+/// when the build has the iCloud entitlement (docs/ICLOUD.md).
 enum Store {
     #if os(macOS)
     /// The iCloud container from the app's entitlements. build.sh adds them only when it

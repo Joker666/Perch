@@ -4,8 +4,7 @@ import PerchKit
 /// Label column width for the Theme tab, so every control starts on one edge.
 private let labelWidth: CGFloat = 100
 
-/// Settings > Theme: appearance, theme, font, font size, radius, and the completion sound.
-/// Open at login and the Dock icon, as switches like Sound in Theme.
+/// Settings > General: open at login and the Dock icon.
 struct GeneralSettings: View {
     @Bindable private var prefs = Prefs.shared
     @State private var opensAtLogin = AppPresence.opensAtLogin
@@ -49,6 +48,7 @@ struct GeneralSettings: View {
     }
 }
 
+/// Settings > Theme: appearance, theme, font, font size, radius, and the sound.
 struct ThemeSettings: View {
     @Bindable private var prefs = Prefs.shared
 

@@ -20,8 +20,7 @@ final class Todo {
     }
 }
 
-/// A plain copy of a todo. Undo restores the whole list from these, so a
-/// deleted todo comes back with the same id.
+/// A plain copy of a todo. Undo puts these back, so a deleted todo returns with the same id.
 struct TodoRecord: Equatable {
     var uuid: UUID
     var text: String
@@ -81,8 +80,8 @@ final class AppModel {
     var showHideTitle: String { panelVisible ? "Hide Perch" : "Show Perch" }
     /// True while the panel takes the keyboard. The traffic lights show color only then.
     var panelIsKey = false
-    /// Whether macOS gave Perch a push token, which iCloud needs to send changes from
-    /// other Macs at once. "off" when the store does not sync.
+    /// Whether the system gave Perch a push token, which iCloud needs to send changes
+    /// from other devices at once. "off" when the store does not sync.
     var iCloudPush = "off"
 
     /// The list before the current edit began, for that edit's undo step.
@@ -105,15 +104,15 @@ final class AppModel {
         archived = all.filter(\.isCompleted).sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
     }
 
-    /// Open todos in list order. Two Macs can give two todos the same order value, so
-    /// ties go by creation time and then id, the same on every Mac.
+    /// Open todos in list order. Two devices can give two todos the same order value, so
+    /// ties go by creation time and then id, the same on every device.
     private static func listOrder(_ all: [Todo]) -> [Todo] {
         all.filter { !$0.isCompleted }.sorted {
             ($0.order, $0.createdAt, $0.uuid.uuidString) < ($1.order, $1.createdAt, $1.uuid.uuidString)
         }
     }
 
-    /// Reloads after iCloud merges changes from another Mac into the store.
+    /// Reloads after iCloud merges changes from another device into the store.
     func reloadOnSync() {
         let center = NotificationCenter.default
         for name in [Notification.Name.NSPersistentStoreRemoteChange, NSManagedObjectContext.didMergeChangesObjectIDsNotification] {
@@ -383,7 +382,7 @@ final class AppModel {
     }
 
     /// One undo step that puts the `touched` todos back to `records`. Redo puts them back again.
-    /// Other todos stay as they are, so undo never takes back a change from another Mac.
+    /// Other todos stay as they are, so undo never takes back a change from another device.
     private func registerUndo(_ records: [TodoRecord], touched: Set<UUID>, name: String) {
         // The app groups undo by event. The self-test turns that off and groups each step itself.
         let explicit = !undoManager.groupsByEvent && !undoManager.isUndoing && !undoManager.isRedoing
