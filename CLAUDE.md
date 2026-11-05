@@ -1,7 +1,8 @@
 # Perch
 
 A tiny floating todo list for the Mac, a rebuild of FloatyDo. A borderless
-panel floats above other windows. A local SwiftData database, no server.
+panel floats above other windows. A SwiftData database that syncs with iCloud, no server.
+An iPhone and iPad app in `iOS/` shares the model, themes, and iCloud container.
 Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 
 ## Layout
@@ -10,6 +11,9 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
   `Models.swift` has `Todo` and `AppModel` (every action and undo). `Panel/` is the floating panel.
   `Settings/` is the themed Settings window. `System/` has the menus (`AppMenus`), the global shortcut (`Hotkey`), and updates (`Updates`).
   `Agent/` is the `perch` command and the MCP server. Its commands are in `AgentCommands.swift`.
+- `Sources/Perch/Shared/` files both apps compile: `Todo` and `AppModel` (Models.swift), `Store`, themes, `Prefs`, sounds, icons, seed data, `Space`.
+  Platform code in them uses `#if os(macOS)`. A change there must build for both apps.
+- `iOS/` the iOS app. `iOS/project.yml` is the XcodeGen project (scheme `PerchPhone`). The generated `Perch.xcodeproj` is not in git.
 - `Sources/PerchKit/` rules and data logic with no SwiftUI, including the keyboard focus rules. Tests in `Tests/PerchKitTests/`.
 - `Package.swift` a Swift package. There is no Xcode project.
 - `build.sh` builds, signs, and installs `/Applications/Perch.app`, the same place as the dmg. Keep only that one copy.
@@ -24,6 +28,9 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 - Unit tests: `swift test --scratch-path ~/Library/Developer/Perch/test-build`.
 - Self-test (the app's real functions on a /tmp store): `tools/selftest.sh`. Exit 0 when every check passes. Add a check for every story with logic in `SelfTest.swift`.
 - Agent CLI: `build.sh` links `~/.local/bin/perch`. After a change to `Agent/`, run `check-agent-cli.sh /Applications/Perch.app/Contents/MacOS/Perch` from the bama agent-cli skill's `scripts/`, and update `docs/AGENT-COMMANDS.md` and `.claude/skills/perch/SKILL.md`.
+- iOS: `cd iOS && xcodegen` then `xcodebuild -scheme PerchPhone -destination 'platform=iOS Simulator,name=iPhone 18 Pro' -derivedDataPath ~/Library/Developer/Perch/ios-build build`. No warnings.
+  `tools/ios-snap.sh` writes `/tmp/Perch-ios-shots/<page>-<theme>.png` (list, edit, archive, settings) on a test store. Look at them after an iOS UI change.
+  `tools/make_ios_icons.sh` remakes `iOS/Icons.xcassets` from `AppIconView` after a change to the icons or themes.
 - After every UI change, take snapshots with sample data and look at them: `tools/snap.sh`.
   It writes `/tmp/Perch-shots/<page>-<theme>.png` for every panel state in `Snapshot.pages` and `settings-<tab>-<theme>.png` for every Settings tab, in Midnight and Matcha, then quits. `APP_SNAPSHOT_PAGES=panel,settings` limits the pages. `APP_SNAPSHOT_THEMES=plum,pool` picks the themes.
   The snapshot run cannot take focus from the terminal, so traffic lights and the caret show inactive there.

@@ -367,29 +367,29 @@ Acceptance:
 - [self] Adding, editing, and emptying a row on iOS use the same model calls as the Mac panel.
 - [manual] The list fills the screen in the theme's surface color. Each todo is one line with an open circle.
 - [manual] Return adds the next row. "Done" above the keyboard ends editing. An emptied row is removed.
-Status: todo
+Status: built. Checked in simulator screenshots. Touch checks on a phone are not done.
 
 ### S-037 Complete, delete, and reorder on iPhone
 As the user, I tap a circle to complete a todo, swipe to delete one, and drag to reorder.
 Acceptance:
 - [self] Complete, delete, and move use the same model calls as the Mac.
 - [manual] The circle shows a check, the text is struck through, and the row leaves the List.
-- [manual] Shake, or three-finger swipe, undoes the last change.
-Status: todo
+- [manual] The Undo button in the bottom bar takes back the last change. It names the change for VoiceOver.
+Status: built. Checked in simulator screenshots. Touch checks on a phone are not done.
 
 ### S-038 See my Archive on iPhone
 As the user, I open the Archive, restore a todo, delete one, or clear them all.
 Acceptance:
 - [manual] A bottom bar switches between List, Archive, and Settings.
 - [manual] Clear asks first.
-Status: todo
+Status: built. Checked in simulator screenshots. Touch checks on a phone are not done.
 
 ### S-039 Pick my theme, font, and icon on iPhone
-As the user, I open Settings and pick one of the 8 themes, the font, the size, and the app icon.
+As the user, I open Settings and pick one of the 8 themes, the font, and the app icon. The text size follows the system text size.
 Acceptance:
 - [self] The 8 themes and their colors are the same code as on the Mac.
 - [manual] The app icon changes with the system prompt.
-Status: todo
+Status: built. Checked in simulator screenshots. Touch checks on a phone are not done.
 
 ### S-040 Same todos on my iPhone and my Mac
 As the user, I sign in to the same iCloud account, and the iPhone shows the Mac's todos, and the Mac shows the iPhone's.

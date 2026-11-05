@@ -16,7 +16,11 @@ types that take plain values.
 
 ## Layers in the app
 
-- **Store and model** (`App.swift` `Store`, `Models.swift`). One SwiftData
+- **Shared** (`Sources/Perch/Shared/`). The files the Mac app and the iOS app
+  both compile. SwiftPM builds them into the Mac app, and `iOS/project.yml`
+  adds the same folder to the iOS target. The iOS app uses `AppModel` as it
+  is, so undo, order, and sync rules are one code for both.
+- **Store and model** (`Shared/Store.swift`, `Shared/Models.swift`). One SwiftData
   container. It syncs with iCloud when the app has the iCloud entitlement
   (docs/ICLOUD.md), and `AppModel` reloads when iCloud merges a change. `AppModel` holds the todos, the focus (typing or selection),
   and every action. The panel, the menus, Settings, and the agent CLI all
@@ -37,6 +41,10 @@ types that take plain values.
   run the real app on a store in /tmp and refuse to run without `APP_STORE`.
 
 ## Rules that keep it working
+
+- **The `Todo` model is the iCloud schema** (`CD_Todo`), and both apps read
+  it. Add only optional properties or properties with defaults, deploy the
+  schema (docs/ICLOUD.md), and never rename or remove one.
 
 - **Every todo change goes through `AppModel.change`.** It runs the change,
   saves (and renumbers a crowded List), adds one undo step, and reloads, in

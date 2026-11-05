@@ -3,7 +3,11 @@ import PackageDescription
 
 let package = Package(
     name: "Perch",
-    platforms: [.macOS(.v26)],
+    // iOS for PerchKit only: the iOS app (iOS/project.yml) uses it as a package.
+    platforms: [.macOS(.v26), .iOS(.v26)],
+    products: [
+        .library(name: "PerchKit", targets: ["PerchKit"]),
+    ],
     dependencies: [
         // Auto updates from the appcast on the project site.
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.7.0"),

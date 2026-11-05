@@ -12,3 +12,7 @@ dist/
 sparkle-key.txt
 *.p12
 *.p8
+# Made by XcodeGen from iOS/project.yml
+iOS/Perch.xcodeproj/
+iOS/Info.plist
+iOS/Perch.entitlements

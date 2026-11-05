@@ -1,0 +1,67 @@
+# The iPhone and iPad app. XcodeGen makes Perch.xcodeproj from this file, and
+# the generated project stays out of git:
+#   cd iOS && xcodegen
+#   xcodebuild -scheme PerchPhone -destination 'platform=iOS Simulator,name=iPhone 18 Pro' build
+# The app compiles the shared files in Sources/Perch/Shared and uses PerchKit
+# from the Swift package one folder up. See docs/research/floatydo-ios.md.
+name: Perch
+options:
+  bundleIdPrefix: com.rafi
+  deploymentTarget:
+    iOS: "26.0"
+packages:
+  PerchPackage:
+    path: ..
+settings:
+  base:
+    DEVELOPMENT_TEAM: FA8NWUSJ95
+    SWIFT_VERSION: "6.0"
+    # The same as the Mac target: app code runs on the main actor unless it says otherwise.
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    MARKETING_VERSION: "0.1.6"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  # Not "Perch": the Swift package's Mac app has that scheme.
+  PerchPhone:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: ../Sources/Perch/Shared
+      - path: ../Icon/AppIcon.icon
+        buildPhase: resources
+      # The other 7 themes' icons, from tools/make_ios_icons.sh.
+      - path: Icons.xcassets
+    dependencies:
+      - package: PerchPackage
+        product: PerchKit
+    entitlements:
+      path: Perch.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers: [iCloud.com.rafi.perch]
+        com.apple.developer.icloud-services: [CloudKit]
+        aps-environment: development
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Perch
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UIBackgroundModes: [remote-notification]
+        ITSAppUsesNonExemptEncryption: false
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_NAME: Perch
+        PRODUCT_BUNDLE_IDENTIFIER: com.rafi.perch
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: AppIcon-navy AppIcon-forest AppIcon-plum AppIcon-pool AppIcon-blossom AppIcon-matcha AppIcon-sand
+        CODE_SIGN_STYLE: Automatic

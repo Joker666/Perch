@@ -40,16 +40,18 @@ enum AppIcons {
 struct AppIconView: View {
     let theme: Theme
     let size: CGFloat
+    /// iOS icons fill the whole square, and iOS rounds the corners itself.
+    var fullBleed = false
 
     var body: some View {
         // The macOS icon grid: the body fills about 80% of the canvas.
-        let body = size * 0.805
+        let body = fullBleed ? size : size * 0.805
         ZStack {
-            RoundedRectangle(cornerRadius: body * 0.225, style: .continuous)
+            RoundedRectangle(cornerRadius: fullBleed ? 0 : body * 0.225, style: .continuous)
                 .fill(LinearGradient(colors: [theme.deepColor.mix(with: .white, by: 0.12), theme.deepColor],
                                      startPoint: .top, endPoint: .bottom))
                 .frame(width: body, height: body)
-                .shadow(color: .black.opacity(0.25), radius: size * 0.02, y: size * 0.01)
+                .shadow(color: .black.opacity(fullBleed ? 0 : 0.25), radius: size * 0.02, y: size * 0.01)
             RoundedRectangle(cornerRadius: body * 0.16, style: .continuous)
                 .fill(theme.surfaceColor)
                 .frame(width: body * 0.56, height: body * 0.56)

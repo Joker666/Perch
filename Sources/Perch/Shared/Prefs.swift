@@ -104,7 +104,10 @@ enum SystemAppearance {
 /// iOS Light or Dark. The root view reports changes, because the app's own color
 /// scheme comes from the theme.
 enum SystemAppearance {
-    static var isDark: Bool { UIScreen.main.traitCollection.userInterfaceStyle == .dark }
+    static var isDark: Bool {
+        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.traitCollection.userInterfaceStyle == .dark
+    }
+    /// The root view starts the watch (iOS/Sources/RootView.swift), once a window scene exists.
     static func observe(_ changed: @escaping @MainActor (Bool) -> Void) {}
 }
 #endif

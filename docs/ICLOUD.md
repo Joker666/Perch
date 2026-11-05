@@ -48,6 +48,17 @@ Deploy the schema again before a release that adds a property to `Todo`.
 CloudKit accepts only added properties with default values. Never rename or
 remove a property after the first deploy.
 
+## The iOS app
+
+The iOS app (`iOS/project.yml`) uses the same App ID `com.rafi.perch`, the
+same container, and the same `Todo` model, so it shares the schema. Its
+entitlements are in the project file. The simulator syncs when it is signed in
+to an iCloud account. A test store (`APP_STORE`) never syncs there either.
+
+A build for an iPhone needs an iOS App Development profile with the iPhone,
+and the App Store build needs an App Store profile. Xcode's automatic signing
+makes both when your Apple Account is in Xcode > Settings > Accounts.
+
 ## How the code handles sync
 
 - `Store.makeContainer` uses `.private(container)` when the app has the
