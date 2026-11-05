@@ -68,6 +68,8 @@ The workflow needs these repository secrets:
 | `APPLE_API_KEY_P8` | Base64 of an App Store Connect API key (.p8), for notarization |
 | `APPLE_API_KEY_ID` | That key's id |
 | `APPLE_API_ISSUER_ID` | That key's issuer id |
+| `TESTFLIGHT_API_KEY_P8` | Base64 of an App Store Connect team API key (.p8) with the Admin role, for the iOS TestFlight upload |
+| `TESTFLIGHT_API_KEY_ID` | That key's id |
 | `MACOS_PROVISION_PROFILE` | Base64 of the Developer ID provisioning profile with iCloud. Without it the app does not sync (docs/ICLOUD.md) |
 
 Without the Developer ID and API key secrets, the dmg is ad hoc signed and not notarized. macOS then asks people to allow it in System Settings > Privacy & Security.

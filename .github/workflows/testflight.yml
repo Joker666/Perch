@@ -1,0 +1,91 @@
+# Builds the iOS app and uploads it to TestFlight, for each version tag (with the
+# Mac release) or by hand. Xcode signs it with cloud-managed certificates through
+# an App Store Connect API key. The App Store app is "Perch: Tiny Todo List" (6830946299).
+#
+# Secrets:
+#   TESTFLIGHT_API_KEY_P8  base64 of an App Store Connect team API key (.p8) with the Admin
+#                          role. Cloud signing needs it. The notarization key (Developer)
+#                          cannot sign for the App Store
+#   TESTFLIGHT_API_KEY_ID  that key's id
+#   APPLE_API_ISSUER_ID    the issuer id, the same for every key of the team
+name: TestFlight
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The version comes from the last tag.
+          fetch-depth: 0
+
+      - name: Use the newest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Write the API key
+        env:
+          API_KEY: ${{ secrets.TESTFLIGHT_API_KEY_P8 }}
+          API_KEY_ID: ${{ secrets.TESTFLIGHT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          if [[ -z "$API_KEY" || -z "$API_KEY_ID" || -z "$API_ISSUER_ID" ]]; then
+            echo "::error::Add the TESTFLIGHT_API_KEY_P8, TESTFLIGHT_API_KEY_ID, and APPLE_API_ISSUER_ID secrets."
+            exit 1
+          fi
+          echo "$API_KEY" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          {
+            echo "AUTH=-allowProvisioningUpdates -authenticationKeyPath $RUNNER_TEMP/AuthKey.p8 -authenticationKeyID $API_KEY_ID -authenticationKeyIssuerID $API_ISSUER_ID"
+            echo "VERSION=$(git describe --tags --abbrev=0 --match 'v*' | sed 's/^v//')"
+            # TestFlight needs a new build number for every upload.
+            echo "BUILD=$(date -u +%Y%m%d%H%M)"
+          } >> "$GITHUB_ENV"
+
+      - name: Make the Xcode project
+        run: |
+          brew install xcodegen
+          cd iOS && xcodegen
+
+      - name: Archive
+        run: |
+          xcodebuild -project iOS/Perch.xcodeproj -scheme PerchPhone -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/Perch.xcarchive" \
+            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
+            $AUTH archive
+
+      - name: Upload to TestFlight
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>FA8NWUSJ95</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Perch.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
+            $AUTH
+          echo "Uploaded Perch $VERSION ($BUILD). TestFlight shows it after processing."
+
+      - name: Remove the API key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/AuthKey.p8"
