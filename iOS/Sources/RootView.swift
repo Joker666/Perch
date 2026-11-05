@@ -84,6 +84,9 @@ struct BottomBar: View {
                 .accessibilityLabel("New Todo")
             }
         }
+        // The height of the "+" button on every page, so the bar does not move when
+        // the Archive hides that button.
+        .frame(height: PhoneStyle.addButton)
         .padding(.horizontal, Space.lg)
         .padding(.bottom, Space.sm)
         .onAppear { undo.watch(model.undoManager) }
