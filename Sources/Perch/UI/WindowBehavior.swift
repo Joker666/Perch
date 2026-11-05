@@ -48,3 +48,10 @@ private struct WindowHook: NSViewRepresentable {
         }
     }
 }
+
+extension NSScreen {
+    /// The screen that shows `rect`, or the main screen when none does.
+    static func showing(_ rect: NSRect) -> NSScreen? {
+        screens.first { $0.frame.intersects(rect) } ?? main
+    }
+}

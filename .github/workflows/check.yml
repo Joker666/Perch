@@ -1,0 +1,43 @@
+# Runs the unit tests and builds both apps for each push to main and each pull
+# request. Both apps compile Sources/Perch/Shared, so this catches a change that
+# breaks the iOS app before a release tag. No signing and no secrets.
+name: Check
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["site/**", "docs/**", "**.md"]
+  pull_request:
+    paths-ignore: ["site/**", "docs/**", "**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use the newest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Unit tests
+        run: swift test
+
+      - name: Build the Mac app
+        run: swift build -c release
+
+      - name: Build the iOS app
+        run: |
+          brew install xcodegen
+          cd iOS && xcodegen
+          xcodebuild -project Perch.xcodeproj -scheme PerchPhone -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build

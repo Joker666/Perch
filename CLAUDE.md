@@ -38,6 +38,7 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 - Snapshots, seed data, and the self-test refuse to run without `APP_STORE` in /tmp.
 - Never test against the real database in `~/Library/Application Support/Perch/`.
 - Then check the grid: `tools/grid-lint.sh` and `swift tools/check-layout.swift /tmp/Perch-shots/*-layout.json`. Both print PASS.
+- CI: `.github/workflows/check.yml` runs the unit tests and builds both apps for each push to main.
 - A change is done when the build has no errors, the grid checks pass, and you looked at the light and dark snapshots.
 
 ## Release and site

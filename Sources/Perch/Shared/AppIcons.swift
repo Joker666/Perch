@@ -15,8 +15,14 @@ enum AppIcons {
     /// How many times Perch set the Dock icon. The self-test reads it.
     private(set) static var applied = 0
 
+    /// A new pick from Settings: sets the Dock icon and tells the Dock tile plug-in (DockTile/).
+    static func select(_ id: String) {
+        apply(id)
+        DistributedNotificationCenter.default().postNotificationName(changed, object: nil, deliverImmediately: true)
+    }
+
     /// Sets the Dock icon. A new Dock tile shows the bundle icon again, so Perch also
-    /// calls this on activation. The notification updates the Dock tile plug-in (DockTile/).
+    /// calls this on activation.
     static func apply(_ id: String) {
         applied += 1
         // The bundle icon is Midnight. Other icons replace it while the app runs.
@@ -26,13 +32,12 @@ enum AppIcons {
             drawn[id] = image
             NSApp.applicationIconImage = image
         }
-        DistributedNotificationCenter.default().postNotificationName(changed, object: nil, deliverImmediately: true)
     }
 
     /// Tells the Dock tile plug-in to read the icon choice again.
     static let changed = Notification.Name("com.rafi.perch.iconChanged")
 
-    static func image(for theme: Theme, size: CGFloat) -> NSImage {
+    private static func image(for theme: Theme, size: CGFloat) -> NSImage {
         let renderer = ImageRenderer(content: AppIconView(theme: theme, size: size))
         renderer.scale = 2
         return renderer.nsImage ?? NSImage()
@@ -50,7 +55,7 @@ enum AppIcons {
         id == Theme.all[0].id ? nil : "AppIcon-\(id)"
     }
 
-    static func apply(_ id: String) {
+    static func select(_ id: String) {
         let name = alternateName(id)
         guard UIApplication.shared.supportsAlternateIcons, UIApplication.shared.alternateIconName != name else { return }
         UIApplication.shared.setAlternateIconName(name)

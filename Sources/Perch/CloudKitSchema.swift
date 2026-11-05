@@ -11,7 +11,8 @@ enum CloudKitSchema {
     static var requested: Bool { CommandLine.arguments.contains("--cloudkit-schema") }
 
     static func run() -> Int32 {
-        guard Store.isOverridden, Store.url.path.hasPrefix("/tmp/") else {
+        // /tmp is a link to /private/tmp, so compare the resolved path.
+        guard Store.isOverridden, Store.url.resolvingSymlinksInPath().path.hasPrefix("/private/tmp/") else {
             print("CLOUDKIT SCHEMA refused: set APP_STORE to a file in /tmp")
             return 1
         }

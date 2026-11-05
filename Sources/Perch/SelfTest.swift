@@ -247,6 +247,17 @@ enum SelfTest {
                   !m.todos.contains { $0.uuid == mine.uuid } && m.todos.contains { $0.uuid == theirs.uuid }, texts().joined(separator: ", "))
             m.delete([theirs.uuid])
         }
+        if let typed = m.add(text: "Sync typed"), let other = m.add(text: "Sync other") {
+            m.beginEditing(typed.uuid)
+            other.text = "Sync other, changed elsewhere"
+            try? store.save()
+            m.updateText(typed.uuid, "Sync typed again")
+            m.commitEditing()
+            undo.undo()
+            check("Undo of an edit leaves a change iCloud merged during it",
+                  typed.text == "Sync typed" && other.text == "Sync other, changed elsewhere", "\(typed.text), \(other.text)")
+            m.delete([typed.uuid, other.uuid])
+        }
         let order = TodoOrder.between(m.todos.last?.order, nil)
         let later = Todo(text: "Tie later", order: order)
         let earlier = Todo(text: "Tie earlier", order: order)
@@ -376,7 +387,7 @@ enum SelfTest {
         settings.show()
         try? await Task.sleep(for: .seconds(0.5))
         if let window = settings.window, let panelFrame = PanelController.shared?.homeFrame,
-           let screen = (NSScreen.screens.first { $0.frame.intersects(panelFrame) } ?? NSScreen.main) {
+           let screen = NSScreen.showing(panelFrame) {
             let expected = WindowPlacement.beside(panelFrame, size: window.frame.size, gap: SettingsWindowController.gap,
                                                   in: screen.visibleFrame)
             check("Settings opens beside the panel, top edges aligned", window.frame == expected,

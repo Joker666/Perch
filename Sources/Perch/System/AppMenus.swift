@@ -10,7 +10,7 @@ final class AppMenus: NSObject, NSMenuItemValidation {
     /// Marks Perch's items, so `ensure` can tell whether they are still in the menu.
     private static let tag = 0x5052_4348 // 'PRCH'
 
-    private var model: AppModel { Shared.model }
+    private var model: AppModel { AppModel.shared }
 
     /// Adds the items, and adds them back one run loop turn after SwiftUI rebuilds a
     /// menu. That is too late for the shortcut that caused the rebuild, so the

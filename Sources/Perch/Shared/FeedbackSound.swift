@@ -47,7 +47,12 @@ enum FeedbackSound {
     private static func player(_ data: Data) -> Player? { NSSound(data: data) }
     #else
     typealias Player = AVAudioPlayer
-    private static func player(_ data: Data) -> Player? { try? AVAudioPlayer(data: data) }
+    private static func player(_ data: Data) -> Player? {
+        // Ambient: the clicks mix with music and podcasts instead of stopping them,
+        // and the silent switch mutes them.
+        try? AVAudioSession.sharedInstance().setCategory(.ambient)
+        return try? AVAudioPlayer(data: data)
+    }
     #endif
 
     static func sound(_ kind: Kind) -> Player? {

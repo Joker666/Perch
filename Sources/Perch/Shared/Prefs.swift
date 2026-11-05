@@ -29,7 +29,7 @@ final class Prefs {
     var font: TodoFont { didSet { save(font.rawValue, "font") } }
     var fontSize: Double { didSet { save(fontSize, "fontSize") } }
     var radius: Double { didSet { save(radius, "radius") } }
-    var iconID: String { didSet { save(iconID, "icon"); AppIcons.apply(iconID) } }
+    var iconID: String { didSet { save(iconID, "icon"); AppIcons.select(iconID) } }
     /// The clicks when you add or complete a todo (`FeedbackSound`). On by default.
     /// Saved as "completionSound", its name when it covered only completing.
     var playSounds: Bool { didSet { save(playSounds, "completionSound") } }

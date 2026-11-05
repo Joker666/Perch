@@ -69,7 +69,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         if let saved, saved.count == 2 {
             window.setFrameTopLeftPoint(NSPoint(x: saved[0], y: saved[1]))
         } else if let panel = PanelController.shared?.homeFrame,
-                  let visible = (NSScreen.screens.first { $0.frame.intersects(panel) } ?? NSScreen.main)?.visibleFrame {
+                  let visible = NSScreen.showing(panel)?.visibleFrame {
             // A new window does not have its content's size yet, so place it by the size it will take.
             let content = window.contentViewController?.view.fittingSize ?? window.contentLayoutRect.size
             let size = window.frameRect(forContentRect: NSRect(origin: .zero, size: content)).size

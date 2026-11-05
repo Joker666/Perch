@@ -18,8 +18,11 @@ settings:
     SWIFT_VERSION: "6.0"
     # The same as the Mac target: app code runs on the main actor unless it says otherwise.
     SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
-    MARKETING_VERSION: "0.1.6"
+    # Local builds only. The TestFlight workflow sets the version from the last v* tag.
+    MARKETING_VERSION: "0.0.0"
     CURRENT_PROJECT_VERSION: "1"
+    # The one place for the iOS app's iCloud container: entitlements and Info.plist.
+    ICLOUD_CONTAINER: iCloud.com.rafi.perch
 targets:
   # Not "Perch": the Swift package's Mac app has that scheme.
   PerchPhone:
@@ -38,13 +41,15 @@ targets:
     entitlements:
       path: Perch.entitlements
       properties:
-        com.apple.developer.icloud-container-identifiers: [iCloud.com.rafi.perch]
+        com.apple.developer.icloud-container-identifiers: [$(ICLOUD_CONTAINER)]
         com.apple.developer.icloud-services: [CloudKit]
         aps-environment: development
     info:
       path: Info.plist
       properties:
         CFBundleDisplayName: Perch
+        # Store.swift reads the container here, because iOS cannot read its entitlements.
+        PerchICloudContainer: $(ICLOUD_CONTAINER)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}

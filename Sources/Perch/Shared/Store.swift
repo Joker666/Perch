@@ -17,9 +17,9 @@ enum Store {
         return (value as? [String])?.first
     }()
     #else
-    /// iOS cannot read its own entitlements. Every iOS build is signed with iCloud
-    /// (iOS/project.yml). The simulator without an iCloud account keeps the todos local.
-    static let iCloudContainer: String? = "iCloud.com.rafi.perch"
+    /// iOS cannot read its own entitlements, so iOS/project.yml also puts the container
+    /// in Info.plist. The simulator without an iCloud account keeps the todos local.
+    static let iCloudContainer: String? = Bundle.main.object(forInfoDictionaryKey: "PerchICloudContainer") as? String
     #endif
 
     /// True when this store syncs with iCloud. A test store never does.

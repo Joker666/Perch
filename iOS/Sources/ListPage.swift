@@ -60,6 +60,8 @@ struct TodoRow: View {
         }
         .todoFont()
         .pageRow(highlighted: model.editingID == todo.uuid)
+        // A light tap when the circle checks, like the click on the Mac.
+        .sensoryFeedback(.impact(weight: .light), trigger: done) { _, checked in checked }
         .swipeActions(edge: .trailing) {
             Button(role: .destructive) { model.delete([todo.uuid]) } label: { Label("Delete", systemImage: "trash") }
         }

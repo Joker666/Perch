@@ -11,15 +11,9 @@ import SwiftUI
 //   APP_THEME=<id> Perch       run with another theme from Theme.all (Shared/Theme.swift)
 //   APP_GRID=1 Perch           draw grid lines every 8 pt and the layout probes over the window
 
-/// The one model the panel, menus, and Settings share.
-@MainActor
-enum Shared {
-    static let model = AppModel(container: Store.makeContainer())
-}
-
 struct PerchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    private var model: AppModel { Shared.model }
+    private var model: AppModel { AppModel.shared }
 
     /// The menu bar icon at 16 pt, the size of other menu bar icons (`systemImage:` draws
     /// about 11 pt). A template image follows the menu bar's color.
@@ -98,7 +92,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // A regular app with a Dock icon, unless Settings > General turned it off.
         // Started from a terminal, the process is not a foreground app until this.
         AppPresence.applyDockIcon()
-        let model = Shared.model
+        let model = AppModel.shared
         Prefs.shared.applyAppearance()
         AppIcons.apply(Prefs.shared.iconID)
         SeedData.insertIfRequested(into: model)
@@ -112,12 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AgentRouter.model = model
         AgentSocket.listen { AgentRouter.handle($0) }
         Updates.start()
-        // iCloud tells the app about changes from other devices with a silent push.
-        if Store.syncs {
-            model.iCloudPush = "waiting"
-            NSApp.registerForRemoteNotifications()
-            model.reloadOnSync()
-        }
+        model.startSync { NSApp.registerForRemoteNotifications() }
 
         if SelfTest.requested {
             SelfTest.runIfRequested(model: model)
@@ -137,11 +126,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        Shared.model.iCloudPush = "on"
+        AppModel.shared.pushRegistered()
     }
 
     func application(_ application: NSApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        Shared.model.iCloudPush = "failed: \(error.localizedDescription)"
+        AppModel.shared.pushFailed(error)
     }
 
     /// Clicking the Dock icon brings the panel back.
@@ -152,7 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Saves a row that is still being typed in. The self-test's result becomes the exit code.
     func applicationWillTerminate(_ notification: Notification) {
-        Shared.model.commitEditing()
+        AppModel.shared.commitEditing()
         if SelfTest.requested { exit(SelfTest.exitCode) }
     }
 }

@@ -56,9 +56,13 @@ enum PanelMode: String, CaseIterable {
 /// Where the keyboard is in the panel. The rules that move it are `FocusRules` (PerchKit).
 typealias PanelFocus = RowFocus<UUID>
 
-/// App-wide state the panel, menus, and Settings share.
+/// App-wide state the panel, menus, and Settings share, and every iOS screen.
 @Observable
 final class AppModel {
+    /// The one model of the app. The same `AppModel` runs on the Mac and on iOS,
+    /// so add, edit, complete, undo, and sync work the same.
+    static let shared = AppModel(container: Store.makeContainer())
+
     let container: ModelContainer
     let undoManager = UndoManager()
 
@@ -85,7 +89,11 @@ final class AppModel {
     var iCloudPush = "off"
 
     /// The list before the current edit began, for that edit's undo step.
-    private var editStart: [TodoRecord]?
+    private var editStart: [TodoRecord]? { didSet { if editStart == nil || oldValue == nil { editTouched = [] } } }
+    /// Todos that changes joined to the open edit touched, such as a move while typing.
+    @ObservationIgnored private var editTouched: Set<UUID> = []
+    /// True while a reload after an iCloud merge waits for the next run loop turn.
+    @ObservationIgnored private var reloadScheduled = false
     private var editIsNew = false
 
     private var context: ModelContext { container.mainContext }
@@ -107,18 +115,44 @@ final class AppModel {
     /// Open todos in list order. Two devices can give two todos the same order value, so
     /// ties go by creation time and then id, the same on every device.
     private static func listOrder(_ all: [Todo]) -> [Todo] {
-        all.filter { !$0.isCompleted }.sorted {
-            ($0.order, $0.createdAt, $0.uuid.uuidString) < ($1.order, $1.createdAt, $1.uuid.uuidString)
+        all.filter { !$0.isCompleted }.sorted { a, b in
+            if a.order != b.order { return a.order < b.order }
+            if a.createdAt != b.createdAt { return a.createdAt < b.createdAt }
+            return a.uuid.uuidString < b.uuid.uuidString
         }
     }
 
-    /// Reloads after iCloud merges changes from another device into the store.
-    func reloadOnSync() {
+    // MARK: iCloud
+
+    /// Starts iCloud's live updates when the store syncs: `register` asks the system for
+    /// a push token, and the List reloads when iCloud merges a change.
+    func startSync(register: () -> Void) {
+        guard Store.syncs else { return }
+        iCloudPush = "waiting"
+        register()
+        reloadOnSync()
+    }
+
+    func pushRegistered() { iCloudPush = "on" }
+    func pushFailed(_ error: Error) { iCloudPush = "failed: \(error.localizedDescription)" }
+
+    /// Reloads after iCloud merges changes from another device into the store. One
+    /// merge sends several notifications, so they share one reload.
+    private func reloadOnSync() {
         let center = NotificationCenter.default
         for name in [Notification.Name.NSPersistentStoreRemoteChange, NSManagedObjectContext.didMergeChangesObjectIDsNotification] {
             center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.reload() }
+                MainActor.assumeIsolated { self?.scheduleReload() }
             }
+        }
+    }
+
+    private func scheduleReload() {
+        guard !reloadScheduled else { return }
+        reloadScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            self?.reloadScheduled = false
+            self?.reload()
         }
     }
 
@@ -199,13 +233,14 @@ final class AppModel {
             return
         }
         let start = editStart
+        let owned = editTouched.union([id])
         editStart = nil
         if let text = TodoText.clean(todo.text) {
-            change(start == nil ? nil : editIsNew ? "Add Todo" : "Edit Todo", from: start) { todo.text = text }
+            change(start == nil ? nil : editIsNew ? "Add Todo" : "Edit Todo", edit: start, owned: owned) { todo.text = text }
             if editIsNew { FeedbackSound.play(.add) }
         } else {
             // An emptied row that existed before is a delete. A new empty row was never a todo.
-            change(start == nil || editIsNew ? nil : "Delete Todo", from: start) { context.delete(todo) }
+            change(start == nil || editIsNew ? nil : "Delete Todo", edit: start, owned: owned) { context.delete(todo) }
         }
         focus = next ?? .none
     }
@@ -253,25 +288,24 @@ final class AppModel {
         let ids = ids.filter { todo($0)?.isCompleted == false && !completing.contains($0) }
         guard !ids.isEmpty else { return }
         commitEditing()
-        let start = records()
         let live = ids.filter { todo($0) != nil }
         guard !live.isEmpty else { return }
         let next = FocusRules.afterRemoving(Set(live), from: todos.map(\.uuid))
         guard animated else {
-            finishCompleting(live, start: start, next: next)
+            finishCompleting(live, next: next)
             return
         }
         FeedbackSound.play(.complete)
         completing.formUnion(live)
         Task {
             try? await Task.sleep(for: .seconds(Motion.completionSettle))
-            self.finishCompleting(live, start: start, next: next)
+            self.finishCompleting(live, next: next)
         }
     }
 
-    private func finishCompleting(_ ids: [UUID], start: [TodoRecord], next: PanelFocus) {
+    private func finishCompleting(_ ids: [UUID], next: PanelFocus) {
         completing.subtract(ids)
-        change(ids.count == 1 ? "Complete Todo" : "Complete Todos", from: start) {
+        change(ids.count == 1 ? "Complete Todo" : "Complete Todos") {
             for id in ids {
                 guard let todo = todo(id) else { continue }
                 todo.isCompleted = true
@@ -303,10 +337,12 @@ final class AppModel {
     func delete(_ ids: [UUID]) {
         guard !ids.isEmpty else { return }
         if editingID != nil, ids != [editingID] { commitEditing() }
-        let start = editStart ?? records()
+        // Deleting the row being typed in also takes back what joined its edit.
+        let start = editStart
+        let owned = editTouched.union(ids)
         editStart = nil
         let next = FocusRules.afterRemoving(Set(ids), from: visible.map(\.uuid))
-        change(ids.count == 1 ? "Delete Todo" : "Delete Todos", from: start) {
+        change(ids.count == 1 ? "Delete Todo" : "Delete Todos", edit: start, owned: owned) {
             for id in ids { if let todo = todo(id) { context.delete(todo) } }
         }
         focus = next
@@ -357,15 +393,26 @@ final class AppModel {
     // MARK: Saving and undo
 
     /// Every todo change: runs `body`, saves (renumbering a crowded List), adds an
-    /// undo step back to `start`, and reloads. No undo step when nothing changed,
-    /// or when `undoName` is nil because the change joins an open edit.
-    private func change(_ undoName: String?, from start: [TodoRecord]? = nil, _ body: () -> Void) {
-        let start = undoName == nil ? nil : start ?? records()
+    /// undo step, and reloads. No undo step when nothing changed, or when `undoName`
+    /// is nil because the change joins an open edit.
+    /// Undo puts back what this change touched, as it was just before. An edit
+    /// (`edit` is its start, `owned` its todos) puts those todos back as they were
+    /// when the edit began. A change iCloud merged in between stays.
+    private func change(_ undoName: String?, edit start: [TodoRecord]? = nil, owned: Set<UUID> = [],
+                        _ body: () -> Void) {
+        let before = records()
         body()
         save()
-        if let undoName, let start {
-            let touched = Self.changedIDs(start, records())
-            if !touched.isEmpty { registerUndo(start.filter { touched.contains($0.uuid) }, touched: touched, name: undoName) }
+        let after = records()
+        let changed = Self.changedIDs(before, after)
+        if let undoName {
+            let beforeByID = Self.byID(before), startByID = Self.byID(start ?? []), afterByID = Self.byID(after)
+            let fromEdit = start == nil ? [] : owned.filter { startByID[$0] != afterByID[$0] }
+            let touched = changed.union(fromEdit)
+            let undo = touched.compactMap { fromEdit.contains($0) ? startByID[$0] : beforeByID[$0] }
+            if !touched.isEmpty { registerUndo(undo, touched: touched, name: undoName) }
+        } else if editStart != nil {
+            editTouched.formUnion(changed)
         }
         reload()
     }
@@ -374,10 +421,13 @@ final class AppModel {
         ((try? context.fetch(FetchDescriptor<Todo>())) ?? []).map(TodoRecord.init)
     }
 
+    private static func byID(_ records: [TodoRecord]) -> [UUID: TodoRecord] {
+        Dictionary(records.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
+    }
+
     /// The ids of todos that were added, removed, or changed between two copies of the list.
     private static func changedIDs(_ old: [TodoRecord], _ new: [TodoRecord]) -> Set<UUID> {
-        let before = Dictionary(old.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
-        let after = Dictionary(new.map { ($0.uuid, $0) }, uniquingKeysWith: { first, _ in first })
+        let before = byID(old), after = byID(new)
         return Set(before.keys).union(after.keys).filter { before[$0] != after[$0] }
     }
 
