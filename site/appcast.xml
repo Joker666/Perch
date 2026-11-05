@@ -6,15 +6,15 @@
     <description>Updates for Perch, a tiny floating todo list for the Mac.</description>
     <language>en</language>
     <item>
-      <title>Version 0.1.5</title>
-      <pubDate>Mon, 02 Nov 2026 20:50:54 +0000</pubDate>
-      <sparkle:version>202611022048</sparkle:version>
-      <sparkle:shortVersionString>0.1.5</sparkle:shortVersionString>
+      <title>Version 0.1.6</title>
+      <pubDate>Thu, 05 Nov 2026 00:59:32 +0000</pubDate>
+      <sparkle:version>202611050057</sparkle:version>
+      <sparkle:shortVersionString>0.1.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>New: the panel springs in when you show it, and shrinks and fades out when you hide it. With Reduce Motion on, it shows and hides at once.</li><li>Agents that add todos through `perch` or MCP are now asked to write short todos that start with a verb.</li></ul>]]></description>
-      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.5</sparkle:fullReleaseNotesLink>
-      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.5/Perch.dmg"
-                 type="application/octet-stream" sparkle:edSignature="q+Xpo4La/BSc8cgDnNmjZ0KUwKJ33bWoBpIjnQ0AXz1eL0Z7QXXYhlD7oDQ4mv5Kq0LNO/89pgP3QTLulcifBQ==" length="3557252" />
+      <description><![CDATA[<style>:root{color-scheme:light dark}body{font:13px/1.45 -apple-system,sans-serif;margin:0 4px}ul{padding-left:18px;margin:8px 0}li{margin:4px 0}</style><ul><li>New: your todos sync with iCloud. Sign in to the same iCloud account on each Mac, and the same todos show on all of them. There is no account or server of Perch's own.</li><li>Undo takes back only your own change. It never removes a todo that came from another Mac.</li><li>`perch status` shows whether iCloud sync and its push updates are on.</li></ul>]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/Joker666/Perch/releases/tag/v0.1.6</sparkle:fullReleaseNotesLink>
+      <enclosure url="https://github.com/Joker666/Perch/releases/download/v0.1.6/Perch.dmg"
+                 type="application/octet-stream" sparkle:edSignature="+0k7aLQpYWxczRDaowHa1gbX+eCbjvn5WcgAEbIe6NJ7cBX9bH4B0HPaRBWHctY7pJROoE+9U7Ast/Rju4/6DQ==" length="3585016" />
     </item>
   </channel>
 </rss>
