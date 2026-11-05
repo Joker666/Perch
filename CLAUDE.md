@@ -15,6 +15,7 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
   Platform code in them uses `#if os(macOS)`. A change there must build for both apps.
 - `iOS/` the iOS app. `iOS/project.yml` is the XcodeGen project (scheme `PerchPhone`). The generated `Perch.xcodeproj` is not in git.
 - `Sources/PerchKit/` rules and data logic with no SwiftUI, including the keyboard focus rules. Tests in `Tests/PerchKitTests/`.
+- `DockTile/` the Dock tile plug-in that shows the picked icon while Perch is quit. `build.sh` compiles it with `swiftc` and fills it with `Perch --dock-icons`.
 - `Package.swift` a Swift package. There is no Xcode project.
 - `build.sh` builds, signs, and installs `/Applications/Perch.app`, the same place as the dmg. Keep only that one copy.
 - `Icon/AppIcon.icon` the app icon, an Icon Composer file (JSON plus SVG layers). `build.sh` compiles it with `tools/make_icon.sh`. `tools/icon_review.sh` renders every look into one PNG.

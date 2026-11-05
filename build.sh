@@ -111,6 +111,14 @@ else
   sync_note="iCloud sync off: no profile at $profile"
 fi
 
+# The Dock tile plug-in shows the icon picked in Settings while Perch is not running.
+plugin="$app/Contents/PlugIns/PerchDockTile.docktileplugin"
+mkdir -p "$plugin/Contents/MacOS" "$plugin/Contents/Resources"
+xcrun swiftc -O -parse-as-library -module-name PerchDockTile -target "$(uname -m)-apple-macos26.0" \
+  -emit-executable -Xlinker -bundle "$here/DockTile/PerchDockTile.swift" -o "$plugin/Contents/MacOS/PerchDockTile"
+sed -e "s/__BUILD__/$build/" -e "s/__VERSION__/$version/" "$here/DockTile/Info.plist.in" > "$plugin/Contents/Info.plist"
+"$bin" --dock-icons "$plugin/Contents/Resources"
+
 xattr -cr "$app"
 # Sign from the inside out, as Sparkle's documentation describes. No --deep.
 fw="$app/Contents/Frameworks/Sparkle.framework"
@@ -120,6 +128,7 @@ quiet codesign "${sign_flags[@]}" --preserve-metadata=entitlements "$fw/Versions
 quiet codesign "${sign_flags[@]}" "$fw/Versions/B/Autoupdate"
 quiet codesign "${sign_flags[@]}" "$fw/Versions/B/Updater.app"
 quiet codesign "${sign_flags[@]}" "$fw"
+quiet codesign "${sign_flags[@]}" "$plugin"
 quiet codesign "${sign_flags[@]}" "${app_flags[@]}" "$app"
 codesign --verify --strict "$app" || { echo "signature check failed"; exit 1; }
 echo "installed $app $version ($build) (signed: ${identity}, $sync_note)"

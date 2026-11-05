@@ -364,6 +364,11 @@ enum SelfTest {
         check("Show Perch in Dock off makes Perch an accessory app", NSApp.activationPolicy() == .accessory)
         prefs.showInDock = true
         check("Show Perch in Dock on brings back the Dock icon", NSApp.activationPolicy() == .regular)
+        // A new Dock tile shows the bundle icon. Perch applies the picked icon again.
+        let appliedBefore = AppIcons.applied
+        prefs.showInDock = false
+        prefs.showInDock = true
+        check("The picked icon is set again when the Dock icon comes back", AppIcons.applied == appliedBefore + 1)
 
         // Settings fits each tab, with the top edge fixed
         let settings = SettingsWindowController.shared

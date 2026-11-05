@@ -9,6 +9,8 @@ enum AppPresence {
     /// Shows or hides the Dock icon. Test runs change it too, so the self-test can check it.
     static func applyDockIcon() {
         NSApp.setActivationPolicy(Prefs.shared.showInDock ? .regular : .accessory)
+        // A new Dock tile shows the bundle icon, not the one picked in Settings.
+        if Prefs.shared.showInDock { AppIcons.apply(Prefs.shared.iconID) }
         // An app that leaves the Dock also loses focus. Keep Settings in front.
         if let window = SettingsWindowController.shared.window, window.isVisible {
             NSApp.activate()

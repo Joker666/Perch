@@ -2,6 +2,23 @@
 
 Bugs that were hard to find, and the rule each one taught. Newest first.
 
+## 2026-11-04: The picked app icon went back to Midnight
+
+Rafi picked the Pool icon, and the Dock showed Midnight again later. Perch set
+the icon only on the running process (`NSApp.applicationIconImage`), at launch
+and when picked. Anything that makes a new Dock tile shows the bundle icon: a
+new build or a Sparkle update over the running app, a Dock restart, and the new
+"Show Perch in Dock" switch. While Perch is quit, the Dock showed the bundle icon too.
+Fix: Perch applies the icon again when it becomes active and after the Dock
+switch. A Dock tile plug-in (`DockTile/`, built by build.sh) shows the picked
+icon while Perch is quit. The drawn icons are cached, but never an empty image,
+which SwiftUI can return early at launch.
+While testing, the Dock listed Perch with a blank tile after many reinstalls.
+`killall Dock` fixed it. That was the Dock's state, not Perch.
+
+Rule: A runtime Dock icon is lost whenever the Dock makes a new tile. Apply it
+again on activation, and never cache an image that did not draw.
+
 ## 2026-11-02: Settings did not open
 
 Rafi reported that Settings did not open. The window was open but 1 pt wide.

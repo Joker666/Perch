@@ -130,6 +130,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
+    /// The Dock can make a new tile while Perch runs (a new build, a Dock restart),
+    /// which shows the bundle icon again. Applying it on each activation fixes that.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        AppIcons.apply(Prefs.shared.iconID)
+    }
+
     func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         Shared.model.iCloudPush = "on"
     }

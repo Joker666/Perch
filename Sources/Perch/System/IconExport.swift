@@ -1,13 +1,43 @@
 import AppKit
 import SwiftUI
 
-/// Writes the iOS app's alternate icons, one per theme, from the same drawing as
-/// the Mac's icons (AppIconView). tools/make_ios_icons.sh runs it:
-///   Perch --ios-icons iOS/Icons.xcassets
-enum IOSIcons {
-    static var requested: Bool { CommandLine.arguments.contains("--ios-icons") }
+/// Writes the theme icons as PNG files, from the same drawing as the icon in
+/// Settings (AppIconView). The first theme is the bundle icon, so it is left out.
+///   Perch --ios-icons iOS/Icons.xcassets      the iOS alternate icons (tools/make_ios_icons.sh)
+///   Perch --dock-icons <dir>                  icon-<theme>.png for the Dock tile plug-in (build.sh)
+enum IconExport {
+    static var requested: Bool { CommandLine.arguments.contains("--ios-icons") || CommandLine.arguments.contains("--dock-icons") }
 
     static func run() -> Int32 {
+        CommandLine.arguments.contains("--dock-icons") ? dockIcons() : iosIcons()
+    }
+
+    /// Mac icons with the macOS icon grid and shadow, 1024 px for the Dock's largest size.
+    private static func dockIcons() -> Int32 {
+        let args = CommandLine.arguments
+        guard let index = args.firstIndex(of: "--dock-icons"), index + 1 < args.count else {
+            print("usage: Perch --dock-icons <dir>")
+            return 2
+        }
+        let dir = URL(fileURLWithPath: args[index + 1])
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            for theme in Theme.all.dropFirst() {
+                let renderer = ImageRenderer(content: AppIconView(theme: theme, size: 512))
+                renderer.scale = 2
+                guard let image = renderer.cgImage,
+                      let data = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
+                else { throw CocoaError(.fileWriteUnknown) }
+                try data.write(to: dir.appending(path: "icon-\(theme.id).png"))
+            }
+            return 0
+        } catch {
+            print("dock-icons failed: \(error)")
+            return 1
+        }
+    }
+
+    private static func iosIcons() -> Int32 {
         let args = CommandLine.arguments
         guard let index = args.firstIndex(of: "--ios-icons"), index + 1 < args.count else {
             print("usage: Perch --ios-icons <Icons.xcassets>")

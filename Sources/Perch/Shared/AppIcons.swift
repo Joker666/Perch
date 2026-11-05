@@ -11,16 +11,41 @@ import SwiftUI
 /// bundle (iOS/Assets.xcassets), and iOS shows its own alert for a change.
 enum AppIcons {
     #if os(macOS)
+    /// Drawn once per theme, because Perch applies the icon again each time it becomes active.
+    private static var drawn: [String: NSImage] = [:]
+    /// How many times Perch set the Dock icon. The self-test reads it.
+    private(set) static var applied = 0
+
+    /// Sets the Dock icon while Perch runs. The Dock goes back to the bundle icon when it
+    /// makes a new tile (the Dock switch, a new build, a Dock restart), so Perch calls this
+    /// again then. While Perch is not running, the Dock tile plug-in shows the icon
+    /// (DockTile/PerchDockTile.swift), and the notification tells it about a change.
     static func apply(_ id: String) {
+        applied += 1
         // The bundle icon is Midnight. Other icons replace it while the app runs.
-        NSApp.applicationIconImage = id == Theme.all[0].id && Bundle.main.bundleURL.pathExtension == "app"
-            ? nil : image(for: Theme.named(id), size: 512)
+        if id == Theme.all[0].id && Bundle.main.bundleURL.pathExtension == "app" {
+            NSApp.applicationIconImage = nil
+        } else if let image = drawn[id] ?? rendered(Theme.named(id)) {
+            drawn[id] = image
+            NSApp.applicationIconImage = image
+        }
+        DistributedNotificationCenter.default().postNotificationName(changed, object: nil, deliverImmediately: true)
     }
+
+    /// Tells the Dock tile plug-in to read the icon choice again.
+    static let changed = Notification.Name("com.rafi.perch.iconChanged")
 
     static func image(for theme: Theme, size: CGFloat) -> NSImage {
         let renderer = ImageRenderer(content: AppIconView(theme: theme, size: size))
         renderer.scale = 2
         return renderer.nsImage ?? NSImage()
+    }
+
+    /// The Dock-size icon, or nil when SwiftUI cannot draw yet. An empty image would
+    /// show a blank Dock tile, and the cache would keep it.
+    private static func rendered(_ theme: Theme) -> NSImage? {
+        let image = image(for: theme, size: 512)
+        return image.representations.isEmpty || image.size.width == 0 ? nil : image
     }
     #else
     /// The alternate icon's name in the asset catalog, or nil for the primary (Midnight) icon.
