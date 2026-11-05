@@ -365,6 +365,15 @@ Acceptance:
 - [manual] Without the Dock icon, the menu bar icon and the global shortcut still show the panel, and Settings stays in front.
 Status: done
 
+### S-043 Settings opens where I expect
+As the user, I open Settings and it appears beside the panel, top edges aligned, like FloatyDo. If I move it, it opens there the next time. The tabs have room to breathe.
+Acceptance:
+- [unit] Settings goes left of the panel when it fits, else right, else on the side with more room, kept on screen.
+- [self] The first Settings window of a run opens at that place, top-aligned with the panel.
+- [manual] After a drag, Settings opens at the same top-left corner next time. Only the corner is saved, never the size.
+- [manual] The window is 560 pt wide, with 32 pt margins and 32 pt between rows in Theme.
+Status: done
+
 ## M7 iPhone and iPad
 
 The iOS app shares the todo model, undo, themes, and iCloud container with the

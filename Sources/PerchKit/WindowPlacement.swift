@@ -14,6 +14,20 @@ public enum WindowPlacement {
         return moved
     }
 
+    /// A window of `size` beside `anchor` with their top edges aligned, `gap`
+    /// apart: on the left when it fits on screen, else on the right. When neither
+    /// fits, on the side with more room, kept on screen. Settings opens like this
+    /// beside the panel.
+    public static func beside(_ anchor: CGRect, size: CGSize, gap: CGFloat, in visible: CGRect) -> CGRect {
+        let y = anchor.maxY - size.height
+        let left = CGRect(x: anchor.minX - gap - size.width, y: y, width: size.width, height: size.height)
+        if left.minX >= visible.minX { return keptOnScreen(left, in: visible) }
+        let right = CGRect(x: anchor.maxX + gap, y: y, width: size.width, height: size.height)
+        if right.maxX <= visible.maxX { return keptOnScreen(right, in: visible) }
+        let roomLeft = anchor.minX - visible.minX, roomRight = visible.maxX - anchor.maxX
+        return keptOnScreen(roomLeft >= roomRight ? left : right, in: visible)
+    }
+
     /// `frame` scaled about its center, by `start` at progress 0 and by 1 at progress 1.
     public static func scaled(_ frame: CGRect, from start: Double, progress: Double) -> CGRect {
         let scale = start + (1 - start) * progress

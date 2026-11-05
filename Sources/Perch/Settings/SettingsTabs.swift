@@ -12,7 +12,7 @@ struct GeneralSettings: View {
     @State private var loginProblem: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Space.md) {
+        VStack(alignment: .leading, spacing: Space.xl) {
             row("Open Perch at login", help: "Open Perch when you log in to your Mac", isOn: Binding(
                 get: { opensAtLogin },
                 set: { on in
@@ -53,7 +53,7 @@ struct ThemeSettings: View {
     @Bindable private var prefs = Prefs.shared
 
     var body: some View {
-        Grid(alignment: .leading, horizontalSpacing: Space.lg, verticalSpacing: Space.xl) {
+        Grid(alignment: .leading, horizontalSpacing: Space.xl, verticalSpacing: Space.section) {
             GridRow {
                 label("Appearance")
                 Picker("Appearance", selection: $prefs.themeMode) {
@@ -201,7 +201,7 @@ struct ShortcutsSettings: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Space.lg) {
+        VStack(alignment: .leading, spacing: Space.xl) {
             VStack(alignment: .leading, spacing: Space.xs) {
                 HStack {
                     Text("Show or hide Perch")
@@ -212,7 +212,7 @@ struct ShortcutsSettings: View {
                 ShortcutCaption(recording: recording)
             }
             Rectangle().fill(Palette.divider).frame(height: 1)
-            VStack(spacing: Space.sm) {
+            VStack(spacing: Space.md) {
                 ForEach(rows, id: \.0) { row in
                     HStack {
                         Text(row.0).font(.system(size: 13))
@@ -246,7 +246,7 @@ struct IconSettings: View {
     @Bindable private var prefs = Prefs.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Space.md) {
+        VStack(alignment: .leading, spacing: Space.lg) {
             VStack(spacing: 0) {
                 ForEach(Array(Theme.all.enumerated()), id: \.element.id) { index, theme in
                     if index > 0 { Rectangle().fill(Palette.divider).frame(height: 1).padding(.leading, 84) }

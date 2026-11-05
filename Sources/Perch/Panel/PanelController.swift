@@ -16,6 +16,8 @@ final class PanelController: NSObject, NSWindowDelegate {
     private var width: CGFloat
     /// The panel's full-size frame while it appears or hides. Nil at rest.
     private var restingFrame: NSRect?
+    /// Where the panel sits, also while it springs in or fades out. Settings opens beside it.
+    var homeFrame: NSRect { restingFrame ?? panel.frame }
     private enum Transition { case appearing, hiding }
     private var transition: Transition?
     private var transitionStart: CFTimeInterval = 0

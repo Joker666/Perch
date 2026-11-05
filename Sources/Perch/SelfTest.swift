@@ -370,11 +370,18 @@ enum SelfTest {
         m.settingsTab = .theme
         settings.show()
         try? await Task.sleep(for: .seconds(0.5))
+        if let window = settings.window, let panelFrame = PanelController.shared?.homeFrame,
+           let screen = (NSScreen.screens.first { $0.frame.intersects(panelFrame) } ?? NSScreen.main) {
+            let expected = WindowPlacement.beside(panelFrame, size: window.frame.size, gap: SettingsWindowController.gap,
+                                                  in: screen.visibleFrame)
+            check("Settings opens beside the panel, top edges aligned", window.frame == expected,
+                  "Settings \(window.frame), expected \(expected), panel \(panelFrame)")
+        }
         if let window = settings.window, let view = window.contentViewController?.view,
            let visible = window.screen?.visibleFrame {
             window.setFrameTopLeftPoint(NSPoint(x: visible.minX + 40, y: visible.maxY - 40))
             let before = window.frame
-            check("The Settings window is full width", before.width == 520, "\(before)")
+            check("The Settings window is full width", before.width == SettingsWindowController.width, "\(before)")
             m.settingsTab = .shortcuts
             try? await Task.sleep(for: .seconds(0.5))
             let after = window.frame

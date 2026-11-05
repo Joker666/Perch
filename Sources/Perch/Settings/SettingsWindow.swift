@@ -43,12 +43,41 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private(set) var window: NSWindow?
     var model: AppModel!
 
+    static let width: CGFloat = 560
+    /// The gap between the panel and Settings when Settings opens beside it.
+    static let gap: CGFloat = 24
+    /// The top-left corner where you last left Settings. Test runs neither read nor write it.
+    private static let placeKey = "settingsTopLeft"
+    /// True while Perch moves the window itself, so only your moves are saved.
+    private var placing = false
+
     func show() {
+        let isNew = window == nil
         let window = window ?? makeWindow()
         self.window = window
+        if isNew || !window.isVisible { place(window) }
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
         keepOnScreen(window)
+    }
+
+    /// Where you last left Settings, or beside the panel with the top edges aligned.
+    private func place(_ window: NSWindow) {
+        placing = true
+        defer { placing = false }
+        let saved = Store.isOverridden ? nil : UserDefaults.standard.array(forKey: Self.placeKey) as? [Double]
+        if let saved, saved.count == 2 {
+            window.setFrameTopLeftPoint(NSPoint(x: saved[0], y: saved[1]))
+        } else if let panel = PanelController.shared?.homeFrame,
+                  let visible = (NSScreen.screens.first { $0.frame.intersects(panel) } ?? NSScreen.main)?.visibleFrame {
+            // A new window does not have its content's size yet, so place it by the size it will take.
+            let content = window.contentViewController?.view.fittingSize ?? window.contentLayoutRect.size
+            let size = window.frameRect(forContentRect: NSRect(origin: .zero, size: content)).size
+            let frame = WindowPlacement.beside(panel, size: size, gap: Self.gap, in: visible)
+            window.setFrame(frame, display: false)
+        } else {
+            window.center()
+        }
     }
 
     /// A taller tab grows the window down from its top edge. Near the bottom of
@@ -57,10 +86,19 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         if let window = notification.object as? NSWindow { keepOnScreen(window) }
     }
 
+    /// Saves the top-left corner after you drag the window. The size comes from the tab.
+    func windowDidMove(_ notification: Notification) {
+        guard !placing, !Store.isOverridden, let window = notification.object as? NSWindow else { return }
+        UserDefaults.standard.set([window.frame.minX, window.frame.maxY], forKey: Self.placeKey)
+    }
+
     private func keepOnScreen(_ window: NSWindow) {
         guard let visible = (window.screen ?? NSScreen.main)?.visibleFrame else { return }
         let frame = WindowPlacement.keptOnScreen(window.frame, in: visible)
-        if frame != window.frame { window.setFrameOrigin(frame.origin) }
+        guard frame != window.frame else { return }
+        placing = true
+        window.setFrameOrigin(frame.origin)
+        placing = false
     }
 
     private func makeWindow() -> NSWindow {
@@ -73,8 +111,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.delegate = self
-        window.setFrameAutosaveName(Store.isOverridden ? "" : "Settings")
-        if !window.setFrameUsingName("Settings") { window.center() }
+        // Settings used to save its whole frame, which also kept a stale size. Only the corner is saved now.
+        if !Store.isOverridden { UserDefaults.standard.removeObject(forKey: "NSWindow Frame Settings") }
         recolor(window)
         trackTheme(window)
         return window
@@ -122,10 +160,12 @@ struct SettingsView: View {
                 case .about: AboutSettings()
                 }
             }
-            .padding(Space.xxl)
+            // Room like FloatyDo's Settings: wide margins and rows well apart.
+            .padding(.horizontal, Space.section)
+            .padding(.vertical, Space.section)
             .gridArea("settings-\(model.settingsTab.rawValue)")
         }
-        .frame(width: 520)
+        .frame(width: SettingsWindowController.width)
         .fixedSize(horizontal: false, vertical: true)
         .foregroundStyle(Palette.text)
         .tint(Palette.text)

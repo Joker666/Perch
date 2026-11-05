@@ -275,3 +275,22 @@ func emptyText(_ input: String) {
     #expect(start.midX == frame.midX && start.midY == frame.midY)
     #expect(WindowPlacement.scaled(frame, from: 0.98, progress: 1) == frame)
 }
+
+@Test func settingsOpensBesideThePanel() {
+    let visible = CGRect(x: 0, y: 0, width: 1600, height: 1000)
+    let size = CGSize(width: 560, height: 400)
+    // Room on the left: left of the panel, top edges aligned.
+    let panel = CGRect(x: 1000, y: 500, width: 400, height: 300)
+    #expect(WindowPlacement.beside(panel, size: size, gap: 24, in: visible) == CGRect(x: 416, y: 400, width: 560, height: 400))
+    // No room on the left: on the right.
+    let leftPanel = CGRect(x: 40, y: 500, width: 400, height: 300)
+    #expect(WindowPlacement.beside(leftPanel, size: size, gap: 24, in: visible) == CGRect(x: 464, y: 400, width: 560, height: 400))
+    // No room on either side: the side with more room, kept on screen, still top-aligned.
+    let wide = CGRect(x: 300, y: 500, width: 1000, height: 300)
+    #expect(WindowPlacement.beside(wide, size: size, gap: 24, in: visible) == CGRect(x: 0, y: 400, width: 560, height: 400))
+    let wideRight = CGRect(x: 200, y: 500, width: 1000, height: 300)
+    #expect(WindowPlacement.beside(wideRight, size: size, gap: 24, in: visible) == CGRect(x: 1040, y: 400, width: 560, height: 400))
+    // A low panel: the window moves up to stay on screen.
+    let low = CGRect(x: 1000, y: 0, width: 400, height: 200)
+    #expect(WindowPlacement.beside(low, size: size, gap: 24, in: visible).minY == 0)
+}
