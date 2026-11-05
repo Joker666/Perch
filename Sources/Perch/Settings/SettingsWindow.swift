@@ -4,12 +4,13 @@ import PerchKit
 
 /// The Settings tabs. Snapshot mode walks through every case.
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case theme, shortcuts, icon, about
+    case general, theme, shortcuts, icon, about
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
+        case .general: "General"
         case .theme: "Theme"
         case .shortcuts: "Shortcuts"
         case .icon: "Icon"
@@ -19,6 +20,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
     var symbol: String {
         switch self {
+        case .general: "gearshape"
         case .theme: "paintbrush"
         case .shortcuts: "command"
         case .icon: "app.badge.checkmark"
@@ -113,6 +115,7 @@ struct SettingsView: View {
                 .frame(height: 1)
             Group {
                 switch model.settingsTab {
+                case .general: GeneralSettings()
                 case .theme: ThemeSettings()
                 case .shortcuts: ShortcutsSettings()
                 case .icon: IconSettings()

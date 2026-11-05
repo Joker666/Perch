@@ -95,8 +95,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: PanelController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Started from a terminal, the process is not a foreground app yet.
-        NSApp.setActivationPolicy(.regular)
+        // A regular app with a Dock icon, unless Settings > General turned it off.
+        // Started from a terminal, the process is not a foreground app until this.
+        AppPresence.applyDockIcon()
         let model = Shared.model
         Prefs.shared.applyAppearance()
         AppIcons.apply(Prefs.shared.iconID)

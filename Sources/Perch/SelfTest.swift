@@ -359,6 +359,12 @@ enum SelfTest {
         check("One Theme ignores macOS", prefs.theme.id == oneTheme, prefs.theme.id)
         prefs.systemIsDark = SystemAppearance.isDark
 
+        // Settings > General: the Dock icon follows the switch
+        prefs.showInDock = false
+        check("Show Perch in Dock off makes Perch an accessory app", NSApp.activationPolicy() == .accessory)
+        prefs.showInDock = true
+        check("Show Perch in Dock on brings back the Dock icon", NSApp.activationPolicy() == .regular)
+
         // Settings fits each tab, with the top edge fixed
         let settings = SettingsWindowController.shared
         m.settingsTab = .theme

@@ -5,6 +5,50 @@ import PerchKit
 private let labelWidth: CGFloat = 100
 
 /// Settings > Theme: appearance, theme, font, font size, radius, and the completion sound.
+/// Open at login and the Dock icon, as switches like Sound in Theme.
+struct GeneralSettings: View {
+    @Bindable private var prefs = Prefs.shared
+    @State private var opensAtLogin = AppPresence.opensAtLogin
+    @State private var loginProblem: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.md) {
+            row("Open Perch at login", help: "Open Perch when you log in to your Mac", isOn: Binding(
+                get: { opensAtLogin },
+                set: { on in
+                    do {
+                        try AppPresence.setOpensAtLogin(on)
+                        loginProblem = AppPresence.loginNeedsApproval
+                            ? "Allow Perch in System Settings > General > Login Items." : nil
+                    } catch {
+                        loginProblem = error.localizedDescription
+                    }
+                    opensAtLogin = Store.isOverridden ? on : AppPresence.opensAtLogin
+                }))
+            if let loginProblem {
+                Text(loginProblem)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Palette.secondaryText)
+            }
+            row("Show Perch in Dock", help: "Without the Dock icon, use the menu bar icon or your shortcut to show Perch",
+                isOn: $prefs.showInDock)
+        }
+    }
+
+    private func row(_ title: String, help: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            Text(title).font(.system(size: 13, weight: .medium))
+            Spacer()
+            // A switch, not a checkbox: a SwiftUI checkbox in this self-sizing window loops on layout and crashes.
+            Toggle(title, isOn: isOn)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .labelsHidden()
+        }
+        .help(help)
+    }
+}
+
 struct ThemeSettings: View {
     @Bindable private var prefs = Prefs.shared
 

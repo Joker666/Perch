@@ -73,7 +73,7 @@ final class AppModel {
     private(set) var completing: Set<UUID> = []
     /// Settings reopens on the last tab.
     #if os(macOS)
-    var settingsTab: SettingsTab = .theme
+    var settingsTab: SettingsTab = .general
     #endif
     /// Mirrors the panel's visibility for the Show and Hide menu items.
     var panelVisible = false

@@ -356,6 +356,15 @@ Acceptance:
 - [manual] A build without a provisioning profile has no iCloud entitlement and works as before.
 Status: released in 0.1.6. The setup is done. The manual checks between two Macs are not done yet.
 
+### S-042 Open at login and hide the Dock icon
+As the user, I let Perch open when I log in, and I hide its Dock icon, as in FloatyDo.
+Acceptance:
+- [self] "Show Perch in Dock" off makes Perch an accessory app, and on brings back the Dock icon.
+- [self] A test run never adds or removes the login item.
+- [manual] "Open Perch at login" adds Perch to System Settings > General > Login Items, and off removes it. If macOS needs approval, Settings says where.
+- [manual] Without the Dock icon, the menu bar icon and the global shortcut still show the panel, and Settings stays in front.
+Status: done
+
 ## M7 iPhone and iPad
 
 The iOS app shares the todo model, undo, themes, and iCloud container with the

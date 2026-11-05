@@ -33,6 +33,10 @@ final class Prefs {
     /// The clicks when you add or complete a todo (`FeedbackSound`). On by default.
     /// Saved as "completionSound", its name when it covered only completing.
     var playSounds: Bool { didSet { save(playSounds, "completionSound") } }
+    #if os(macOS)
+    /// The Dock icon (System/AppPresence.swift). On by default.
+    var showInDock: Bool { didSet { save(showInDock, "showInDock"); AppPresence.applyDockIcon() } }
+    #endif
 
     var themeChoice: ThemeChoice {
         get { ThemeChoice(mode: themeMode, one: themeID, light: lightThemeID, dark: darkThemeID) }
@@ -65,6 +69,9 @@ final class Prefs {
         radius = defaults.object(forKey: "radius") as? Double ?? Self.defaultRadius
         iconID = defaults.string(forKey: "icon") ?? Theme.all[0].id
         playSounds = defaults.object(forKey: "completionSound") as? Bool ?? true
+        #if os(macOS)
+        showInDock = defaults.object(forKey: "showInDock") as? Bool ?? true
+        #endif
         SystemAppearance.observe { Prefs.shared.systemIsDark = $0 }
     }
 
