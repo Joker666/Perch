@@ -30,7 +30,7 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 - Self-test (the app's real functions on a /tmp store): `tools/selftest.sh`. Exit 0 when every check passes. Add a check for every story with logic in `SelfTest.swift`.
 - Agent CLI: `build.sh` links `~/.local/bin/perch`. After a change to `Agent/`, run `check-agent-cli.sh /Applications/Perch.app/Contents/MacOS/Perch` from the bama agent-cli skill's `scripts/`, and update `docs/AGENT-COMMANDS.md` and `.claude/skills/perch/SKILL.md`.
 - iOS: `cd iOS && xcodegen` then `xcodebuild -scheme PerchPhone -destination 'platform=iOS Simulator,name=iPhone 18 Pro' -derivedDataPath ~/Library/Developer/Perch/ios-build build`. No warnings.
-  `tools/ios-snap.sh` writes `/tmp/Perch-ios-shots/<page>-<theme>.png` (list, edit, archive, settings) on a test store. Look at them after an iOS UI change.
+  `tools/ios-snap.sh` writes `/tmp/Perch-ios-shots/<page>-<theme>.png` (list, edit, archive, archive-empty, settings) on a test store. Look at them after an iOS UI change.
   `tools/make_ios_icons.sh` remakes `iOS/Icons.xcassets` from `AppIconView` after a change to the icons or themes.
 - After every UI change, take snapshots with sample data and look at them: `tools/snap.sh`.
   It writes `/tmp/Perch-shots/<page>-<theme>.png` for every panel state in `Snapshot.pages` and `settings-<tab>-<theme>.png` for every Settings tab, in Midnight and Matcha, then quits. `APP_SNAPSHOT_PAGES=panel,settings` limits the pages. `APP_SNAPSHOT_THEMES=plum,pool` picks the themes.

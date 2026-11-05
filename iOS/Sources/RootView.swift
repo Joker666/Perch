@@ -138,6 +138,8 @@ enum PhoneStyle {
     static let rowCornerRadius: CGFloat = 12
     static let swatch: CGFloat = 44
     static let icon: CGFloat = 60
+    static let emptyBadge: CGFloat = 88
+    static let emptyWidth: CGFloat = 360
 }
 
 extension SystemAppearance {
