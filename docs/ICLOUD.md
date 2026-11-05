@@ -48,6 +48,9 @@ remove a property after the first deploy.
 - `Store.makeContainer` uses `.private(container)` when the app has the
   entitlement and the store is the real one, and `.none` otherwise. Never
   `.automatic`, which syncs any store.
+- The app registers for remote notifications. Core Data subscribes to the
+  private database, and iCloud pushes each change from another Mac.
+  `perch status` shows `"iCloudPush": "on"` when macOS gave Perch a push token.
 - `AppModel.reloadOnSync` reloads the List when iCloud merges a change.
 - Undo puts back only the todos its change touched, so it never takes back a
   change from another Mac.

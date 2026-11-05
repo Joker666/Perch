@@ -114,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Updates.start()
         // iCloud tells the app about changes from other Macs with a silent push.
         if Store.syncs {
+            model.iCloudPush = "waiting"
             NSApp.registerForRemoteNotifications()
             model.reloadOnSync()
         }
@@ -128,6 +129,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        Shared.model.iCloudPush = "on"
+    }
+
+    func application(_ application: NSApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        Shared.model.iCloudPush = "failed: \(error.localizedDescription)"
+    }
 
     /// Clicking the Dock icon brings the panel back.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

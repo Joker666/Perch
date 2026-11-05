@@ -29,7 +29,7 @@ background.
 
 | Command | Does |
 | --- | --- |
-| `perch status --json` | Panel shown, List or Archive, counts, what Undo would take back, iCloud sync on or off |
+| `perch status --json` | Panel shown, List or Archive, counts, what Undo would take back, iCloud sync and push on or off |
 | `perch todos list [--archived] [--search T] [--limit N] --json` | Open todos in order, or completed ones |
 | `perch todos add --text T [--after ID] --json` | Add a todo at the end, or after another |
 | `perch todos complete ID --json` | Complete a todo. It moves to the Archive |

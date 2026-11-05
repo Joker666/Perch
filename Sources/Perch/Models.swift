@@ -79,6 +79,9 @@ final class AppModel {
     var showHideTitle: String { panelVisible ? "Hide Perch" : "Show Perch" }
     /// True while the panel takes the keyboard. The traffic lights show color only then.
     var panelIsKey = false
+    /// Whether macOS gave Perch a push token, which iCloud needs to send changes from
+    /// other Macs at once. "off" when the store does not sync.
+    var iCloudPush = "off"
 
     /// The list before the current edit began, for that edit's undo step.
     private var editStart: [TodoRecord]?

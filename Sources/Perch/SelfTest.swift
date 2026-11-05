@@ -235,6 +235,7 @@ enum SelfTest {
         // iCloud sync (docs/ICLOUD.md). A test store never syncs, so these checks write to
         // the store directly, the way iCloud does when it merges a change from another Mac.
         check("A test store never syncs with iCloud", !Store.syncs)
+        check("A test store asks for no iCloud push", m.iCloudPush == "off", m.iCloudPush)
         let store = m.container.mainContext
         if let mine = m.add(text: "Sync mine") {
             let theirs = Todo(text: "Sync theirs", order: TodoOrder.between(m.todos.last?.order, nil))
