@@ -1,5 +1,10 @@
+#if os(macOS)
 import AppKit
+#else
+import UIKit
+#endif
 import PerchKit
+import QuartzCore
 import SwiftUI
 
 /// One color theme for the panel and the Settings window. Every other color
@@ -25,7 +30,10 @@ struct Theme: Identifiable, Hashable {
 
     /// The swatch in Settings.
     var swatch: Color { surfaceColor }
+    #if os(macOS)
     var appearance: NSAppearance? { NSAppearance(named: isDark ? .darkAqua : .aqua) }
+    #endif
+    var colorScheme: ColorScheme { isDark ? .dark : .light }
 
     static let all: [Theme] = [
         Theme(id: "midnight", name: "Midnight", surface: 0x14141F, highlight: 0x454554, text: 0xFFFFFF, deep: 0x262636, isDark: true),
@@ -65,6 +73,7 @@ enum TodoFont: String, CaseIterable, Identifiable {
         }
     }
 
+    #if os(macOS)
     func nsFont(size: CGFloat) -> NSFont {
         let base = NSFont.systemFont(ofSize: size)
         let design: NSFontDescriptor.SystemDesign? = switch self {
@@ -76,6 +85,7 @@ enum TodoFont: String, CaseIterable, Identifiable {
         guard let design, let descriptor = base.fontDescriptor.withDesign(design) else { return base }
         return NSFont(descriptor: descriptor, size: size) ?? base
     }
+    #endif
 }
 
 /// Color tokens for views. Never hard-code a color or opacity in a view.
@@ -146,10 +156,12 @@ enum PanelStyle {
 
 extension Color {
     init(hex: UInt32) {
-        self.init(nsColor: NSColor(hex: hex))
+        self.init(.sRGB, red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255,
+                  blue: Double(hex & 0xFF) / 255)
     }
 }
 
+#if os(macOS)
 extension NSColor {
     convenience init(hex: UInt32) {
         self.init(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
@@ -158,3 +170,4 @@ extension NSColor {
                   alpha: 1)
     }
 }
+#endif

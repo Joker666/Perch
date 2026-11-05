@@ -1,4 +1,8 @@
+#if os(macOS)
 import AppKit
+#else
+import AVFoundation
+#endif
 
 /// The short clicks when you add or complete a todo in the panel. They are made
 /// in code, so Perch ships no audio file.
@@ -20,23 +24,41 @@ enum FeedbackSound {
         guard Prefs.shared.playSounds, systemAllowsInterfaceSounds, !Store.isOverridden else { return }
         let sound = sound(kind)
         sound?.stop()
+        #if os(macOS)
         sound?.play()
+        #else
+        sound?.currentTime = 0
+        sound?.play()
+        #endif
     }
 
-    /// System Settings > Sound > "Play user interface sound effects". On when never changed.
+    /// System Settings > Sound > "Play user interface sound effects". On when never
+    /// changed. iOS has no such setting, and the ring switch mutes the clicks.
     static var systemAllowsInterfaceSounds: Bool {
+        #if os(macOS)
         UserDefaults.standard.object(forKey: "com.apple.sound.uiaudio.enabled") as? Int != 0
+        #else
+        true
+        #endif
     }
 
-    static func sound(_ kind: Kind) -> NSSound? {
+    #if os(macOS)
+    typealias Player = NSSound
+    private static func player(_ data: Data) -> Player? { NSSound(data: data) }
+    #else
+    typealias Player = AVAudioPlayer
+    private static func player(_ data: Data) -> Player? { try? AVAudioPlayer(data: data) }
+    #endif
+
+    static func sound(_ kind: Kind) -> Player? {
         switch kind {
         case .add: add
         case .complete: complete
         }
     }
 
-    private static let add = NSSound(data: wav([(0, 0.7, 3200, 1100, 0.004)], seconds: 0.06))
-    private static let complete = NSSound(data: wav([(0, 1, 2600, 900, 0.004), (0.045, 0.55, 3400, 1200, 0.003)], seconds: 0.1))
+    private static let add = player(wav([(0, 0.7, 3200, 1100, 0.004)], seconds: 0.06))
+    private static let complete = player(wav([(0, 1, 2600, 900, 0.004), (0.045, 0.55, 3400, 1200, 0.003)], seconds: 0.1))
 
     typealias Click = (start: Double, gain: Double, tick: Double, body: Double, decay: Double)
 

@@ -1,4 +1,8 @@
+#if os(macOS)
 import AppKit
+#else
+import UIKit
+#endif
 import Observation
 import PerchKit
 
@@ -64,9 +68,12 @@ final class Prefs {
         SystemAppearance.observe { Prefs.shared.systemIsDark = $0 }
     }
 
-    /// Dark themes give the app dark controls, light themes light ones.
+    /// Dark themes give the app dark controls, light themes light ones. On iOS the
+    /// root view sets the color scheme from `theme.colorScheme`.
     func applyAppearance() {
+        #if os(macOS)
         NSApp.appearance = theme.appearance
+        #endif
     }
 
     private func save(_ value: Any, _ key: String) {
@@ -75,6 +82,7 @@ final class Prefs {
     }
 }
 
+#if os(macOS)
 /// macOS Light or Dark. `NSApp.effectiveAppearance` cannot say, because Perch
 /// sets its own appearance from the theme, so this reads the system setting.
 enum SystemAppearance {
@@ -92,3 +100,11 @@ enum SystemAppearance {
         }
     }
 }
+#else
+/// iOS Light or Dark. The root view reports changes, because the app's own color
+/// scheme comes from the theme.
+enum SystemAppearance {
+    static var isDark: Bool { UIScreen.main.traitCollection.userInterfaceStyle == .dark }
+    static func observe(_ changed: @escaping @MainActor (Bool) -> Void) {}
+}
+#endif

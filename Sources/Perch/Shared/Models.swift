@@ -1,6 +1,6 @@
-import AppKit
 import CoreData
 import Foundation
+import Observation
 import SwiftData
 import PerchKit
 
@@ -72,7 +72,9 @@ final class AppModel {
     /// Rows playing the completion animation. They stay in `todos` until it ends.
     private(set) var completing: Set<UUID> = []
     /// Settings reopens on the last tab.
+    #if os(macOS)
     var settingsTab: SettingsTab = .theme
+    #endif
     /// Mirrors the panel's visibility for the Show and Hide menu items.
     var panelVisible = false
     /// The Show and Hide menu items' title.
