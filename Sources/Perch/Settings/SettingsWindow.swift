@@ -188,14 +188,14 @@ private struct TabBar: View {
                     VStack(spacing: 2) {
                         Image(systemName: tab.symbol)
                             .font(TextStyle.tabIcon)
-                            .frame(height: 20)
+                            .frame(height: SettingsStyle.tabIconHeight)
                         Text(tab.title)
                             .font(TextStyle.caption)
                     }
-                    .frame(width: 72, height: 44)
+                    .frame(width: SettingsStyle.tabSize.width, height: SettingsStyle.tabSize.height)
                     .foregroundStyle(selected ? Palette.text : Palette.secondaryText)
                     .background {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        RoundedRectangle(cornerRadius: SettingsStyle.tabRadius, style: .continuous)
                             .fill(Palette.highlight)
                             .opacity(selected ? 1 : 0)
                     }

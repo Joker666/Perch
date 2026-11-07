@@ -84,7 +84,7 @@ struct ShortcutRecorder: View {
                 Text(label)
                     .font(TextStyle.keycap)
                     .foregroundStyle(recording.isRecording || hotkey.combo == nil ? Palette.secondaryText : Palette.text)
-                    .frame(minWidth: 96)
+                    .frame(minWidth: SettingsStyle.recorderMinWidth)
                     .padding(.horizontal, Space.sm)
                     .padding(.vertical, Space.xs)
                     .background {

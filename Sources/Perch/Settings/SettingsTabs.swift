@@ -1,9 +1,6 @@
 import SwiftUI
 import PerchKit
 
-/// Label column width for the Theme tab, so every control starts on one edge.
-private let labelWidth: CGFloat = 100
-
 /// Settings > General: open at login and the Dock icon.
 struct GeneralSettings: View {
     @Bindable private var prefs = Prefs.shared
@@ -127,14 +124,14 @@ struct ThemeSettings: View {
     private func label(_ text: String) -> some View {
         Text(text)
             .font(TextStyle.label)
-            .frame(width: labelWidth, alignment: .trailing)
+            .frame(width: SettingsStyle.labelWidth, alignment: .trailing)
     }
 
     private func value(_ text: String) -> some View {
         Text(text)
             .font(TextStyle.value)
             .foregroundStyle(Palette.secondaryText)
-            .frame(width: 44, alignment: .trailing)
+            .frame(width: SettingsStyle.valueWidth, alignment: .trailing)
     }
 }
 
@@ -156,10 +153,10 @@ private struct Swatches: View {
                         .overlay {
                             Circle()
                                 .fill(theme.textColor)
-                                .frame(width: 8, height: 8)
+                                .frame(width: SettingsStyle.swatchDot, height: SettingsStyle.swatchDot)
                                 .opacity(selection == theme.id ? 1 : 0)
                         }
-                        .frame(width: 24, height: 24)
+                        .frame(width: SettingsStyle.swatch, height: SettingsStyle.swatch)
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -249,11 +246,11 @@ struct IconSettings: View {
         VStack(alignment: .leading, spacing: Space.lg) {
             VStack(spacing: 0) {
                 ForEach(Array(Theme.all.enumerated()), id: \.element.id) { index, theme in
-                    if index > 0 { Rectangle().fill(Palette.divider).frame(height: 1).padding(.leading, 84) }
+                    if index > 0 { Rectangle().fill(Palette.divider).frame(height: 1).padding(.leading, SettingsStyle.iconDividerInset) }
                     row(theme)
                 }
             }
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Palette.divider))
+            .background(RoundedRectangle(cornerRadius: SettingsStyle.listRadius, style: .continuous).strokeBorder(Palette.divider))
             Text("The Dock shows the new icon at once.")
                 .font(TextStyle.caption)
                 .foregroundStyle(Palette.secondaryText)
@@ -268,9 +265,9 @@ struct IconSettings: View {
             HStack(spacing: Space.md) {
                 Circle()
                     .strokeBorder(Palette.circle, lineWidth: 1)
-                    .overlay { Circle().fill(Palette.text).padding(4).opacity(current ? 1 : 0) }
+                    .overlay { Circle().fill(Palette.text).padding(Space.xs).opacity(current ? 1 : 0) }
                     .frame(width: PanelStyle.radioSize, height: PanelStyle.radioSize)
-                AppIconView(theme: theme, size: 40)
+                AppIconView(theme: theme, size: SettingsStyle.iconSize)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(theme.name).font(TextStyle.label)
                     if current {
@@ -282,7 +279,7 @@ struct IconSettings: View {
                 Spacer()
             }
             .padding(.horizontal, Space.md)
-            .frame(height: 52)
+            .frame(height: SettingsStyle.iconRow)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -303,7 +300,7 @@ struct AboutSettings: View {
 
     var body: some View {
         VStack(spacing: Space.sm) {
-            AppIconView(theme: Theme.named(Prefs.shared.iconID), size: 96)
+            AppIconView(theme: Theme.named(Prefs.shared.iconID), size: SettingsStyle.aboutIcon)
             Text("Perch")
                 .font(TextStyle.title)
             Text(version)
