@@ -70,8 +70,30 @@ enum SelfTest {
                   !panel.panel.isVisible && panel.panel.alphaValue == 1 && panel.panel.frame == shown,
                   "\(panel.panel.frame)")
         }
-        panel.show()
-        panel.finishAppear()
+        // Quick Add must include the new row in the very first appearance
+        // frame, including when it interrupts a fade-out.
+        for interruptHide in [false, true] {
+            panel.show()
+            panel.finishAppear()
+            panel.hide()
+            if !interruptHide { panel.finishHide() }
+            panel.newTodo()
+            let fitted = panel.fittedFrame()
+            let expected = panel.isAppearing
+                ? WindowPlacement.scaled(fitted, from: Motion.appearScale, progress: 0)
+                : fitted
+            check("New Todo opens at its final row count (interrupt hide: \(interruptHide))",
+                  m.todos.count == 1 && m.editingID != nil
+                      && abs(panel.panel.frame.height - expected.height) < 1,
+                  "\(panel.panel.frame) expected \(expected)")
+            // Let the deferred row-count observer run: it must not retarget
+            // the opening spring to a taller rectangle.
+            try? await Task.sleep(for: .milliseconds(50))
+            check("New Todo keeps its appearance target (interrupt hide: \(interruptHide))",
+                  panel.homeFrame == fitted, "\(panel.homeFrame) expected \(fitted)")
+            panel.finishAppear()
+            m.commitEditing()
+        }
 
         // S-002 add from a filler row, S-007 saved
         m.add()

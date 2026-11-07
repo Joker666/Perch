@@ -86,6 +86,18 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     /// New Todo in the menu bar menu: always shows the panel and starts a todo.
     func newTodo() {
+        if !isVisible {
+            // Finish a pending hide before preparing the next appearance. The
+            // spring must start with the new row's height and settled contents.
+            finishHide()
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                if model.editingID == nil { model.add() }
+                fit(animated: false)
+                panel.contentView?.layoutSubtreeIfNeeded()
+            }
+        }
         show()
         if model.editingID == nil { model.add() }
     }

@@ -2,6 +2,19 @@
 
 Bugs that were hard to find, and the rule each one taught. Newest first.
 
+## 2026-11-07: Quick Add jumped at the bottom while opening
+
+New Todo showed the hidden panel before inserting its empty row. The row-count
+observer then replaced the appearance spring's resting frame with a taller one,
+so the next display frame jumped by almost a row while SwiftUI was still moving
+the filler rows. Quick Add now finishes any pending hide, inserts the row with
+animations disabled, and fits and lays out the hidden panel before showing it.
+Adding to an already visible panel keeps its existing animation.
+
+Rule: Prepare the final rows and height before starting the appearance spring.
+The self-test checks the first frame and the deferred observer's target, both
+from fully hidden and while interrupting a hide.
+
 ## 2026-11-04: The picked app icon went back to Midnight
 
 Rafi picked the Pool icon, and the Dock showed Midnight again later. Perch set
