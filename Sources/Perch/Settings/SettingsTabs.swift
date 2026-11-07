@@ -35,11 +35,7 @@ struct GeneralSettings: View {
         HStack {
             Text(title).font(TextStyle.label)
             Spacer()
-            // A switch, not a checkbox: a SwiftUI checkbox in this self-sizing window loops on layout and crashes.
-            Toggle(title, isOn: isOn)
-                .toggleStyle(.switch)
-                .controlSize(.small)
-                .labelsHidden()
+            SettingsSwitch(title, isOn: isOn)
         }
         .help(help)
     }
@@ -110,11 +106,7 @@ struct ThemeSettings: View {
             }
             GridRow {
                 label("Sound")
-                // A switch, not a checkbox: a SwiftUI checkbox in this self-sizing window loops on layout and crashes.
-                Toggle("Play a sound when you add or complete a todo", isOn: $prefs.playSounds)
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-                    .labelsHidden()
+                SettingsSwitch("Play a sound when you add or complete a todo", isOn: $prefs.playSounds)
                     .help("Play a sound when you add or complete a todo")
                     .gridCellColumns(3)
             }
@@ -132,6 +124,25 @@ struct ThemeSettings: View {
             .font(TextStyle.value)
             .foregroundStyle(Palette.secondaryText)
             .frame(width: SettingsStyle.valueWidth, alignment: .trailing)
+    }
+}
+
+/// A small switch with its label hidden. Never a checkbox: a SwiftUI checkbox in
+/// this self-sizing window loops on layout and crashes (docs/FIXLOG.md).
+private struct SettingsSwitch: View {
+    let title: String
+    @Binding var isOn: Bool
+
+    init(_ title: String, isOn: Binding<Bool>) {
+        self.title = title
+        _isOn = isOn
+    }
+
+    var body: some View {
+        Toggle(title, isOn: $isOn)
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .labelsHidden()
     }
 }
 
