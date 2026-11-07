@@ -2,6 +2,32 @@
 
 Bugs that were hard to find, and the rule each one taught. Newest first.
 
+## 2026-11-07: The iPhone app died at launch
+
+TestFlight 0.1.7 closed the instant it opened on Rafi's iPhone (iOS 27.2 beta),
+and TestFlight recorded no crash. The phone's own reports, copied with
+`xcrun devicectl device copy from --domain-type systemCrashLogs`, said
+`0x8BADF00D`: the scene-create watchdog killed the app after 20 seconds in
+SwiftUI's first layout pass. Rafi's settings were Match System with Midnight (a
+dark theme) in the Light slot and Pool (a light theme) in the Dark slot. The iOS
+code read the system appearance from the window scene, which on this iOS follows
+the app's own `preferredColorScheme`. Light system, so Midnight, so the window
+turned dark, so the handler read dark, so Pool, so the window turned light, so
+Midnight, forever. The simulator (iOS 27.0) did not loop, so it never showed.
+The Mac never had the bug: it reads the system setting with CFPreferences.
+Fix: iOS reads the style from `UIWindowScene.screen`, which the app cannot
+override, and sets `systemIsDark` only when the value changed. The scene also
+reports no trait change when the system switches, because its traits are the
+override, so the root view reads the screen again each time the app becomes
+active. Settings and Control Center both make the app inactive first. A switch
+that happens while the app stays in front, such as sunset, shows on the next
+activation.
+
+Rule: Read the system appearance from something the app cannot override. A
+value the app sets itself cannot tell the app what the system wants. When the
+app dies on the phone and not in the simulator, pull the phone's crash reports
+before guessing.
+
 ## 2026-11-07: Quick Add jumped at the bottom while opening
 
 New Todo showed the hidden panel before inserting its empty row. The row-count

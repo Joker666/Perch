@@ -6,6 +6,7 @@ import UIKit
 /// the bottom to switch pages, open Settings, undo, and add a todo.
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showSettings = false
 
     var body: some View {
@@ -29,8 +30,11 @@ struct RootView: View {
         .preferredColorScheme(Prefs.shared.theme.colorScheme)
         .sheet(isPresented: $showSettings) { SettingsSheet() }
         .onAppear {
-            SystemAppearance.start()
+            SystemAppearance.refresh()
             openRequestedPage()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { SystemAppearance.refresh() }
         }
     }
 }
@@ -146,13 +150,14 @@ enum PhoneStyle {
 }
 
 extension SystemAppearance {
-    /// Follows the system's Light and Dark from the window scene. The window
-    /// itself shows the theme's scheme, so it cannot tell.
-    static func start() {
+    /// Reads the system's Light or Dark from the screen, never from the scene or a
+    /// window: on iOS 27 those take the theme's own color scheme, and reading them
+    /// looped the app at launch (docs/FIXLOG.md). The scene reports no trait change
+    /// for a system switch either, so the root view calls this each time the app
+    /// becomes active. Settings and Control Center both make the app inactive first.
+    static func refresh() {
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-        Prefs.shared.systemIsDark = scene.traitCollection.userInterfaceStyle == .dark
-        scene.registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (scene: UIWindowScene, _) in
-            Prefs.shared.systemIsDark = scene.traitCollection.userInterfaceStyle == .dark
-        }
+        let dark = isDark(on: scene)
+        if Prefs.shared.systemIsDark != dark { Prefs.shared.systemIsDark = dark }
     }
 }

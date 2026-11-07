@@ -112,9 +112,16 @@ enum SystemAppearance {
 /// scheme comes from the theme.
 enum SystemAppearance {
     static var isDark: Bool {
-        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.traitCollection.userInterfaceStyle == .dark
+        (UIApplication.shared.connectedScenes.first as? UIWindowScene).map(isDark(on:)) ?? false
     }
-    /// The root view starts the watch (iOS/Sources/RootView.swift), once a window scene exists.
+
+    /// The screen's style is the system's. The scene's and the windows' follow the
+    /// app's own `preferredColorScheme`, so they cannot say.
+    static func isDark(on scene: UIWindowScene) -> Bool {
+        scene.screen.traitCollection.userInterfaceStyle == .dark
+    }
+    /// The root view reads the style again each time the app becomes active
+    /// (iOS/Sources/RootView.swift), because the scene reports no change for a system switch.
     static func observe(_ changed: @escaping @MainActor (Bool) -> Void) {}
 }
 #endif
