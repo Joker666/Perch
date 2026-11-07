@@ -77,13 +77,13 @@ final class AppModel {
     /// Settings reopens on the last tab.
     #if os(macOS)
     var settingsTab: SettingsTab = .general
-    #endif
     /// Mirrors the panel's visibility for the Show and Hide menu items.
     var panelVisible = false
     /// The Show and Hide menu items' title.
     var showHideTitle: String { panelVisible ? "Hide Perch" : "Show Perch" }
     /// True while the panel takes the keyboard. The traffic lights show color only then.
     var panelIsKey = false
+    #endif
     /// Whether the system gave Perch a push token, which iCloud needs to send changes
     /// from other devices at once. "off" when the store does not sync.
     var iCloudPush = "off"
