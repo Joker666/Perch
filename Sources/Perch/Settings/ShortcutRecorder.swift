@@ -82,7 +82,7 @@ struct ShortcutRecorder: View {
                 if recording.isRecording { recording.stop() } else { recording.start() }
             } label: {
                 Text(label)
-                    .font(.system(size: 12, weight: .medium).monospacedDigit())
+                    .font(TextStyle.keycap)
                     .foregroundStyle(recording.isRecording || hotkey.combo == nil ? Palette.secondaryText : Palette.text)
                     .frame(minWidth: 96)
                     .padding(.horizontal, Space.sm)
@@ -124,7 +124,7 @@ struct ShortcutCaption: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 11))
+            .font(TextStyle.caption)
             .foregroundStyle(Palette.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
     }

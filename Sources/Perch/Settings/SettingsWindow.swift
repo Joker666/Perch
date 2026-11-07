@@ -187,10 +187,10 @@ private struct TabBar: View {
                 } label: {
                     VStack(spacing: 2) {
                         Image(systemName: tab.symbol)
-                            .font(.system(size: 15))
+                            .font(TextStyle.tabIcon)
                             .frame(height: 20)
                         Text(tab.title)
-                            .font(.system(size: 11))
+                            .font(TextStyle.caption)
                     }
                     .frame(width: 72, height: 44)
                     .foregroundStyle(selected ? Palette.text : Palette.secondaryText)

@@ -26,7 +26,7 @@ struct GeneralSettings: View {
                 }))
             if let loginProblem {
                 Text(loginProblem)
-                    .font(.system(size: 11))
+                    .font(TextStyle.caption)
                     .foregroundStyle(Palette.secondaryText)
             }
             row("Show Perch in Dock", help: "Without the Dock icon, use the menu bar icon or your shortcut to show Perch",
@@ -36,7 +36,7 @@ struct GeneralSettings: View {
 
     private func row(_ title: String, help: String, isOn: Binding<Bool>) -> some View {
         HStack {
-            Text(title).font(.system(size: 13, weight: .medium))
+            Text(title).font(TextStyle.label)
             Spacer()
             // A switch, not a checkbox: a SwiftUI checkbox in this self-sizing window loops on layout and crashes.
             Toggle(title, isOn: isOn)
@@ -126,13 +126,13 @@ struct ThemeSettings: View {
 
     private func label(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 13, weight: .medium))
+            .font(TextStyle.label)
             .frame(width: labelWidth, alignment: .trailing)
     }
 
     private func value(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 13).monospacedDigit())
+            .font(TextStyle.value)
             .foregroundStyle(Palette.secondaryText)
             .frame(width: 44, alignment: .trailing)
     }
@@ -205,7 +205,7 @@ struct ShortcutsSettings: View {
             VStack(alignment: .leading, spacing: Space.xs) {
                 HStack {
                     Text("Show or hide Perch")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(TextStyle.label)
                     Spacer()
                     ShortcutRecorder(recording: recording)
                 }
@@ -215,7 +215,7 @@ struct ShortcutsSettings: View {
             VStack(spacing: Space.md) {
                 ForEach(rows, id: \.0) { row in
                     HStack {
-                        Text(row.0).font(.system(size: 13))
+                        Text(row.0).font(TextStyle.body)
                         Spacer()
                         Keycap(row.1)
                     }
@@ -234,7 +234,7 @@ private struct Keycap: View {
 
     var body: some View {
         Text(keys)
-            .font(.system(size: 12, weight: .medium).monospacedDigit())
+            .font(TextStyle.keycap)
             .padding(.horizontal, Space.sm)
             .padding(.vertical, 2)
             .background(RoundedRectangle(cornerRadius: PanelStyle.keycapRadius, style: .continuous).fill(Palette.control))
@@ -255,7 +255,7 @@ struct IconSettings: View {
             }
             .background(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Palette.divider))
             Text("The Dock shows the new icon at once.")
-                .font(.system(size: 11))
+                .font(TextStyle.caption)
                 .foregroundStyle(Palette.secondaryText)
         }
     }
@@ -272,10 +272,10 @@ struct IconSettings: View {
                     .frame(width: PanelStyle.radioSize, height: PanelStyle.radioSize)
                 AppIconView(theme: theme, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(theme.name).font(.system(size: 13, weight: .medium))
+                    Text(theme.name).font(TextStyle.label)
                     if current {
                         Text("Current icon")
-                            .font(.system(size: 11))
+                            .font(TextStyle.caption)
                             .foregroundStyle(Palette.secondaryText)
                     }
                 }
@@ -305,15 +305,15 @@ struct AboutSettings: View {
         VStack(spacing: Space.sm) {
             AppIconView(theme: Theme.named(Prefs.shared.iconID), size: 96)
             Text("Perch")
-                .font(.system(size: 20, weight: .semibold))
+                .font(TextStyle.title)
             Text(version)
-                .font(.system(size: 12))
+                .font(TextStyle.footnote)
                 .foregroundStyle(Palette.secondaryText)
             Text("A tiny floating todo list for the Mac.")
-                .font(.system(size: 13))
+                .font(TextStyle.body)
                 .padding(.top, Space.sm)
             Text("Inspired by FloatyDo by Raffi Chilingaryan and Emirhan.")
-                .font(.system(size: 11))
+                .font(TextStyle.caption)
                 .foregroundStyle(Palette.secondaryText)
             if Updates.isAvailable {
                 Button("Check for Updates…") { Updates.check() }
