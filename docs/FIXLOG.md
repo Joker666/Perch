@@ -11,10 +11,23 @@ the filler rows. Quick Add now finishes any pending hide, inserts the row with
 animations disabled, and fits and lays out the hidden panel before showing it.
 Adding to an already visible panel keeps its existing animation. New Todo while
 the panel still springs in ends the spring first, then grows the same way.
+The hide had the same jump in reverse: it committed the empty row first, the
+row count fell, and the observer retargeted the fade to a shorter frame while
+the fillers moved up. Now a row being typed in stays until the panel is off
+screen, the edit ends there with animations disabled, and `fit` leaves a fading
+panel alone.
+A second cause hid behind the first: the animated resize (`panel.animator()`)
+keeps a Core Animation frame animation running on the panel, also while it is
+hidden, and every frame set directly while it runs is undone on the animation's
+next tick. The self-test caught it: the hidden panel went back to its tall
+frame after `fit` had set the short one. Before a transition starts or a frame
+is set directly, `endResizeAnimation` ends the running one at its target.
 
-Rule: Prepare the final rows and height before starting the appearance spring.
-The self-test checks the first frame and the deferred observer's target, both
-from fully hidden and while interrupting a hide.
+Rule: Prepare the final rows and height before starting the appearance spring,
+and keep them until the panel is off screen. Never set the panel's frame while
+an animator resize may still run: end that animation first. The self-test
+checks the first frame and the deferred observer's target, from fully hidden
+and while interrupting a hide, and the hidden panel's frame after a fade.
 
 ## 2026-11-04: The picked app icon went back to Midnight
 

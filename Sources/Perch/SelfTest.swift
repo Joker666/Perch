@@ -107,6 +107,24 @@ enum SelfTest {
                   abs(panel.panel.frame.height - panel.fittedFrame().height) < 1, "\(panel.panel.frame)")
             m.commitEditing()
         }
+        // Hiding with an empty new row keeps the row until the panel is gone, so the fade does not jump
+        try? await Task.sleep(for: .seconds(Motion.resize + 0.2))
+        panel.newTodo()
+        try? await Task.sleep(for: .seconds(Motion.resize + 0.2))
+        let tall = panel.panel.frame.height
+        panel.hide()
+        if panel.isHiding {
+            try? await Task.sleep(for: .milliseconds(50))
+            check("Hide keeps the panel's rows and height while it fades",
+                  panel.isHiding && m.editingID != nil && abs(panel.homeFrame.height - tall) < 1, "\(panel.homeFrame)")
+            panel.finishHide()
+        }
+        check("The empty row goes once the panel is off screen", m.editingID == nil && m.todos.isEmpty)
+        try? await Task.sleep(for: .milliseconds(50))
+        check("The hidden panel fits its rows for the next show",
+              abs(panel.panel.frame.height - panel.fittedFrame().height) < 1, "\(panel.panel.frame)")
+        panel.show()
+        panel.finishAppear()
 
         // S-002 add from a filler row, S-007 saved
         m.add()

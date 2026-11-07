@@ -63,12 +63,24 @@ final class PanelController: NSObject, NSWindowDelegate {
         model.panelVisible = true
     }
 
+    /// Hides the panel. A row being typed in stays until the panel is off screen,
+    /// so the fade keeps its height and its rows (docs/FIXLOG.md).
     func hide() {
-        model.commitEditing()
         finishAppear()
         model.panelVisible = false
-        guard isVisible else { return }
+        guard isVisible else {
+            commitOffScreen()
+            return
+        }
         beginHide()
+    }
+
+    /// Ends the edit while nothing shows, with no animation, so the next show
+    /// starts from settled rows.
+    private func commitOffScreen() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { model.commitEditing() }
     }
 
     /// Show and Hide in the menus. Opening a menu takes the keyboard from the
@@ -127,6 +139,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     /// frame then moves it along `Motion.appear` to the full size.
     private func beginAppear() {
         guard !reduceMotion else { return }
+        endResizeAnimation()
         let frame = fittedFrame()
         restingFrame = frame
         panel.setFrame(WindowPlacement.scaled(frame, from: Motion.appearScale, progress: 0), display: false)
@@ -136,11 +149,23 @@ final class PanelController: NSObject, NSWindowDelegate {
     /// Shrinks the panel to `Motion.hideScale` and fades it out, then orders it out.
     private func beginHide() {
         guard !reduceMotion else {
+            commitOffScreen()
             panel.orderOut(nil)
             return
         }
+        endResizeAnimation()
         restingFrame = panel.frame
         start(.hiding)
+    }
+
+    /// Ends a resize animation still running on the panel, at its target. A frame
+    /// set while one runs is undone on the animation's next tick, also while the
+    /// panel is hidden.
+    private func endResizeAnimation() {
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0
+            panel.animator().setFrame(panel.frame, display: false)
+        }
     }
 
     private func start(_ kind: Transition) {
@@ -189,6 +214,8 @@ final class PanelController: NSObject, NSWindowDelegate {
     /// next show. The self-test calls it to skip ahead.
     func finishHide() {
         guard isHiding, let frame = stop() else { return }
+        // Before the order out, so the key loss that follows finds nothing to commit.
+        commitOffScreen()
         panel.orderOut(nil)
         panel.alphaValue = 1
         panel.setFrame(frame, display: false)
@@ -229,15 +256,17 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     /// Sets the fitted height with the top edge fixed, so rows grow downward,
     /// until the panel reaches the Dock. Then the panel moves up. While the
-    /// panel appears or hides, the new frame becomes its full-size frame.
+    /// panel appears, the new frame becomes its full-size frame. A fading panel
+    /// keeps its frame: the next show fits it again.
     func fit(animated: Bool) {
-        guard !panel.inLiveResize else { return }
+        guard !panel.inLiveResize, !isHiding else { return }
         let frame = fittedFrame()
         if restingFrame != nil { restingFrame = frame; return }
         guard frame != panel.frame else { panel.invalidateShadow(); return }
         if animated && panel.isVisible && !reduceMotion {
             animate(to: frame, duration: Motion.resize, curve: Motion.resizeCurve)
         } else {
+            endResizeAnimation()
             panel.setFrame(frame, display: true)
             panel.invalidateShadow()
         }
