@@ -21,7 +21,7 @@ final class AppMenus: NSObject, NSMenuItemValidation {
         for name in [NSMenu.didAddItemNotification, NSMenu.didRemoveItemNotification,
                      NSMenu.didChangeItemNotification, NSApplication.didBecomeActiveNotification] {
             center.addObserver(forName: name, object: nil, queue: .main) { _ in
-                MainActor.assumeIsolated { AppMenus.shared.ensureSoon() }
+                MainActor.assumeIsolated { AppMenus.shared.ensureSoon.schedule() }
             }
         }
         center.addObserver(forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main) { _ in
@@ -29,17 +29,8 @@ final class AppMenus: NSObject, NSMenuItemValidation {
         }
     }
 
-    private var ensureQueued = false
-
     /// One `ensure` for a burst of menu changes.
-    private func ensureSoon() {
-        guard !ensureQueued else { return }
-        ensureQueued = true
-        DispatchQueue.main.async {
-            self.ensureQueued = false
-            self.ensure()
-        }
-    }
+    private lazy var ensureSoon = Coalescer { [weak self] in self?.ensure() }
 
     func ensure() {
         guard let menu = NSApp.mainMenu else { return }

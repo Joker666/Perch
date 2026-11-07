@@ -92,8 +92,8 @@ final class AppModel {
     private var editStart: [TodoRecord]? { didSet { if editStart == nil || oldValue == nil { editTouched = [] } } }
     /// Todos that changes joined to the open edit touched, such as a move while typing.
     @ObservationIgnored private var editTouched: Set<UUID> = []
-    /// True while a reload after an iCloud merge waits for the next run loop turn.
-    @ObservationIgnored private var reloadScheduled = false
+    /// One reload for a burst of iCloud merge notifications.
+    @ObservationIgnored private lazy var reloadSoon = Coalescer { [weak self] in self?.reload() }
     private var editIsNew = false
 
     private var context: ModelContext { container.mainContext }
@@ -142,17 +142,8 @@ final class AppModel {
         let center = NotificationCenter.default
         for name in [Notification.Name.NSPersistentStoreRemoteChange, NSManagedObjectContext.didMergeChangesObjectIDsNotification] {
             center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.scheduleReload() }
+                MainActor.assumeIsolated { self?.reloadSoon.schedule() }
             }
-        }
-    }
-
-    private func scheduleReload() {
-        guard !reloadScheduled else { return }
-        reloadScheduled = true
-        DispatchQueue.main.async { [weak self] in
-            self?.reloadScheduled = false
-            self?.reload()
         }
     }
 
