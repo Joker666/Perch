@@ -35,8 +35,10 @@ types that take plain values.
   command talks to the running app over a Unix socket and runs entries from
   `AgentCommands.all` on the main actor. `perch mcp` serves the same commands
   as MCP tools.
-- **Look** (`UI/`). Themes, `Palette`, `Motion`, `PanelStyle`, the Settings
+- **Look** (`Shared/Theme.swift`, `UI/`, `Settings/SettingsStyle.swift`). Themes,
+  `Palette`, `Motion`, `PanelStyle`, `TextStyle`, `SettingsStyle`, the Settings
   grid, and app icons. Views never hard-code colors, sizes, or durations.
+  `Coalescer` (Shared) runs a burst of notifications as one call.
 - **Checks** (`SelfTest.swift`, `Snapshot.swift`, `SeedData.swift`). They
   run the real app on a store in /tmp and refuse to run without `APP_STORE`.
 

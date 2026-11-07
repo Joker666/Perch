@@ -240,4 +240,21 @@ place, or a third target.
 
 ## Result
 
-Open. No code changed in this review.
+Rafi chose card 1 and card 6. Both are done, one commit each step:
+
+- `0560aae` **Text styles.** `TextStyle` (UI/TextStyle.swift) replaces the 18
+  font sizes in Settings.
+- `037fed4` **Sizes.** `SettingsStyle` (Settings/SettingsStyle.swift) replaces
+  the 13 layout sizes.
+- `641814e` `TrafficLights` moved to PanelView.swift.
+- `ccabad3` `SettingsSwitch` writes the switch rule once.
+- `120004d` `NSColor(hex:)` calls `Color(hex:)`.
+- `d946107` The panel state in `AppModel` is `#if os(macOS)`.
+- `d10dfe4` `Coalescer` (Shared) replaces the two once-per-turn flags.
+- The iOS row is `ListRow`.
+
+Proof: the panel and Settings snapshots in both themes are pixel-identical
+before and after (About differs only in the build number), the layout probes
+are byte-identical, the grid lint and layout check pass, the 80 self-test
+checks pass, the 30 unit tests pass, and the iOS app builds. Cards 2 to 5
+stay open.

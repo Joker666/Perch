@@ -51,7 +51,7 @@ Brief, stories, and glossary in `docs/`. Reference notes in `docs/research/`.
 
 ## Design rules
 
-- The panel has its own look, matched to FloatyDo: 8 themes in `UI/Theme.swift`, each three colors. Every other color is the theme's text color at an opacity in `Palette`. Never hard-code colors, sizes, or durations in views: use `Palette`, `PanelStyle`, `Motion`, and `PanelMetrics` (PerchKit).
+- The panel has its own look, matched to FloatyDo: 8 themes in `Shared/Theme.swift`, each three colors. Every other color is the theme's text color at an opacity in `Palette`. Never hard-code colors, sizes, or durations in views: use `Palette`, `PanelStyle`, `TextStyle`, `SettingsStyle`, `Motion`, and `PanelMetrics` (PerchKit).
 - A theme sets the whole app's appearance: dark themes give dark system controls, light themes light ones (`Prefs.applyAppearance`).
 - The panel height always fits its rows (`PanelController.fit`). Never add a fixed height to the panel.
 - The Settings window uses system controls (Slider, Picker, Button) tinted by the theme, on the theme's surface color.
