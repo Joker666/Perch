@@ -11,7 +11,7 @@ struct ListPage: View {
         List {
             Section {
                 ForEach(model.todos) { todo in
-                    TodoRow(todo: todo, focused: $focused)
+                    ListRow(todo: todo, focused: $focused)
                 }
                 .onMove { from, to in model.move(from.map { model.todos[$0].uuid }, to: to) }
                 NewTodoRow()
@@ -39,7 +39,7 @@ struct ListPage: View {
 }
 
 /// One open todo: the text field, then the circle at the end.
-struct TodoRow: View {
+struct ListRow: View {
     @Environment(AppModel.self) private var model
     let todo: Todo
     var focused: FocusState<UUID?>.Binding
