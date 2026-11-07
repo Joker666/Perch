@@ -94,6 +94,19 @@ enum SelfTest {
             panel.finishAppear()
             m.commitEditing()
         }
+        // New Todo while the panel still springs in: the spring ends, then the panel grows as usual
+        panel.hide()
+        panel.finishHide()
+        panel.show()
+        if panel.isAppearing {
+            panel.newTodo()
+            check("New Todo during the spring ends it and adds the row",
+                  !panel.isAppearing && m.todos.count == 1 && m.editingID != nil)
+            try? await Task.sleep(for: .seconds(Motion.resize + 0.2))
+            check("The panel then grows to fit the new row",
+                  abs(panel.panel.frame.height - panel.fittedFrame().height) < 1, "\(panel.panel.frame)")
+            m.commitEditing()
+        }
 
         // S-002 add from a filler row, S-007 saved
         m.add()

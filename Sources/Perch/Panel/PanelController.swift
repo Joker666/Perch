@@ -86,19 +86,27 @@ final class PanelController: NSObject, NSWindowDelegate {
 
     /// New Todo in the menu bar menu: always shows the panel and starts a todo.
     func newTodo() {
-        if !isVisible {
-            // Finish a pending hide before preparing the next appearance. The
-            // spring must start with the new row's height and settled contents.
+        // Mid-spring the panel is on screen. End the spring, then grow like a shown panel.
+        if isAppearing { finishAppear() }
+        if isVisible {
+            show()
+            addRow()
+        } else {
+            // Hidden or fading out: the row goes in and the panel fits before the
+            // spring starts, so the spring starts at the final height (docs/FIXLOG.md).
             finishHide()
             var transaction = Transaction()
             transaction.disablesAnimations = true
             withTransaction(transaction) {
-                if model.editingID == nil { model.add() }
+                addRow()
                 fit(animated: false)
                 panel.contentView?.layoutSubtreeIfNeeded()
             }
+            show()
         }
-        show()
+    }
+
+    private func addRow() {
         if model.editingID == nil { model.add() }
     }
 

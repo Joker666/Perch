@@ -9,7 +9,8 @@ observer then replaced the appearance spring's resting frame with a taller one,
 so the next display frame jumped by almost a row while SwiftUI was still moving
 the filler rows. Quick Add now finishes any pending hide, inserts the row with
 animations disabled, and fits and lays out the hidden panel before showing it.
-Adding to an already visible panel keeps its existing animation.
+Adding to an already visible panel keeps its existing animation. New Todo while
+the panel still springs in ends the spring first, then grows the same way.
 
 Rule: Prepare the final rows and height before starting the appearance spring.
 The self-test checks the first frame and the deferred observer's target, both
